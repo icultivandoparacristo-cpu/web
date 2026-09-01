@@ -17,16 +17,21 @@
       --card-bg: #ffffff;
     }
 
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: var(--bg);
-      margin: 0;
       padding: 20px;
       color: #333;
     }
 
     .container {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
     }
 
@@ -38,13 +43,12 @@
 
     .carousel-container {
       position: relative;
-      max-width: 100%;
+      width: 100%;
       height: 320px;
-      margin: 0 auto 30px auto;
+      margin: 0 auto 30px;
       overflow: hidden;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      background-color: #000;
     }
 
     .carousel-slide {
@@ -55,7 +59,6 @@
     }
 
     .carousel-slide.active { display: block; }
-
     .carousel-slide img {
       width: 100%;
       height: 100%;
@@ -71,19 +74,10 @@
       background: linear-gradient(transparent, rgba(0,0,0,0.85));
       color: white;
       padding: 20px;
-      text-align: left;
     }
 
-    .carousel-caption h3 {
-      margin: 0 0 5px 0;
-      font-size: 1.4rem;
-    }
-
-    .carousel-caption p {
-      margin: 0;
-      font-size: 0.95rem;
-      color: #ddd;
-    }
+    .carousel-caption h3 { margin: 0 0 5px 0; font-size: 1.4rem; }
+    .carousel-caption p { margin: 0; font-size: 0.95rem; color: #ddd; }
 
     .carousel-btn {
       position: absolute;
@@ -96,26 +90,15 @@
       padding: 10px 15px;
       cursor: pointer;
       border-radius: 50%;
-      user-select: none;
       transition: background 0.2s;
-      width: auto;
     }
 
     .carousel-btn:hover { background: rgba(0, 0, 0, 0.8); }
-
     .carousel-btn.prev { left: 15px; }
     .carousel-btn.next { right: 15px; }
 
-    #home-view {
-      text-align: center;
-      padding: 10px 0;
-    }
-
-    .home-subtitle {
-      font-size: 1.1rem;
-      color: #666;
-      margin-bottom: 25px;
-    }
+    #home-view { text-align: center; padding: 10px 0; }
+    .home-subtitle { font-size: 1.1rem; color: #666; margin-bottom: 25px; }
 
     .backup-section {
       background: white;
@@ -127,7 +110,6 @@
       gap: 10px;
       justify-content: center;
       flex-wrap: wrap;
-      align-items: center;
     }
 
     .backup-section button {
@@ -160,7 +142,7 @@
       padding: 30px 20px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.08);
       cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      transition: transform 0.2s;
       border: 2px solid transparent;
       display: flex;
       flex-direction: column;
@@ -173,16 +155,8 @@
       border-color: var(--primary);
     }
 
-    .menu-card .icon {
-      font-size: 50px;
-      margin-bottom: 12px;
-    }
-
-    .menu-card h2 {
-      margin: 0;
-      font-size: 1.2rem;
-      color: var(--primary);
-    }
+    .menu-card .icon { font-size: 50px; margin-bottom: 12px; }
+    .menu-card h2 { margin: 0; font-size: 1.2rem; color: var(--primary); }
 
     .header-modulo {
       display: flex;
@@ -193,10 +167,7 @@
       border-bottom: 2px solid var(--primary);
     }
 
-    .header-modulo h2 {
-      margin: 0;
-      color: var(--primary);
-    }
+    .header-modulo h2 { margin: 0; color: var(--primary); }
 
     .btn-home {
       background-color: var(--primary);
@@ -208,10 +179,7 @@
       font-weight: bold;
       font-size: 14px;
       display: inline-flex;
-      align-items: center;
       gap: 8px;
-      transition: background 0.2s;
-      width: auto;
     }
 
     .btn-home:hover { background-color: #1a252f; }
@@ -250,7 +218,7 @@
 
     .btn-save { background-color: var(--accent); }
     .btn-save:hover { background-color: #219150; }
-    .btn-edit { background-color: var(--warning); margin-right: 5px; width: auto; padding: 6px 12px; }
+    .btn-edit { background-color: var(--warning); width: auto; padding: 6px 12px; margin-right: 5px; }
     .btn-delete { background-color: var(--danger); width: auto; padding: 6px 12px; }
     .btn-cancel { background-color: #95a5a6; width: auto; }
     .btn-pdf { background-color: #e74c3c; width: auto; padding: 8px 16px; }
@@ -260,6 +228,7 @@
       background: white;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
     }
 
     table {
@@ -277,7 +246,6 @@
     th {
       background-color: var(--primary);
       color: white;
-      white-space: nowrap;
     }
 
     tr:nth-child(even) { background-color: #f9f9f9; }
@@ -297,15 +265,11 @@
       border-radius: 3px;
     }
 
-    .att-select[data-status="P"] { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
-    .att-select[data-status="E"] { background-color: #fff3cd; color: #856404; border-color: #ffeeba; }
-    .att-select[data-status="A"] { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+    .att-select[data-status="P"] { background-color: #d4edda; color: #155724; }
+    .att-select[data-status="E"] { background-color: #fff3cd; color: #856404; }
+    .att-select[data-status="A"] { background-color: #f8d7da; color: #721c24; }
 
-    .part-check {
-      cursor: pointer;
-      transform: scale(1.1);
-      width: auto;
-    }
+    .part-check { cursor: pointer; transform: scale(1.1); width: auto; }
 
     .dashboard-grid {
       display: grid;
@@ -341,19 +305,9 @@
       border-bottom: 1px solid #ddd;
     }
 
-    .stat-item:last-child {
-      border-bottom: none;
-    }
-
-    .stat-label {
-      font-weight: bold;
-      color: #666;
-    }
-
-    .stat-value {
-      font-weight: bold;
-      color: var(--primary);
-    }
+    .stat-item:last-child { border-bottom: none; }
+    .stat-label { font-weight: bold; color: #666; }
+    .stat-value { font-weight: bold; color: var(--primary); }
 
     .notification {
       position: fixed;
@@ -376,16 +330,53 @@
       to { transform: translateX(0); }
     }
 
+    .filtros-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      align-items: end;
+    }
+
     .filtro-grupo {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 5px;
     }
 
     .filtro-grupo label {
       font-weight: bold;
       font-size: 14px;
     }
+
+    #resultado-reporte {
+      display: none;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 5px solid var(--primary);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .birthday-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .birthday-info h4 { margin: 0 0 5px 0; }
+    .birthday-info p { margin: 0; font-size: 13px; }
+
+    .modulo-content { display: none; }
   </style>
 </head>
 <body>
@@ -442,6 +433,10 @@
         <span class="icon">📅</span>
         <h2>Asistencia</h2>
       </div>
+      <div class="menu-card" onclick="mostrarModulo('tab-cumpleaños')">
+        <span class="icon">🎂</span>
+        <h2>Cumpleaños</h2>
+      </div>
       <div class="menu-card" onclick="mostrarModulo('tab-finanzas')">
         <span class="icon">💰</span>
         <h2>Finanzas</h2>
@@ -454,7 +449,7 @@
   </div>
 
   <!-- ESTUDIANTES -->
-  <div id="tab-estudiantes" class="modulo-content" style="display: none;">
+  <div id="tab-estudiantes" class="modulo-content">
     <div class="header-modulo">
       <h2>👤 Gestión de Estudiantes</h2>
       <button class="btn-home" onclick="volverInicio()">🏠 Inicio</button>
@@ -510,8 +505,8 @@
     </div>
   </div>
 
-  <!-- ASISTENCIA CON DASHBOARD -->
-  <div id="tab-asistencia" class="modulo-content" style="display: none;">
+  <!-- ASISTENCIA SIMPLIFICADA -->
+  <div id="tab-asistencia" class="modulo-content">
     <div class="header-modulo">
       <h2>📅 Registro de Asistencia</h2>
       <button class="btn-home" onclick="volverInicio()">🏠 Inicio</button>
@@ -520,7 +515,7 @@
     <div class="card">
       <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
         <label for="filterGroup"><strong>Grupo de Estudio:</strong></label>
-        <select id="filterGroup" onchange="renderAttendanceTable(); renderDashboard()" style="max-width: 320px;">
+        <select id="filterGroup" onchange="renderAttendanceTable(); renderDashboardSimplified()" style="max-width: 320px;">
           <option value="Carolina y Anyelina">Carolina y Anyelina</option>
           <option value="Marialis, Raysa y Yilbania">Marialis, Raysa y Yilbania</option>
           <option value="Elizabeth, Javiel y Ambiorix">Elizabeth, Javiel y Ambiorix</option>
@@ -531,12 +526,12 @@
         <button class="btn-pdf" onclick="exportarPDF()">📄 Exportar PDF</button>
       </div>
       <p style="font-size:12px; color:#666; margin: 10px 0 0 0;">
-        <b>Leyenda:</b> [P] Presente | [E] Excusa | [A] Ausente | Casilla inferior: Participación (⭐️).
+        <b>Leyenda:</b> [P] Presente | [E] Excusa | [A] Ausente | ⭐ Participación
       </p>
     </div>
 
-    <!-- DASHBOARD -->
-    <div id="dashboardContainer" class="dashboard-grid"></div>
+    <!-- DASHBOARD SIMPLIFICADO: Solo General + Semana en Curso -->
+    <div id="dashboardContainerSimplified" class="dashboard-grid"></div>
 
     <div class="table-container">
       <table id="attendanceTable">
@@ -550,8 +545,37 @@
     </div>
   </div>
 
-  <!-- FINANZAS (sin cambios) -->
-  <div id="tab-finanzas" class="modulo-content" style="display: none;">
+  <!-- CUMPLEAÑOS -->
+  <div id="tab-cumpleaños" class="modulo-content">
+    <div class="header-modulo">
+      <h2>🎂 Cumpleaños</h2>
+      <button class="btn-home" onclick="volverInicio()">🏠 Inicio</button>
+    </div>
+
+    <div class="card">
+      <label><strong>Seleccionar Mes:</strong></label>
+      <select id="mesSelector" onchange="mostrarCumpleañosPorMes()" style="max-width: 300px;">
+        <option value="">-- Todos los meses --</option>
+        <option value="01">Enero</option>
+        <option value="02">Febrero</option>
+        <option value="03">Marzo</option>
+        <option value="04">Abril</option>
+        <option value="05">Mayo</option>
+        <option value="06">Junio</option>
+        <option value="07">Julio</option>
+        <option value="08">Agosto</option>
+        <option value="09">Septiembre</option>
+        <option value="10">Octubre</option>
+        <option value="11">Noviembre</option>
+        <option value="12">Diciembre</option>
+      </select>
+    </div>
+
+    <div id="cumpleañosContainer" class="card"></div>
+  </div>
+
+  <!-- FINANZAS -->
+  <div id="tab-finanzas" class="modulo-content">
     <div class="header-modulo">
       <h2>💰 Control Financiero</h2>
       <button class="btn-home" onclick="volverInicio()">🏠 Inicio</button>
@@ -559,23 +583,16 @@
 
     <div class="card" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
       <div style="padding: 15px; border-radius: 8px; color: white; text-align: center; background-color: var(--accent);">
-        <h4 style="margin: 0 0 5px 0; font-size: 14px;">Total Ingresos / Ofrendas</h4>
+        <h4 style="margin: 0 0 5px 0;">Total Ingresos</h4>
         <p style="margin: 0; font-size: 22px; font-weight: bold;" id="sumIncome">$0.00</p>
       </div>
       <div style="padding: 15px; border-radius: 8px; color: white; text-align: center; background-color: var(--danger);">
-        <h4 style="margin: 0 0 5px 0; font-size: 14px;">Total Gastos</h4>
+        <h4 style="margin: 0 0 5px 0;">Total Gastos</h4>
         <p style="margin: 0; font-size: 22px; font-weight: bold;" id="sumExpense">$0.00</p>
       </div>
       <div style="padding: 15px; border-radius: 8px; color: white; text-align: center; background-color: var(--primary);">
-        <h4 style="margin: 0 0 5px 0; font-size: 14px;">Balance Neto</h4>
+        <h4 style="margin: 0 0 5px 0;">Balance Neto</h4>
         <p style="margin: 0; font-size: 22px; font-weight: bold;" id="sumBalance">$0.00</p>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>📈 Comportamiento de Finanzas</h3>
-      <div class="chart-container">
-        <canvas id="financeChart"></canvas>
       </div>
     </div>
 
@@ -585,8 +602,8 @@
         <input type="hidden" id="financeId">
         <div class="form-group">
           <div>
-            <label>Fecha:</label>
-            <select id="finFecha" required></select>
+            <label>Fecha (DD/MM):</label>
+            <input type="text" id="finFecha" placeholder="DD/MM" pattern="^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[02])$" required>
           </div>
           <div>
             <label>Tipo:</label>
@@ -642,45 +659,42 @@
     </div>
   </div>
 
-  <!-- REPORTES -->
-  <div id="tab-reportes" class="modulo-content" style="display: none;">
+  <!-- REPORTES CON DASHBOARD COMPLETO -->
+  <div id="tab-reportes" class="modulo-content">
     <div class="header-modulo">
-      <h2>📊 Generación de Reportes</h2>
+      <h2>📊 Reportes & Analytics</h2>
       <button class="btn-home" onclick="volverInicio()">🏠 Inicio</button>
     </div>
 
-    <div class="card">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-        <div class="filtro-grupo">
-          <label>Grupo de Estudio:</label>
-          <select id="repGrupo">
-            <option value="">Todos los grupos</option>
-            <option value="Carolina y Anyelina">Carolina y Anyelina</option>
-            <option value="Marialis, Raysa y Yilbania">Marialis, Raysa y Yilbania</option>
-            <option value="Elizabeth, Javiel y Ambiorix">Elizabeth, Javiel y Ambiorix</option>
-            <option value="Ashley, Luis y Angela">Ashley, Luis y Angela</option>
-            <option value="Katherine, Ingrid y Nathan">Katherine, Ingrid y Nathan</option>
-            <option value="Rosa y Alfonso">Rosa y Alfonso</option>
-          </select>
-        </div>
-        <div class="filtro-grupo">
-          <label>Mes (2026):</label>
-          <select id="repMes">
-            <option value="">Todos los meses</option>
-            <option value="10">Octubre</option>
-            <option value="11">Noviembre</option>
-            <option value="12">Diciembre</option>
-          </select>
-        </div>
-        <div class="filtro-grupo">
-          <label>Estudiante:</label>
-          <input type="text" id="repEstudiante" placeholder="Nombre o apellido...">
-        </div>
+    <div class="filtros-container">
+      <div class="filtro-grupo">
+        <label>Grupo de Estudio:</label>
+        <select id="repGrupo" onchange="generarReporteDashboard()">
+          <option value="">Todos</option>
+          <option value="Carolina y Anyelina">Carolina y Anyelina</option>
+          <option value="Marialis, Raysa y Yilbania">Marialis, Raysa y Yilbania</option>
+          <option value="Elizabeth, Javiel y Ambiorix">Elizabeth, Javiel y Ambiorix</option>
+          <option value="Ashley, Luis y Angela">Ashley, Luis y Angela</option>
+          <option value="Katherine, Ingrid y Nathan">Katherine, Ingrid y Nathan</option>
+          <option value="Rosa y Alfonso">Rosa y Alfonso</option>
+        </select>
       </div>
-      <button class="btn-save" onclick="generarReporte()" style="margin-top: 15px; width: 100%;">Generar Reporte</button>
+      <div class="filtro-grupo">
+        <label>Mes:</label>
+        <select id="repMes" onchange="generarReporteDashboard()">
+          <option value="">Todos</option>
+          <option value="10">Octubre</option>
+          <option value="11">Noviembre</option>
+          <option value="12">Diciembre</option>
+        </select>
+      </div>
+      <div class="filtro-grupo">
+        <label>Estudiante:</label>
+        <input type="text" id="repEstudiante" placeholder="Nombre..." onchange="generarReporteDashboard()">
+      </div>
     </div>
 
-    <div id="resultado-reporte" style="display: none; background: white; padding: 20px; border-radius: 8px; border-left: 5px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.1);"></div>
+    <div id="dashboardReportes" class="dashboard-grid"></div>
   </div>
 
 </div>
@@ -696,37 +710,16 @@
   let attendanceData = JSON.parse(localStorage.getItem('biblical_attendance')) || {};
   let finances = JSON.parse(localStorage.getItem('biblical_finances')) || [];
   
-  let myFinanceChart = null;
   let dashboardCharts = {};
-
-  const studentForm = document.getElementById('studentForm');
-  const studentIdInput = document.getElementById('studentId');
-  const nombreInput = document.getElementById('nombre');
-  const apellidoInput = document.getElementById('apellido');
-  const fechaInput = document.getElementById('fechaNacimiento');
-  const grupoInput = document.getElementById('grupo');
-  const btnSubmitStudent = document.getElementById('btnSubmitStudent');
-  const btnCancelStudent = document.getElementById('btnCancelStudent');
-  const studentTableBody = document.getElementById('studentTableBody');
-
-  const financeForm = document.getElementById('financeForm');
-  const financeIdInput = document.getElementById('financeId');
-  const finFecha = document.getElementById('finFecha');
-  const finTipo = document.getElementById('finTipo');
-  const finCuenta = document.getElementById('finCuenta');
-  const finMonto = document.getElementById('finMonto');
-  const finSecretaria = document.getElementById('finSecretaria');
-  const finNota = document.getElementById('finNota');
-  const btnSubmitFinance = document.getElementById('btnSubmitFinance');
-  const btnCancelFinance = document.getElementById('btnCancelFinance');
-  const financeTableBody = document.getElementById('financeTableBody');
-
   let slideIndex = 0;
   let slideInterval;
 
+  // Elementos
+  const studentForm = document.getElementById('studentForm');
+  const financeForm = document.getElementById('financeForm');
+
   function showSlides(n) {
     const slides = document.querySelectorAll('.carousel-slide');
-    if (slides.length === 0) return;
     if (n >= slides.length) slideIndex = 0;
     if (n < 0) slideIndex = slides.length - 1;
     slides.forEach(slide => slide.classList.remove('active'));
@@ -759,10 +752,10 @@
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `escuela-biblica-respaldo-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `escuela-biblica-${new Date().toISOString().split('T')[0]}.json`;
     link.click();
     URL.revokeObjectURL(url);
-    mostrarNotificacion('✅ Respaldo descargado exitosamente', 'success');
+    mostrarNotificacion('✅ Respaldo descargado', 'success');
   }
 
   function importarDatos(event) {
@@ -778,48 +771,42 @@
         localStorage.setItem('biblical_students', JSON.stringify(students));
         localStorage.setItem('biblical_attendance', JSON.stringify(attendanceData));
         localStorage.setItem('biblical_finances', JSON.stringify(finances));
-        mostrarNotificacion('✅ Respaldo cargado. La página se recargará...', 'success');
+        mostrarNotificacion('✅ Datos cargados. Recargando...', 'success');
         setTimeout(() => location.reload(), 1500);
       } catch (error) {
-        mostrarNotificacion('❌ Error al cargar el respaldo.', 'error');
+        mostrarNotificacion('❌ Error al cargar', 'error');
       }
     };
     reader.readAsText(file);
     event.target.value = '';
   }
 
-  function mostrarNotificacion(mensaje, tipo) {
+  function mostrarNotificacion(msg, tipo) {
     const notif = document.getElementById('notification');
-    notif.textContent = mensaje;
+    notif.textContent = msg;
     notif.className = `notification ${tipo}`;
     notif.style.display = 'block';
-    setTimeout(() => {
-      notif.style.display = 'none';
-    }, 4000);
+    setTimeout(() => notif.style.display = 'none', 4000);
   }
 
-  function mostrarModulo(idModulo) {
+  function mostrarModulo(id) {
     document.getElementById('home-view').style.display = 'none';
     document.querySelectorAll('.modulo-content').forEach(mod => mod.style.display = 'none');
-    document.getElementById(idModulo).style.display = 'block';
-    if (idModulo === 'tab-estudiantes') renderStudentTable();
-    if (idModulo === 'tab-asistencia') {
+    document.getElementById(id).style.display = 'block';
+    
+    if (id === 'tab-estudiantes') renderStudentTable();
+    if (id === 'tab-asistencia') {
       renderAttendanceTable();
-      renderDashboard();
+      renderDashboardSimplified();
     }
-    if (idModulo === 'tab-finanzas') renderFinanceTable();
+    if (id === 'tab-cumpleaños') mostrarCumpleañosPorMes();
+    if (id === 'tab-finanzas') renderFinanceTable();
+    if (id === 'tab-reportes') generarReporteDashboard();
   }
 
   function volverInicio() {
     document.querySelectorAll('.modulo-content').forEach(mod => mod.style.display = 'none');
     document.getElementById('home-view').style.display = 'block';
-  }
-
-  function initDateSelectors() {
-    finFecha.innerHTML = '';
-    martes2026.forEach(fecha => {
-      finFecha.innerHTML += `<option value="${fecha}">${fecha}/2026</option>`;
-    });
   }
 
   function saveAll() {
@@ -831,13 +818,13 @@
   // ESTUDIANTES
   studentForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const id = studentIdInput.value;
+    const id = document.getElementById('studentId').value;
     const studentData = {
       id: id ? parseInt(id) : Date.now(),
-      nombre: nombreInput.value.trim(),
-      apellido: apellidoInput.value.trim(),
-      fechaNacimiento: fechaInput.value.trim(),
-      grupo: grupoInput.value
+      nombre: document.getElementById('nombre').value.trim(),
+      apellido: document.getElementById('apellido').value.trim(),
+      fechaNacimiento: document.getElementById('fechaNacimiento').value.trim(),
+      grupo: document.getElementById('grupo').value
     };
     if (id) {
       students = students.map(s => s.id === parseInt(id) ? studentData : s);
@@ -845,46 +832,45 @@
       students.push(studentData);
     }
     saveAll();
-    resetStudentForm();
+    studentForm.reset();
     renderStudentTable();
   });
 
   function renderStudentTable() {
-    studentTableBody.innerHTML = '';
+    const tbody = document.getElementById('studentTableBody');
+    tbody.innerHTML = '';
     if (students.length === 0) {
-      studentTableBody.innerHTML = `<tr><td colspan="4">No hay estudiantes registrados.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4">No hay estudiantes</td></tr>`;
       return;
     }
-    students.forEach(student => {
+    students.forEach(s => {
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td class="text-left">${student.nombre} ${student.apellido}</td>
-        <td>${student.fechaNacimiento}</td>
-        <td>${student.grupo}</td>
+        <td class="text-left">${s.nombre} ${s.apellido}</td>
+        <td>${s.fechaNacimiento}</td>
+        <td>${s.grupo}</td>
         <td>
-          <button class="btn-edit" onclick="editStudent(${student.id})">Editar</button>
-          <button class="btn-delete" onclick="deleteStudent(${student.id})">Borrar</button>
+          <button class="btn-edit" onclick="editStudent(${s.id})">Editar</button>
+          <button class="btn-delete" onclick="deleteStudent(${s.id})">Borrar</button>
         </td>
       `;
-      studentTableBody.appendChild(row);
+      tbody.appendChild(row);
     });
   }
 
   function editStudent(id) {
-    const student = students.find(s => s.id === id);
-    if (student) {
-      studentIdInput.value = student.id;
-      nombreInput.value = student.nombre;
-      apellidoInput.value = student.apellido;
-      fechaInput.value = student.fechaNacimiento;
-      grupoInput.value = student.grupo;
-      btnSubmitStudent.textContent = 'Actualizar Estudiante';
-      btnCancelStudent.style.display = 'inline-block';
+    const s = students.find(x => x.id === id);
+    if (s) {
+      document.getElementById('studentId').value = s.id;
+      document.getElementById('nombre').value = s.nombre;
+      document.getElementById('apellido').value = s.apellido;
+      document.getElementById('fechaNacimiento').value = s.fechaNacimiento;
+      document.getElementById('grupo').value = s.grupo;
     }
   }
 
   function deleteStudent(id) {
-    if (confirm('¿Eliminar este estudiante?')) {
+    if (confirm('¿Eliminar?')) {
       students = students.filter(s => s.id !== id);
       delete attendanceData[id];
       saveAll();
@@ -894,93 +880,77 @@
 
   function resetStudentForm() {
     studentForm.reset();
-    studentIdInput.value = '';
-    btnSubmitStudent.textContent = 'Guardar Estudiante';
-    btnCancelStudent.style.display = 'none';
+    document.getElementById('studentId').value = '';
   }
 
   // ASISTENCIA
   function renderAttendanceTable() {
-    const selectedGroup = document.getElementById('filterGroup').value;
-    const headerRow = document.getElementById('attendanceHeader');
-    const attBody = document.getElementById('attendanceTableBody');
+    const grupo = document.getElementById('filterGroup').value;
+    const header = document.getElementById('attendanceHeader');
+    const tbody = document.getElementById('attendanceTableBody');
 
-    headerRow.innerHTML = `<th class="text-left">Estudiante</th>`;
-    martes2026.forEach(fecha => {
-      headerRow.innerHTML += `<th>${fecha}</th>`;
-    });
+    header.innerHTML = '<th class="text-left">Estudiante</th>';
+    martes2026.forEach(f => header.innerHTML += `<th>${f}</th>`);
 
-    const groupStudents = students.filter(s => s.grupo === selectedGroup);
-    attBody.innerHTML = '';
+    const groupStudents = students.filter(s => s.grupo === grupo);
+    tbody.innerHTML = '';
 
-    if (groupStudents.length === 0) {
-      attBody.innerHTML = `<tr><td colspan="${martes2026.length + 1}">No hay estudiantes registrados.</td></tr>`;
+    if (!groupStudents.length) {
+      tbody.innerHTML = `<tr><td colspan="${martes2026.length + 1}">Sin estudiantes</td></tr>`;
       return;
     }
 
-    groupStudents.forEach(student => {
+    groupStudents.forEach(s => {
       const row = document.createElement('tr');
-      let cellsHTML = `<td class="text-left"><strong>${student.nombre} ${student.apellido}</strong></td>`;
-
-      martes2026.forEach(fecha => {
-        if (!attendanceData[student.id]) attendanceData[student.id] = {};
-        if (!attendanceData[student.id][fecha]) {
-          attendanceData[student.id][fecha] = { status: 'A', part: false };
-        }
-
-        const currentAtt = attendanceData[student.id][fecha];
-
-        cellsHTML += `
+      let html = `<td class="text-left"><strong>${s.nombre} ${s.apellido}</strong></td>`;
+      
+      martes2026.forEach(f => {
+        if (!attendanceData[s.id]) attendanceData[s.id] = {};
+        if (!attendanceData[s.id][f]) attendanceData[s.id][f] = { status: 'A', part: false };
+        
+        const att = attendanceData[s.id][f];
+        html += `
           <td>
             <div class="att-cell">
-              <select 
-                class="att-select" 
-                data-status="${currentAtt.status}"
-                onchange="updateAttendanceStatus(${student.id}, '${fecha}', this)">
-                <option value="P" ${currentAtt.status === 'P' ? 'selected' : ''}>P</option>
-                <option value="E" ${currentAtt.status === 'E' ? 'selected' : ''}>E</option>
-                <option value="A" ${currentAtt.status === 'A' ? 'selected' : ''}>A</option>
+              <select class="att-select" data-status="${att.status}" onchange="updateAttStatus(${s.id}, '${f}', this)">
+                <option value="P" ${att.status === 'P' ? 'selected' : ''}>P</option>
+                <option value="E" ${att.status === 'E' ? 'selected' : ''}>E</option>
+                <option value="A" ${att.status === 'A' ? 'selected' : ''}>A</option>
               </select>
-              <label style="font-size: 10px;" title="Participación">
-                <input 
-                  type="checkbox" 
-                  class="part-check" 
-                  ${currentAtt.part ? 'checked' : ''} 
-                  onchange="updateAttendancePart(${student.id}, '${fecha}', this.checked)">
-                ⭐
+              <label style="font-size: 10px;">
+                <input type="checkbox" ${att.part ? 'checked' : ''} onchange="updateAttPart(${s.id}, '${f}', this.checked)">⭐
               </label>
             </div>
           </td>
         `;
       });
-
-      row.innerHTML = cellsHTML;
-      attBody.appendChild(row);
+      
+      row.innerHTML = html;
+      tbody.appendChild(row);
     });
   }
 
-  function updateAttendanceStatus(studentId, fecha, selectElem) {
-    const status = selectElem.value;
-    attendanceData[studentId][fecha].status = status;
-    selectElem.setAttribute('data-status', status);
+  function updateAttStatus(sid, f, sel) {
+    attendanceData[sid][f].status = sel.value;
+    sel.setAttribute('data-status', sel.value);
     saveAll();
-    renderDashboard();
+    renderDashboardSimplified();
   }
 
-  function updateAttendancePart(studentId, fecha, isChecked) {
-    attendanceData[studentId][fecha].part = isChecked;
+  function updateAttPart(sid, f, checked) {
+    attendanceData[sid][f].part = checked;
     saveAll();
-    renderDashboard();
+    renderDashboardSimplified();
   }
 
-  // DASHBOARD DE ASISTENCIA
-  function renderDashboard() {
-    const selectedGroup = document.getElementById('filterGroup').value;
-    const groupStudents = students.filter(s => s.grupo === selectedGroup);
-    const container = document.getElementById('dashboardContainer');
+  // DASHBOARD SIMPLIFICADO (Solo General + Semana en curso)
+  function renderDashboardSimplified() {
+    const grupo = document.getElementById('filterGroup').value;
+    const groupStudents = students.filter(s => s.grupo === grupo);
+    const container = document.getElementById('dashboardContainerSimplified');
     container.innerHTML = '';
 
-    if (groupStudents.length === 0) return;
+    if (!groupStudents.length) return;
 
     // Gráfica General
     const generalCard = document.createElement('div');
@@ -988,39 +958,33 @@
     generalCard.innerHTML = '<h3>📊 Asistencia General</h3><div class="chart-container"><canvas id="chartGeneral"></canvas></div><div class="stats-box" id="statsGeneral"></div>';
     container.appendChild(generalCard);
 
-    // Gráficas por fecha
-    martes2026.forEach(fecha => {
-      const card = document.createElement('div');
-      card.className = 'dashboard-card';
-      card.innerHTML = `<h3>📅 ${fecha}/2026</h3><div class="chart-container"><canvas id="chart-${fecha}"></canvas></div><div class="stats-box" id="stats-${fecha}"></div>`;
-      container.appendChild(card);
-    });
+    // Gráfica Semana en Curso
+    const currentCard = document.createElement('div');
+    currentCard.className = 'dashboard-card';
+    const currentWeek = martes2026[martes2026.length - 1];
+    currentCard.innerHTML = `<h3>📅 Semana: ${currentWeek}/2026</h3><div class="chart-container"><canvas id="chartCurrent"></canvas></div><div class="stats-box" id="statsCurrent"></div>`;
+    container.appendChild(currentCard);
 
-    // Calcular y dibujar datos
     drawGeneralChart(groupStudents);
-    martes2026.forEach(fecha => {
-      drawFechaChart(groupStudents, fecha);
-    });
+    drawCurrentWeekChart(groupStudents, currentWeek);
   }
 
   function drawGeneralChart(groupStudents) {
-    let presentCount = 0, ausenceCount = 0, excuseCount = 0, participationCount = 0;
-
-    groupStudents.forEach(student => {
-      martes2026.forEach(fecha => {
-        if (attendanceData[student.id]?.[fecha]) {
-          const att = attendanceData[student.id][fecha];
-          if (att.status === 'P') presentCount++;
-          else if (att.status === 'A') ausenceCount++;
-          else if (att.status === 'E') excuseCount++;
-          if (att.part) participationCount++;
+    let p = 0, a = 0, e = 0, part = 0;
+    groupStudents.forEach(s => {
+      martes2026.forEach(f => {
+        if (attendanceData[s.id]?.[f]) {
+          const att = attendanceData[s.id][f];
+          if (att.status === 'P') p++;
+          else if (att.status === 'A') a++;
+          else if (att.status === 'E') e++;
+          if (att.part) part++;
         }
       });
     });
 
-    const total = presentCount + ausenceCount + excuseCount;
-    const totalExpected = groupStudents.length * martes2026.length;
-    const percentagePresent = total > 0 ? ((presentCount / total) * 100).toFixed(1) : 0;
+    const total = p + a + e || 1;
+    const pct = ((p / total) * 100).toFixed(1);
 
     const ctx = document.getElementById('chartGeneral').getContext('2d');
     if (dashboardCharts.general) dashboardCharts.general.destroy();
@@ -1028,185 +992,169 @@
       type: 'doughnut',
       data: {
         labels: ['Presentes', 'Ausentes', 'Excusas'],
-        datasets: [{
-          data: [presentCount, ausenceCount, excuseCount],
-          backgroundColor: ['#27ae60', '#e74c3c', '#f39c12']
-        }]
+        datasets: [{ data: [p, a, e], backgroundColor: ['#27ae60', '#e74c3c', '#f39c12'] }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom' } }
-      }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
 
-    const statsHtml = `
-      <div class="stat-item">
-        <span class="stat-label">Presentes:</span>
-        <span class="stat-value">${presentCount}/${total}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">Ausentes:</span>
-        <span class="stat-value">${ausenceCount}/${total}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">Excusas:</span>
-        <span class="stat-value">${excuseCount}/${total}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">% Asistencia:</span>
-        <span class="stat-value">${percentagePresent}%</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">Participaciones:</span>
-        <span class="stat-value">${participationCount}/${totalExpected}</span>
-      </div>
+    document.getElementById('statsGeneral').innerHTML = `
+      <div class="stat-item"><span class="stat-label">Presentes:</span><span class="stat-value">${p}/${total}</span></div>
+      <div class="stat-item"><span class="stat-label">Ausentes:</span><span class="stat-value">${a}/${total}</span></div>
+      <div class="stat-item"><span class="stat-label">% Asistencia:</span><span class="stat-value">${pct}%</span></div>
+      <div class="stat-item"><span class="stat-label">Participaciones:</span><span class="stat-value">${part}</span></div>
     `;
-    document.getElementById('statsGeneral').innerHTML = statsHtml;
   }
 
-  function drawFechaChart(groupStudents, fecha) {
-    let presentCount = 0, ausenceCount = 0, excuseCount = 0, participationCount = 0;
-
-    groupStudents.forEach(student => {
-      if (attendanceData[student.id]?.[fecha]) {
-        const att = attendanceData[student.id][fecha];
-        if (att.status === 'P') presentCount++;
-        else if (att.status === 'A') ausenceCount++;
-        else if (att.status === 'E') excuseCount++;
-        if (att.part) participationCount++;
+  function drawCurrentWeekChart(groupStudents, week) {
+    let p = 0, a = 0, e = 0, part = 0;
+    groupStudents.forEach(s => {
+      if (attendanceData[s.id]?.[week]) {
+        const att = attendanceData[s.id][week];
+        if (att.status === 'P') p++;
+        else if (att.status === 'A') a++;
+        else if (att.status === 'E') e++;
+        if (att.part) part++;
       }
     });
 
-    const total = presentCount + ausenceCount + excuseCount || 1;
-    const percentagePresent = ((presentCount / total) * 100).toFixed(1);
+    const total = p + a + e || 1;
+    const pct = ((p / total) * 100).toFixed(1);
 
-    const ctx = document.getElementById(`chart-${fecha}`).getContext('2d');
-    if (dashboardCharts[fecha]) dashboardCharts[fecha].destroy();
-    dashboardCharts[fecha] = new Chart(ctx, {
+    const ctx = document.getElementById('chartCurrent').getContext('2d');
+    if (dashboardCharts.current) dashboardCharts.current.destroy();
+    dashboardCharts.current = new Chart(ctx, {
       type: 'doughnut',
       data: {
         labels: ['Presentes', 'Ausentes', 'Excusas'],
-        datasets: [{
-          data: [presentCount, ausenceCount, excuseCount],
-          backgroundColor: ['#27ae60', '#e74c3c', '#f39c12']
-        }]
+        datasets: [{ data: [p, a, e], backgroundColor: ['#27ae60', '#e74c3c', '#f39c12'] }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom' } }
-      }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
 
-    const statsHtml = `
-      <div class="stat-item">
-        <span class="stat-label">Presentes:</span>
-        <span class="stat-value">${presentCount}/${total}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">Ausentes:</span>
-        <span class="stat-value">${ausenceCount}/${total}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">% Asistencia:</span>
-        <span class="stat-value">${percentagePresent}%</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">Participación:</span>
-        <span class="stat-value">${participationCount}</span>
-      </div>
+    document.getElementById('statsCurrent').innerHTML = `
+      <div class="stat-item"><span class="stat-label">Presentes:</span><span class="stat-value">${p}</span></div>
+      <div class="stat-item"><span class="stat-label">Ausentes:</span><span class="stat-value">${a}</span></div>
+      <div class="stat-item"><span class="stat-label">% Asistencia:</span><span class="stat-value">${pct}%</span></div>
+      <div class="stat-item"><span class="stat-label">Participación:</span><span class="stat-value">${part}</span></div>
     `;
-    document.getElementById(`stats-${fecha}`).innerHTML = statsHtml;
   }
 
   function exportarPDF() {
-    const selectedGroup = document.getElementById('filterGroup').value;
-    const element = document.getElementById('dashboardContainer');
+    const element = document.getElementById('dashboardContainerSimplified');
     const opt = {
       margin: 10,
-      filename: `reporte-asistencia-${selectedGroup}-${new Date().toISOString().split('T')[0]}.pdf`,
+      filename: `asistencia-${document.getElementById('filterGroup').value}-${new Date().toISOString().split('T')[0]}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
     };
     html2pdf().set(opt).from(element).save();
-    mostrarNotificacion('✅ PDF exportado exitosamente', 'success');
+    mostrarNotificacion('✅ PDF exportado', 'success');
+  }
+
+  // CUMPLEAÑOS
+  function mostrarCumpleañosPorMes() {
+    const mes = document.getElementById('mesSelector').value;
+    const container = document.getElementById('cumpleañosContainer');
+    container.innerHTML = '';
+
+    let cumpleaños = students;
+    if (mes) {
+      cumpleaños = cumpleaños.filter(s => s.fechaNacimiento.substring(3) === mes);
+    }
+
+    if (!cumpleaños.length) {
+      container.innerHTML = '<p>No hay cumpleaños en este período</p>';
+      return;
+    }
+
+    cumpleaños.sort((a, b) => {
+      const diaA = parseInt(a.fechaNacimiento);
+      const diaB = parseInt(b.fechaNacimiento);
+      return diaA - diaB;
+    });
+
+    cumpleaños.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'birthday-card';
+      card.innerHTML = `
+        <div class="birthday-info">
+          <h4>🎂 ${s.nombre} ${s.apellido}</h4>
+          <p>📅 ${s.fechaNacimiento} | 👥 ${s.grupo}</p>
+        </div>
+      `;
+      container.appendChild(card);
+    });
   }
 
   // FINANZAS
   financeForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const id = financeIdInput.value;
-    const entryData = {
+    const id = document.getElementById('financeId').value;
+    const entry = {
       id: id ? parseInt(id) : Date.now(),
-      fecha: finFecha.value,
-      tipo: finTipo.value,
-      cuenta: finCuenta.value,
-      monto: parseFloat(finMonto.value),
-      secretaria: finSecretaria.value,
-      nota: finNota.value.trim()
+      fecha: document.getElementById('finFecha').value,
+      tipo: document.getElementById('finTipo').value,
+      cuenta: document.getElementById('finCuenta').value,
+      monto: parseFloat(document.getElementById('finMonto').value),
+      secretaria: document.getElementById('finSecretaria').value,
+      nota: document.getElementById('finNota').value
     };
     if (id) {
-      finances = finances.map(item => item.id === parseInt(id) ? entryData : item);
+      finances = finances.map(f => f.id === parseInt(id) ? entry : f);
     } else {
-      finances.push(entryData);
+      finances.push(entry);
     }
     saveAll();
-    resetFinanceForm();
+    financeForm.reset();
     renderFinanceTable();
   });
 
   function renderFinanceTable() {
-    financeTableBody.innerHTML = '';
-    let totalIncome = 0, totalExpense = 0;
+    const tbody = document.getElementById('financeTableBody');
+    tbody.innerHTML = '';
+    let inc = 0, exp = 0;
 
-    finances.forEach(item => {
-      if (item.tipo === 'Ingreso') totalIncome += item.monto;
-      else totalExpense += item.monto;
-    });
-
-    document.getElementById('sumIncome').textContent = `$${totalIncome.toFixed(2)}`;
-    document.getElementById('sumExpense').textContent = `$${totalExpense.toFixed(2)}`;
-    document.getElementById('sumBalance').textContent = `$${(totalIncome - totalExpense).toFixed(2)}`;
-
-    finances.forEach(item => {
+    finances.forEach(f => {
+      if (f.tipo === 'Ingreso') inc += f.monto;
+      else exp += f.monto;
+      
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td><strong>${item.fecha}/2026</strong></td>
-        <td><span style="background-color: ${item.tipo === 'Ingreso' ? '#d4edda' : '#f8d7da'}; color: ${item.tipo === 'Ingreso' ? '#155724' : '#721c24'}; padding: 3px 8px; border-radius: 4px;">${item.tipo}</span></td>
-        <td>${item.cuenta}</td>
-        <td class="text-left">${item.nota}</td>
-        <td><strong>$${item.monto.toFixed(2)}</strong></td>
-        <td>✍️ ${item.secretaria}</td>
+        <td>${f.fecha}</td>
+        <td><span style="background-color: ${f.tipo === 'Ingreso' ? '#d4edda' : '#f8d7da'}; color: ${f.tipo === 'Ingreso' ? '#155724' : '#721c24'}; padding: 3px 8px; border-radius: 4px;">${f.tipo}</span></td>
+        <td>${f.cuenta}</td>
+        <td class="text-left">${f.nota}</td>
+        <td>$${f.monto.toFixed(2)}</td>
+        <td>${f.secretaria}</td>
         <td>
-          <button class="btn-edit" onclick="editFinance(${item.id})">Editar</button>
-          <button class="btn-delete" onclick="deleteFinance(${item.id})">Borrar</button>
+          <button class="btn-edit" onclick="editFinance(${f.id})">Editar</button>
+          <button class="btn-delete" onclick="deleteFinance(${f.id})">Borrar</button>
         </td>
       `;
-      financeTableBody.appendChild(row);
+      tbody.appendChild(row);
     });
 
-    renderFinanceChart();
+    document.getElementById('sumIncome').textContent = `$${inc.toFixed(2)}`;
+    document.getElementById('sumExpense').textContent = `$${exp.toFixed(2)}`;
+    document.getElementById('sumBalance').textContent = `$${(inc - exp).toFixed(2)}`;
   }
 
   function editFinance(id) {
-    const finance = finances.find(f => f.id === id);
-    if (finance) {
-      financeIdInput.value = finance.id;
-      finFecha.value = finance.fecha;
-      finTipo.value = finance.tipo;
-      finCuenta.value = finance.cuenta;
-      finMonto.value = finance.monto;
-      finSecretaria.value = finance.secretaria;
-      finNota.value = finance.nota;
-      btnSubmitFinance.textContent = 'Actualizar Movimiento';
-      btnCancelFinance.style.display = 'inline-block';
+    const f = finances.find(x => x.id === id);
+    if (f) {
+      document.getElementById('financeId').value = f.id;
+      document.getElementById('finFecha').value = f.fecha;
+      document.getElementById('finTipo').value = f.tipo;
+      document.getElementById('finCuenta').value = f.cuenta;
+      document.getElementById('finMonto').value = f.monto;
+      document.getElementById('finSecretaria').value = f.secretaria;
+      document.getElementById('finNota').value = f.nota;
     }
   }
 
   function deleteFinance(id) {
-    if (confirm('¿Eliminar este movimiento?')) {
+    if (confirm('¿Eliminar?')) {
       finances = finances.filter(f => f.id !== id);
       saveAll();
       renderFinanceTable();
@@ -1215,81 +1163,69 @@
 
   function resetFinanceForm() {
     financeForm.reset();
-    financeIdInput.value = '';
-    btnSubmitFinance.textContent = 'Guardar Movimiento';
-    btnCancelFinance.style.display = 'none';
+    document.getElementById('financeId').value = '';
   }
 
-  function renderFinanceChart() {
-    const ctx = document.getElementById('financeChart').getContext('2d');
-    const ingresosData = martes2026.map(f => {
-      return finances.filter(item => item.fecha === f && item.tipo === 'Ingreso').reduce((sum, item) => sum + item.monto, 0);
-    });
-    const gastosData = martes2026.map(f => {
-      return finances.filter(item => item.fecha === f && item.tipo === 'Gasto').reduce((sum, item) => sum + item.monto, 0);
-    });
-
-    if (myFinanceChart) myFinanceChart.destroy();
-    myFinanceChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: martes2026.map(f => f + '/26'),
-        datasets: [
-          {
-            label: 'Ingresos ($)',
-            data: ingresosData,
-            borderColor: '#27ae60',
-            backgroundColor: 'rgba(39, 174, 96, 0.1)',
-            tension: 0.4,
-            fill: true
-          },
-          {
-            label: 'Gastos ($)',
-            data: gastosData,
-            borderColor: '#e74c3c',
-            backgroundColor: 'rgba(231, 76, 60, 0.1)',
-            tension: 0.4,
-            fill: true
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'top' } },
-        scales: { y: { beginAtZero: true } }
-      }
-    });
-  }
-
-  function generarReporte() {
+  // REPORTES CON DASHBOARD COMPLETO
+  function generarReporteDashboard() {
     const grupo = document.getElementById('repGrupo').value;
     const mes = document.getElementById('repMes').value;
     const estudiante = document.getElementById('repEstudiante').value.toLowerCase();
+    
+    let groupStudents = students;
+    if (grupo) groupStudents = groupStudents.filter(s => s.grupo === grupo);
+    if (estudiante) groupStudents = groupStudents.filter(s => s.nombre.toLowerCase().includes(estudiante) || s.apellido.toLowerCase().includes(estudiante));
 
-    let reporteStudents = students;
-    if (grupo) reporteStudents = reporteStudents.filter(s => s.grupo === grupo);
-    if (estudiante) reporteStudents = reporteStudents.filter(s => s.nombre.toLowerCase().includes(estudiante) || s.apellido.toLowerCase().includes(estudiante));
+    const container = document.getElementById('dashboardReportes');
+    container.innerHTML = '';
 
-    let resultadoHTML = '<h3>📋 Resultado del Reporte</h3>';
-    if (reporteStudents.length === 0) {
-      resultadoHTML += '<p>No se encontraron estudiantes.</p>';
-    } else {
-      resultadoHTML += `<p><strong>Total encontrados:</strong> ${reporteStudents.length}</p>`;
-      resultadoHTML += '<table style="width:100%; border-collapse:collapse;"><thead><tr style="background:#2c3e50;color:white;"><th style="padding:10px; text-align:left;">Nombre</th><th style="padding:10px;">Grupo</th><th style="padding:10px;">Cumpleaños</th></tr></thead><tbody>';
-      reporteStudents.forEach(s => {
-        resultadoHTML += `<tr style="border:1px solid #ddd;"><td style="padding:10px; text-align:left;">${s.nombre} ${s.apellido}</td><td style="padding:10px; text-align:center;">${s.grupo}</td><td style="padding:10px; text-align:center;">${s.fechaNacimiento}</td></tr>`;
-      });
-      resultadoHTML += '</tbody></table>';
+    if (!groupStudents.length) {
+      container.innerHTML = '<div class="card"><p>No hay datos</p></div>';
+      return;
     }
 
-    const resultDiv = document.getElementById('resultado-reporte');
-    resultDiv.innerHTML = resultadoHTML;
-    resultDiv.style.display = 'block';
+    // Dibujar gráfica para cada martes
+    martes2026.forEach((fecha, idx) => {
+      const card = document.createElement('div');
+      card.className = 'dashboard-card';
+      card.innerHTML = `<h3>📅 ${fecha}/2026</h3><div class="chart-container"><canvas id="chart-${idx}"></canvas></div><div class="stats-box" id="stats-${idx}"></div>`;
+      container.appendChild(card);
+
+      let p = 0, a = 0, e = 0, part = 0;
+      groupStudents.forEach(s => {
+        if (attendanceData[s.id]?.[fecha]) {
+          const att = attendanceData[s.id][fecha];
+          if (att.status === 'P') p++;
+          else if (att.status === 'A') a++;
+          else if (att.status === 'E') e++;
+          if (att.part) part++;
+        }
+      });
+
+      const total = p + a + e || 1;
+      const pct = ((p / total) * 100).toFixed(1);
+
+      const ctx = document.getElementById(`chart-${idx}`).getContext('2d');
+      if (dashboardCharts[`report-${idx}`]) dashboardCharts[`report-${idx}`].destroy();
+      dashboardCharts[`report-${idx}`] = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Presentes', 'Ausentes', 'Excusas'],
+          datasets: [{ data: [p, a, e], backgroundColor: ['#27ae60', '#e74c3c', '#f39c12'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+      });
+
+      document.getElementById(`stats-${idx}`).innerHTML = `
+        <div class="stat-item"><span class="stat-label">Presentes:</span><span class="stat-value">${p}/${total}</span></div>
+        <div class="stat-item"><span class="stat-label">Ausentes:</span><span class="stat-value">${a}/${total}</span></div>
+        <div class="stat-item"><span class="stat-label">% Asistencia:</span><span class="stat-value">${pct}%</span></div>
+        <div class="stat-item"><span class="stat-label">Participación:</span><span class="stat-value">${part}</span></div>
+      `;
+    });
   }
 
   window.addEventListener('DOMContentLoaded', () => {
-    initDateSelectors();
     startCarouselAuto();
   });
 </script>
