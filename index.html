@@ -123,6 +123,50 @@
       margin-bottom: 25px;
     }
 
+    .backup-section {
+      background: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .backup-section button {
+      padding: 8px 16px;
+      font-size: 13px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      color: white;
+      transition: background 0.2s;
+    }
+
+    .btn-export {
+      background-color: #3498db;
+    }
+
+    .btn-export:hover {
+      background-color: #2980b9;
+    }
+
+    .btn-import {
+      background-color: #9b59b6;
+    }
+
+    .btn-import:hover {
+      background-color: #8e44ad;
+    }
+
+    #importInput {
+      display: none;
+    }
+
     .grid-menu {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -365,9 +409,41 @@
       border-left: 5px solid var(--primary);
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 6px;
+      color: white;
+      font-weight: bold;
+      display: none;
+      animation: slideIn 0.3s ease-in-out;
+      z-index: 1000;
+    }
+
+    .notification.success {
+      background-color: var(--accent);
+    }
+
+    .notification.error {
+      background-color: var(--danger);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+      }
+      to {
+        transform: translateX(0);
+      }
+    }
   </style>
 </head>
 <body>
+
+<div class="notification" id="notification"></div>
 
 <div class="container">
   <h1>📖 Escuela Bíblica - Sistema Integral</h1>
@@ -375,6 +451,14 @@
   <!-- ================= 1. PANTALLA PRINCIPAL (HOME) ================= -->
   <div id="home-view">
     
+    <!-- SECCIÓN DE RESPALDO DE DATOS -->
+    <div class="backup-section">
+      <span style="font-weight: bold; color: #666;">💾 Respaldar Datos:</span>
+      <button class="btn-export" onclick="exportarDatos()">📥 Descargar Respaldo</button>
+      <button class="btn-import" onclick="document.getElementById('importInput').click()">📤 Cargar Respaldo</button>
+      <input type="file" id="importInput" accept=".json" onchange="importarDatos(event)">
+    </div>
+
     <!-- CARRUSEL DE NOTICIAS Y ACTIVIDADES -->
     <div class="carousel-container">
       <div class="carousel-slide active">
@@ -742,6 +826,71 @@
     }, 5000);
   }
 
+  // === EXPORTAR E IMPORTAR DATOS ===
+  function exportarDatos() {
+    const backup = {
+      fecha_respaldo: new Date().toLocaleString('es-ES'),
+      estudiantes: students,
+      asistencia: attendanceData,
+      finanzas: finances
+    };
+
+    const dataStr = JSON.stringify(backup, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `escuela-biblica-respaldo-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+
+    mostrarNotificacion('✅ Respaldo descargado exitosamente', 'success');
+  }
+
+  function importarDatos(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const backup = JSON.parse(e.target.result);
+        
+        students = backup.estudiantes || [];
+        attendanceData = backup.asistencia || {};
+        finances = backup.finanzas || [];
+
+        localStorage.setItem('biblical_students', JSON.stringify(students));
+        localStorage.setItem('biblical_attendance', JSON.stringify(attendanceData));
+        localStorage.setItem('biblical_finances', JSON.stringify(finances));
+
+        mostrarNotificacion('✅ Respaldo cargado exitosamente. La página se recargará...', 'success');
+        
+        setTimeout(() => {
+          location.reload();
+        }, 1500);
+      } catch (error) {
+        mostrarNotificacion('❌ Error al cargar el respaldo. Verifica que sea un archivo válido.', 'error');
+        console.error('Error importando datos:', error);
+      }
+    };
+    reader.readAsText(file);
+
+    // Limpiar input
+    event.target.value = '';
+  }
+
+  function mostrarNotificacion(mensaje, tipo) {
+    const notif = document.getElementById('notification');
+    notif.textContent = mensaje;
+    notif.className = `notification ${tipo}`;
+    notif.style.display = 'block';
+
+    setTimeout(() => {
+      notif.style.display = 'none';
+    }, 4000);
+  }
+
   // NAVEGACIÓN
   function mostrarModulo(idModulo) {
     document.getElementById('home-view').style.display = 'none';
@@ -767,6 +916,13 @@
       finFecha.innerHTML += `<option value="${fecha}">${fecha}/2026</option>`;
       filterFinanceDate.innerHTML += `<option value="${fecha}">${fecha}/2026</option>`;
     });
+  }
+
+  // Función para guardar todos los datos
+  function saveAll() {
+    localStorage.setItem('biblical_students', JSON.stringify(students));
+    localStorage.setItem('biblical_attendance', JSON.stringify(attendanceData));
+    localStorage.setItem('biblical_finances', JSON.stringify(finances));
   }
 
   // --- ESTUDIANTES ---
@@ -982,14 +1138,43 @@
       });
     }
 
-    // Renderizar / Actualizar la Gráfica Lineal
     renderFinanceChart();
+  }
+
+  function editFinance(id) {
+    const finance = finances.find(f => f.id === id);
+    if (finance) {
+      financeIdInput.value = finance.id;
+      finFecha.value = finance.fecha;
+      finTipo.value = finance.tipo;
+      finCuenta.value = finance.cuenta;
+      finMonto.value = finance.monto;
+      finSecretaria.value = finance.secretaria;
+      finNota.value = finance.nota;
+
+      btnSubmitFinance.textContent = 'Actualizar Movimiento';
+      btnCancelFinance.style.display = 'inline-block';
+    }
+  }
+
+  function deleteFinance(id) {
+    if (confirm('¿Eliminar este movimiento?')) {
+      finances = finances.filter(f => f.id !== id);
+      saveAll();
+      renderFinanceTable();
+    }
+  }
+
+  function resetFinanceForm() {
+    financeForm.reset();
+    financeIdInput.value = '';
+    btnSubmitFinance.textContent = 'Guardar Movimiento';
+    btnCancelFinance.style.display = 'none';
   }
 
   function renderFinanceChart() {
     const ctx = document.getElementById('financeChart').getContext('2d');
     
-    // Agrupar ingresos y gastos por cada fecha de la lista martes2026
     const ingresosData = martes2026.map(f => {
       return finances
         .filter(item => item.fecha === f && item.tipo === 'Ingreso')
@@ -1009,25 +1194,23 @@
     myFinanceChart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: martes2026,
+        labels: martes2026.map(f => f + '/26'),
         datasets: [
           {
-            label: 'Ingresos / Ofrendas ($)',
+            label: 'Ingresos ($)',
             data: ingresosData,
             borderColor: '#27ae60',
             backgroundColor: 'rgba(39, 174, 96, 0.1)',
-            fill: true,
-            tension: 0.3,
-            borderWidth: 2
+            tension: 0.4,
+            fill: true
           },
           {
             label: 'Gastos ($)',
             data: gastosData,
             borderColor: '#e74c3c',
             backgroundColor: 'rgba(231, 76, 60, 0.1)',
-            fill: true,
-            tension: 0.3,
-            borderWidth: 2
+            tension: 0.4,
+            fill: true
           }
         ]
       },
@@ -1035,96 +1218,67 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'top' }
+          legend: {
+            position: 'top',
+          }
         },
         scales: {
-          y: { beginAtZero: true }
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Monto ($)'
+            }
+          }
         }
       }
     });
-  }
-
-  function editFinance(id) {
-    const item = finances.find(f => f.id === id);
-    if (item) {
-      financeIdInput.value = item.id;
-      finFecha.value = item.fecha;
-      finTipo.value = item.tipo;
-      finCuenta.value = item.cuenta || 'Escuela Bíblica Martes';
-      finMonto.value = item.monto;
-      finSecretaria.value = item.secretaria;
-      finNota.value = item.nota;
-
-      document.getElementById('financeFormTitle').textContent = 'Editar Partida';
-      btnSubmitFinance.textContent = 'Actualizar Partida';
-      btnCancelFinance.style.display = 'inline-block';
-    }
-  }
-
-  function deleteFinance(id) {
-    if (confirm('¿Deseas eliminar este registro financiero?')) {
-      finances = finances.filter(f => f.id !== id);
-      saveAll();
-      renderFinanceTable();
-    }
-  }
-
-  function resetFinanceForm() {
-    financeForm.reset();
-    financeIdInput.value = '';
-    document.getElementById('financeFormTitle').textContent = 'Registrar Partida (Martes Oct-Dic 2026)';
-    btnSubmitFinance.textContent = 'Guardar Movimiento';
-    btnCancelFinance.style.display = 'none';
   }
 
   // --- REPORTES ---
   function generarReporte() {
     const grupo = document.getElementById('repGrupo').value;
     const mes = document.getElementById('repMes').value;
-    const estudianteBusqueda = document.getElementById('repEstudiante').value.toLowerCase().trim();
+    const estudiante = document.getElementById('repEstudiante').value.toLowerCase();
 
-    let estudiantesFiltrados = students;
+    let reporteStudents = students;
 
     if (grupo) {
-      estudiantesFiltrados = estudiantesFiltrados.filter(s => s.grupo === grupo);
+      reporteStudents = reporteStudents.filter(s => s.grupo === grupo);
     }
 
-    if (estudianteBusqueda) {
-      estudiantesFiltrados = estudiantesFiltrados.filter(s => 
-        (s.nombre + ' ' + s.apellido).toLowerCase().includes(estudianteBusqueda)
+    if (estudiante) {
+      reporteStudents = reporteStudents.filter(s => 
+        s.nombre.toLowerCase().includes(estudiante) || 
+        s.apellido.toLowerCase().includes(estudiante)
       );
     }
 
-    const resDiv = document.getElementById('resultado-reporte');
-    resDiv.style.display = 'block';
+    let resultadoHTML = '<h3>📋 Resultado del Reporte</h3>';
 
-    if (estudiantesFiltrados.length === 0) {
-      resDiv.innerHTML = '<h3>Resultados del Reporte</h3><p>No se encontraron estudiantes que coincidan con los criterios de búsqueda.</p>';
-      return;
+    if (reporteStudents.length === 0) {
+      resultadoHTML += '<p>No se encontraron estudiantes con los criterios seleccionados.</p>';
+    } else {
+      resultadoHTML += `<p><strong>Total de estudiantes encontrados:</strong> ${reporteStudents.length}</p>`;
+      resultadoHTML += '<table style="width:100%; border-collapse:collapse;"><thead><tr style="background:#2c3e50;color:white;"><th style="padding:10px; text-align:left;">Nombre</th><th style="padding:10px;">Grupo</th><th style="padding:10px;">Cumpleaños</th></tr></thead><tbody>';
+
+      reporteStudents.forEach(s => {
+        resultadoHTML += `<tr style="border:1px solid #ddd;"><td style="padding:10px; text-align:left;">${s.nombre} ${s.apellido}</td><td style="padding:10px; text-align:center;">${s.grupo}</td><td style="padding:10px; text-align:center;">${s.fechaNacimiento}</td></tr>`;
+      });
+
+      resultadoHTML += '</tbody></table>';
     }
 
-    let html = `<h3>Resultados del Reporte (${estudiantesFiltrados.length} estudiante(s) encontrado(s)):</h3>`;
-    html += `<table style="margin-top:10px;"><thead><tr><th class="text-left">Estudiante</th><th>Grupo de Estudio</th><th>Cumpleaños</th></tr></thead><tbody>`;
-
-    estudiantesFiltrados.forEach(s => {
-      html += `<tr><td class="text-left"><strong>${s.nombre} ${s.apellido}</strong></td><td>${s.grupo}</td><td>${s.fechaNacimiento}</td></tr>`;
-    });
-
-    html += '</tbody></table>';
-    resDiv.innerHTML = html;
+    const resultDiv = document.getElementById('resultado-reporte');
+    resultDiv.innerHTML = resultadoHTML;
+    resultDiv.style.display = 'block';
   }
 
-  // --- PERSISTENCIA ---
-  function saveAll() {
-    localStorage.setItem('biblical_students', JSON.stringify(students));
-    localStorage.setItem('biblical_attendance', JSON.stringify(attendanceData));
-    localStorage.setItem('biblical_finances', JSON.stringify(finances));
-  }
-
-  // Inicialización global al cargar
-  initDateSelectors();
-  startCarouselAuto();
+  // Inicialización
+  window.addEventListener('DOMContentLoaded', () => {
+    initDateSelectors();
+    startCarouselAuto();
+  });
 </script>
-
 </body>
 </html>
