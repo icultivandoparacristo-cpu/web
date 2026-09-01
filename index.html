@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escuela Bíblica - Sistema Integral</title>
+  <!-- Chart.js para la gráfica de finanzas -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #2c3e50;
+      --accent: #27ae60;
+      --danger: #e74c3c;
+      --warning: #f39c12;
+      --info: #2980b9;
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg);
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+
+    /* --- CARRUSEL EN LA PORTADA --- */
+    .carousel-container {
+      position: relative;
+      max-width: 100%;
+      height: 320px;
+      margin: 0 auto 30px auto;
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      background-color: #000;
+    }
+
+    .carousel-slide {
+      display: none;
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .carousel-slide.active {
+      display: block;
+    }
+
+    .carousel-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.85;
+    }
+
+    .carousel-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.85));
+      color: white;
+      padding: 20px;
+      text-align: left;
+    }
+
+    .carousel-caption h3 {
+      margin: 0 0 5px 0;
+      font-size: 1.4rem;
+    }
+
+    .carousel-caption p {
+      margin: 0;
+      font-size: 0.95rem;
+      color: #ddd;
+    }
+
+    .carousel-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      font-size: 24px;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 50%;
+      user-select: none;
+      transition: background 0.2s;
+      width: auto;
+    }
+
+    .carousel-btn:hover {
+      background: rgba(0, 0, 0, 0.8);
+    }
+
+    .carousel-btn.prev { left: 15px; }
+    .carousel-btn.next { right: 15px; }
+
+    /* --- PANTALLA DE INICIO (HOME) --- */
+    #home-view {
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .home-subtitle {
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    .grid-menu {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .menu-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 30px 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      border: 2px solid transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .menu-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+      border-color: var(--primary);
+    }
+
+    .menu-card .icon {
+      font-size: 50px;
+      margin-bottom: 12px;
+    }
+
+    .menu-card h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: var(--primary);
+    }
+
+    /* --- CABECERA DE MÓDULOS --- */
+    .header-modulo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--primary);
+    }
+
+    .header-modulo h2 {
+      margin: 0;
+      color: var(--primary);
+    }
+
+    .btn-home {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+      width: auto;
+    }
+
+    .btn-home:hover {
+      background-color: #1a252f;
+    }
+
+    /* --- CARDS Y FORMULARIOS --- */
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    input, select, button, textarea {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      color: white;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+
+    .btn-save { background-color: var(--accent); }
+    .btn-save:hover { background-color: #219150; }
+    .btn-edit { background-color: var(--warning); margin-right: 5px; width: auto; padding: 6px 12px; }
+    .btn-delete { background-color: var(--danger); width: auto; padding: 6px 12px; }
+    .btn-cancel { background-color: #95a5a6; width: auto; }
+
+    /* --- TABLAS --- */
+    .table-container {
+      overflow-x: auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ddd;
+      font-size: 13px;
+    }
+
+    th {
+      background-color: var(--primary);
+      color: white;
+      white-space: nowrap;
+    }
+
+    tr:nth-child(even) { background-color: #f9f9f9; }
+    tr:hover { background-color: #f1f1f1; }
+    .text-left { text-align: left; }
+
+    /* --- ASISTENCIA --- */
+    .att-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .att-select {
+      font-size: 11px;
+      padding: 2px;
+      border-radius: 3px;
+    }
+
+    .att-select[data-status="P"] { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
+    .att-select[data-status="E"] { background-color: #fff3cd; color: #856404; border-color: #ffeeba; }
+    .att-select[data-status="A"] { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+
+    .part-check {
+      cursor: pointer;
+      transform: scale(1.1);
+      width: auto;
+    }
+
+    /* --- FINANZAS & GRÁFICA --- */
+    .finance-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .summary-card {
+      padding: 15px;
+      border-radius: 8px;
+      color: white;
+      text-align: center;
+    }
+
+    .summary-card h4 { margin: 0 0 5px 0; font-size: 14px; text-transform: uppercase; }
+    .summary-card p { margin: 0; font-size: 22px; font-weight: bold; }
+
+    .bg-income { background-color: var(--accent); }
+    .bg-expense { background-color: var(--danger); }
+    .bg-balance { background-color: var(--primary); }
+
+    .tag-ingreso {
+      background-color: #d4edda;
+      color: #155724;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .tag-gasto {
+      background-color: #f8d7da;
+      color: #721c24;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .chart-box {
+      position: relative;
+      height: 300px;
+      width: 100%;
+    }
+
+    /* --- REPORTES --- */
+    .filtros-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: flex-end;
+      margin-bottom: 20px;
+    }
+
+    .filtro-grupo {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .filtro-grupo label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+
+    #resultado-reporte {
+      display: none;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 5px solid var(--primary);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>📖 Escuela Bíblica - Sistema Integral</h1>
+
+  <!-- ================= 1. PANTALLA PRINCIPAL (HOME) ================= -->
+  <div id="home-view">
+    
+    <!-- CARRUSEL DE NOTICIAS Y ACTIVIDADES -->
+    <div class="carousel-container">
+      <div class="carousel-slide active">
+        <img src="https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1100&q=80" alt="Noticias">
+        <div class="carousel-caption">
+          <h3>📢 Próxima Gran Escuela Bíblica de Extensión</h3>
+          <p>Únete a nuestros talleres comunitarios todos los fines de semana.</p>
+        </div>
+      </div>
+      <div class="carousel-slide">
+        <img src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?auto=format&fit=crop&w=1100&q=80" alt="Estudiantes">
+        <div class="carousel-caption">
+          <h3>👥 Grupos de Estudio Activos</h3>
+          <p>Integración y enseñanza participativa en todas nuestras clases.</p>
+        </div>
+      </div>
+      <div class="carousel-slide">
+        <img src="https://images.unsplash.com/photo-1455849318743-b2233052fcff?auto=format&fit=crop&w=1100&q=80" alt="Finanzas">
+        <div class="carousel-caption">
+          <h3>💰 Transparencia Financiera</h3>
+          <p>Registro y control detallado de ofrendas y gastos institucionales.</p>
+        </div>
+      </div>
+
+      <button class="carousel-btn prev" onclick="moveSlide(-1)">❮</button>
+      <button class="carousel-btn next" onclick="moveSlide(1)">❯</button>
+    </div>
+
+    <p class="home-subtitle">Seleccione un módulo para gestionar el sistema</p>
+    
+    <div class="grid-menu">
+      <div class="menu-card" onclick="mostrarModulo('tab-estudiantes')">
+        <span class="icon">👤</span>
+        <h2>Estudiantes</h2>
+      </div>
+
+      <div class="menu-card" onclick="mostrarModulo('tab-asistencia')">
+        <span class="icon">📅</span>
+        <h2>Asistencia</h2>
+      </div>
+
+      <div class="menu-card" onclick="mostrarModulo('tab-finanzas')">
+        <span class="icon">💰</span>
+        <h2>Finanzas</h2>
+      </div>
+
+      <div class="menu-card" onclick="mostrarModulo('tab-reportes')">
+        <span class="icon">📊</span>
+        <h2>Reportes</h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 2. MÓDULO ESTUDIANTES ================= -->
+  <div id="tab-estudiantes" class="modulo-content" style="display: none;">
+    <div class="header-modulo">
+      <h2>👤 Gestión de Estudiantes</h2>
+      <button class="btn-home" onclick="volverInicio()">🏠 Inicio</button>
+    </div>
+
+    <div class="card">
+      <h3>Agregar / Editar Estudiante</h3>
+      <form id="studentForm">
+        <input type="hidden" id="studentId">
+        
+        <div class="form-group">
+          <div>
+            <label>Nombre:</label>
+            <input type="text" id="nombre" required placeholder="Ej. Juan">
+          </div>
+          <div>
+            <label>Apellido:</label>
+            <input type="text" id="apellido" required placeholder="Ej. Pérez">
+          </div>
+          <div>
+            <label>Cumpleaños (DD/MM):</label>
+            <input type="text" id="fechaNacimiento" placeholder="DD/MM" pattern="^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[02])$" title="Formato: DD/MM (ej: 15/08)" required>
+          </div>
+          <div>
+            <label>Grupo de Estudio:</label>
+            <select id="grupo" required>
+              <option value="">Seleccione un grupo</option>
+              <option value="Carolina y Anyelina">Carolina y Anyelina</option>
+              <option value="Marialis, Raysa y Yilbania">Marialis, Raysa y Yilbania</option>
+              <option value="Elizabeth, Javiel y Ambiorix">Elizabeth, Javiel y Ambiorix</option>
+              <option value="Ashley, Luis y Angela">Ashley, Luis y Angela</option>
+              <option value="Katherine, Ingrid y Nathan">Katherine, Ingrid y Nathan</option>
+              <option value="Rosa y Alfonso">Rosa y Alfonso</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" id="btnSubmitStudent" class="btn-save">Guardar Estudiante</button>
+        <button type="button" id="btnCancelStudent" class="btn-cancel" style="display: none;" onclick="resetStudentForm()">Cancelar</button>
+      </form>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th class="text-left">Nombre Completo</th>
+            <th>Cumpleaños</th>
+            <th>Grupo de Estudio</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="studentTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================= 3. MÓDULO ASISTENCIA ================= -->
+  <div id="tab-asistencia" class="modulo-content" style="display: none;">
+    <div class="header-modulo">
+      <h2>📅 Registro de Asistencia</h2>
+      <button class="btn-home" onclick="volverInicio()">🏠 Inicio</button>
+    </div>
+
+    <div class="card">
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <label for="filterGroup"><strong>Grupo de Estudio:</strong></label>
+        <select id="filterGroup" onchange="renderAttendanceTable()" style="max-width: 320px;">
+          <option value="Carolina y Anyelina">Carolina y Anyelina</option>
+          <option value="Marialis, Raysa y Yilbania">Marialis, Raysa y Yilbania</option>
+          <option value="Elizabeth, Javiel y Ambiorix">Elizabeth, Javiel y Ambiorix</option>
+          <option value="Ashley, Luis y Angela">Ashley, Luis y Angela</option>
+          <option value="Katherine, Ingrid y Nathan">Katherine, Ingrid y Nathan</option>
+          <option value="Rosa y Alfonso">Rosa y Alfonso</option>
+        </select>
+      </div>
+      <p style="font-size:12px; color:#666; margin: 10px 0 0 0;">
+        <b>Leyenda:</b> [P] Presente | [E] Excusa | [A] Ausente | Casilla inferior: Participación (⭐️).
+      </p>
+    </div>
+
+    <div class="table-container">
+      <table id="attendanceTable">
+        <thead>
+          <tr id="attendanceHeader">
+            <th class="text-left">Estudiante</th>
+          </tr>
+        </thead>
+        <tbody id="attendanceTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================= 4. MÓDULO FINANZAS ================= -->
+  <div id="tab-finanzas" class="modulo-content" style="display: none;">
+    <div class="header-modulo">
+      <h2>💰 Control Financiero</h2>
+      <button class="btn-home" onclick="volverInicio()">🏠 Inicio</button>
+    </div>
+
+    <!-- TARJETAS DE RESUMEN -->
+    <div class="finance-summary">
+      <div class="summary-card bg-income">
+        <h4>Total Ingresos / Ofrendas</h4>
+        <p id="sumIncome">$0.00</p>
+      </div>
+      <div class="summary-card bg-expense">
+        <h4>Total Gastos</h4>
+        <p id="sumExpense">$0.00</p>
+      </div>
+      <div class="summary-card bg-balance">
+        <h4>Balance Neto</h4>
+        <p id="sumBalance">$0.00</p>
+      </div>
+    </div>
+
+    <!-- GRÁFICA LINEAL AUTOMÁTICA -->
+    <div class="card">
+      <h3>📈 Comportamiento de Finanzas (Ingresos vs Gastos)</h3>
+      <div class="chart-box">
+        <canvas id="financeChart"></canvas>
+      </div>
+    </div>
+
+    <!-- FORMULARIO DE PARTIDAS -->
+    <div class="card">
+      <h3 id="financeFormTitle">Registrar Partida (Martes Oct-Dic 2026)</h3>
+      <form id="financeForm">
+        <input type="hidden" id="financeId">
+        
+        <div class="form-group">
+          <div>
+            <label>Fecha (Martes 2026):</label>
+            <select id="finFecha" required></select>
+          </div>
+          <div>
+            <label>Tipo de Movimiento:</label>
+            <select id="finTipo" required>
+              <option value="Ingreso">Ingreso (Ofrenda)</option>
+              <option value="Gasto">Gasto</option>
+            </select>
+          </div>
+          <div>
+            <label>Cuenta / Área:</label>
+            <select id="finCuenta" required>
+              <option value="Escuela Bíblica Martes">Escuela Bíblica Martes</option>
+              <option value="Escuela Bíblica Sábados">Escuela Bíblica Sábados</option>
+              <option value="Escuela Bíblica de Extensión">Escuela Bíblica de Extensión</option>
+            </select>
+          </div>
+          <div>
+            <label>Monto ($):</label>
+            <input type="number" id="finMonto" step="0.01" min="0.01" required placeholder="0.00">
+          </div>
+          <div>
+            <label>Registrado por:</label>
+            <select id="finSecretaria" required>
+              <option value="Marisol">Marisol</option>
+              <option value="Aracelis">Aracelis</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+          <label>Nota / Descripción de la Partida:</label>
+          <input type="text" id="finNota" required placeholder="Ej. Compra de folletos / Ofrenda recibida">
+        </div>
+
+        <button type="submit" id="btnSubmitFinance" class="btn-save">Guardar Movimiento</button>
+        <button type="button" id="btnCancelFinance" class="btn-cancel" style="display: none;" onclick="resetFinanceForm()">Cancelar</button>
+      </form>
+    </div>
+
+    <div class="card" style="padding: 10px 20px; display: flex; align-items: center; gap: 10px;">
+      <label><strong>Filtrar Tabla por Fecha:</strong></label>
+      <select id="filterFinanceDate" onchange="renderFinanceTable()" style="max-width: 200px;">
+        <option value="TODOS">Todos los martes</option>
+      </select>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Cuenta / Área</th>
+            <th>Descripción / Nota</th>
+            <th>Monto</th>
+            <th>Secretaria</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="financeTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================= 5. MÓDULO REPORTES ================= -->
+  <div id="tab-reportes" class="modulo-content" style="display: none;">
+    <div class="header-modulo">
+      <h2>📊 Generación de Reportes</h2>
+      <button class="btn-home" onclick="volverInicio()">🏠 Inicio</button>
+    </div>
+
+    <div class="filtros-container">
+      <div class="filtro-grupo">
+        <label for="filtro-grupo">1. Grupo de Estudio:</label>
+        <select id="repGrupo">
+          <option value="">Todos los grupos</option>
+          <option value="Carolina y Anyelina">Carolina y Anyelina</option>
+          <option value="Marialis, Raysa y Yilbania">Marialis, Raysa y Yilbania</option>
+          <option value="Elizabeth, Javiel y Ambiorix">Elizabeth, Javiel y Ambiorix</option>
+          <option value="Ashley, Luis y Angela">Ashley, Luis y Angela</option>
+          <option value="Katherine, Ingrid y Nathan">Katherine, Ingrid y Nathan</option>
+          <option value="Rosa y Alfonso">Rosa y Alfonso</option>
+        </select>
+      </div>
+
+      <div class="filtro-grupo">
+        <label for="filtro-mes">2. Mes (2026):</label>
+        <select id="repMes">
+          <option value="">Todos los meses</option>
+          <option value="10">Octubre</option>
+          <option value="11">Noviembre</option>
+          <option value="12">Diciembre</option>
+        </select>
+      </div>
+
+      <div class="filtro-grupo">
+        <label for="filtro-estudiante">3. Estudiante:</label>
+        <input type="text" id="repEstudiante" placeholder="Nombre o apellido...">
+      </div>
+
+      <button class="btn-save" onclick="generarReporte()" style="height: 40px; margin-top: 10px;">Generar Reporte</button>
+    </div>
+
+    <div id="resultado-reporte"></div>
+  </div>
+
+</div>
+
+<script>
+  // Fechas Martes 2026
+  const martes2026 = [
+    "06/10", "13/10", "20/10", "27/10", 
+    "03/11", "10/11", "17/11", "24/11", 
+    "01/12", "08/12", "15/12", "22/12", "29/12"
+  ];
+
+  // Estado LocalStorage
+  let students = JSON.parse(localStorage.getItem('biblical_students')) || [];
+  let attendanceData = JSON.parse(localStorage.getItem('biblical_attendance')) || {};
+  let finances = JSON.parse(localStorage.getItem('biblical_finances')) || [];
+  
+  // Instancia Global de Chart.js
+  let myFinanceChart = null;
+
+  // Elementos - Estudiantes
+  const studentForm = document.getElementById('studentForm');
+  const studentIdInput = document.getElementById('studentId');
+  const nombreInput = document.getElementById('nombre');
+  const apellidoInput = document.getElementById('apellido');
+  const fechaInput = document.getElementById('fechaNacimiento');
+  const grupoInput = document.getElementById('grupo');
+  const btnSubmitStudent = document.getElementById('btnSubmitStudent');
+  const btnCancelStudent = document.getElementById('btnCancelStudent');
+  const studentTableBody = document.getElementById('studentTableBody');
+
+  // Elementos - Finanzas
+  const financeForm = document.getElementById('financeForm');
+  const financeIdInput = document.getElementById('financeId');
+  const finFecha = document.getElementById('finFecha');
+  const finTipo = document.getElementById('finTipo');
+  const finCuenta = document.getElementById('finCuenta');
+  const finMonto = document.getElementById('finMonto');
+  const finSecretaria = document.getElementById('finSecretaria');
+  const finNota = document.getElementById('finNota');
+  const btnSubmitFinance = document.getElementById('btnSubmitFinance');
+  const btnCancelFinance = document.getElementById('btnCancelFinance');
+  const financeTableBody = document.getElementById('financeTableBody');
+  const filterFinanceDate = document.getElementById('filterFinanceDate');
+
+  // LÓGICA DEL CARRUSEL
+  let slideIndex = 0;
+  let slideInterval;
+
+  function showSlides(n) {
+    const slides = document.querySelectorAll('.carousel-slide');
+    if (slides.length === 0) return;
+    
+    if (n >= slides.length) slideIndex = 0;
+    if (n < 0) slideIndex = slides.length - 1;
+    
+    slides.forEach(slide => slide.classList.remove('active'));
+    slides[slideIndex].classList.add('active');
+  }
+
+  function moveSlide(n) {
+    clearInterval(slideInterval);
+    slideIndex += n;
+    showSlides(slideIndex);
+    startCarouselAuto();
+  }
+
+  function startCarouselAuto() {
+    slideInterval = setInterval(() => {
+      slideIndex++;
+      showSlides(slideIndex);
+    }, 5000);
+  }
+
+  // NAVEGACIÓN
+  function mostrarModulo(idModulo) {
+    document.getElementById('home-view').style.display = 'none';
+    document.querySelectorAll('.modulo-content').forEach(mod => mod.style.display = 'none');
+    
+    document.getElementById(idModulo).style.display = 'block';
+
+    if (idModulo === 'tab-estudiantes') renderStudentTable();
+    if (idModulo === 'tab-asistencia') renderAttendanceTable();
+    if (idModulo === 'tab-finanzas') renderFinanceTable();
+  }
+
+  function volverInicio() {
+    document.querySelectorAll('.modulo-content').forEach(mod => mod.style.display = 'none');
+    document.getElementById('home-view').style.display = 'block';
+  }
+
+  function initDateSelectors() {
+    finFecha.innerHTML = '';
+    filterFinanceDate.innerHTML = '<option value="TODOS">Todos los martes</option>';
+    
+    martes2026.forEach(fecha => {
+      finFecha.innerHTML += `<option value="${fecha}">${fecha}/2026</option>`;
+      filterFinanceDate.innerHTML += `<option value="${fecha}">${fecha}/2026</option>`;
+    });
+  }
+
+  // --- ESTUDIANTES ---
+  studentForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const id = studentIdInput.value;
+    const studentData = {
+      id: id ? parseInt(id) : Date.now(),
+      nombre: nombreInput.value.trim(),
+      apellido: apellidoInput.value.trim(),
+      fechaNacimiento: fechaInput.value.trim(),
+      grupo: grupoInput.value
+    };
+
+    if (id) {
+      students = students.map(s => s.id === parseInt(id) ? studentData : s);
+    } else {
+      students.push(studentData);
+    }
+
+    saveAll();
+    resetStudentForm();
+    renderStudentTable();
+  });
+
+  function renderStudentTable() {
+    studentTableBody.innerHTML = '';
+    if (students.length === 0) {
+      studentTableBody.innerHTML = `<tr><td colspan="4">No hay estudiantes registrados.</td></tr>`;
+      return;
+    }
+
+    students.forEach(student => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="text-left">${student.nombre} ${student.apellido}</td>
+        <td>${student.fechaNacimiento}</td>
+        <td>${student.grupo}</td>
+        <td>
+          <button class="btn-edit" onclick="editStudent(${student.id})">Editar</button>
+          <button class="btn-delete" onclick="deleteStudent(${student.id})">Borrar</button>
+        </td>
+      `;
+      studentTableBody.appendChild(row);
+    });
+  }
+
+  function editStudent(id) {
+    const student = students.find(s => s.id === id);
+    if (student) {
+      studentIdInput.value = student.id;
+      nombreInput.value = student.nombre;
+      apellidoInput.value = student.apellido;
+      fechaInput.value = student.fechaNacimiento;
+      grupoInput.value = student.grupo;
+
+      btnSubmitStudent.textContent = 'Actualizar Estudiante';
+      btnCancelStudent.style.display = 'inline-block';
+    }
+  }
+
+  function deleteStudent(id) {
+    if (confirm('¿Eliminar este estudiante?')) {
+      students = students.filter(s => s.id !== id);
+      delete attendanceData[id];
+      saveAll();
+      renderStudentTable();
+    }
+  }
+
+  function resetStudentForm() {
+    studentForm.reset();
+    studentIdInput.value = '';
+    btnSubmitStudent.textContent = 'Guardar Estudiante';
+    btnCancelStudent.style.display = 'none';
+  }
+
+  // --- ASISTENCIA ---
+  function renderAttendanceTable() {
+    const selectedGroup = document.getElementById('filterGroup').value;
+    const headerRow = document.getElementById('attendanceHeader');
+    const attBody = document.getElementById('attendanceTableBody');
+
+    headerRow.innerHTML = `<th class="text-left">Estudiante</th>`;
+    martes2026.forEach(fecha => {
+      headerRow.innerHTML += `<th>${fecha}</th>`;
+    });
+
+    const groupStudents = students.filter(s => s.grupo === selectedGroup);
+    attBody.innerHTML = '';
+
+    if (groupStudents.length === 0) {
+      attBody.innerHTML = `<tr><td colspan="${martes2026.length + 1}">No hay estudiantes registrados en este grupo.</td></tr>`;
+      return;
+    }
+
+    groupStudents.forEach(student => {
+      const row = document.createElement('tr');
+      let cellsHTML = `<td class="text-left"><strong>${student.nombre} ${student.apellido}</strong></td>`;
+
+      martes2026.forEach(fecha => {
+        if (!attendanceData[student.id]) attendanceData[student.id] = {};
+        if (!attendanceData[student.id][fecha]) {
+          attendanceData[student.id][fecha] = { status: 'A', part: false };
+        }
+
+        const currentAtt = attendanceData[student.id][fecha];
+
+        cellsHTML += `
+          <td>
+            <div class="att-cell">
+              <select 
+                class="att-select" 
+                data-status="${currentAtt.status}"
+                onchange="updateAttendanceStatus(${student.id}, '${fecha}', this)">
+                <option value="P" ${currentAtt.status === 'P' ? 'selected' : ''}>P</option>
+                <option value="E" ${currentAtt.status === 'E' ? 'selected' : ''}>E</option>
+                <option value="A" ${currentAtt.status === 'A' ? 'selected' : ''}>A</option>
+              </select>
+              <label style="font-size: 10px;" title="Participación">
+                <input 
+                  type="checkbox" 
+                  class="part-check" 
+                  ${currentAtt.part ? 'checked' : ''} 
+                  onchange="updateAttendancePart(${student.id}, '${fecha}', this.checked)">
+                ⭐
+              </label>
+            </div>
+          </td>
+        `;
+      });
+
+      row.innerHTML = cellsHTML;
+      attBody.appendChild(row);
+    });
+  }
+
+  function updateAttendanceStatus(studentId, fecha, selectElem) {
+    const status = selectElem.value;
+    attendanceData[studentId][fecha].status = status;
+    selectElem.setAttribute('data-status', status);
+    saveAll();
+  }
+
+  function updateAttendancePart(studentId, fecha, isChecked) {
+    attendanceData[studentId][fecha].part = isChecked;
+    saveAll();
+  }
+
+  // --- FINANZAS & GRÁFICA ---
+  financeForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const id = financeIdInput.value;
+    const entryData = {
+      id: id ? parseInt(id) : Date.now(),
+      fecha: finFecha.value,
+      tipo: finTipo.value,
+      cuenta: finCuenta.value,
+      monto: parseFloat(finMonto.value),
+      secretaria: finSecretaria.value,
+      nota: finNota.value.trim()
+    };
+
+    if (id) {
+      finances = finances.map(item => item.id === parseInt(id) ? entryData : item);
+    } else {
+      finances.push(entryData);
+    }
+
+    saveAll();
+    resetFinanceForm();
+    renderFinanceTable();
+  });
+
+  function renderFinanceTable() {
+    const filter = filterFinanceDate.value;
+    financeTableBody.innerHTML = '';
+
+    let totalIncome = 0;
+    let totalExpense = 0;
+
+    finances.forEach(item => {
+      if (item.tipo === 'Ingreso') totalIncome += item.monto;
+      else totalExpense += item.monto;
+    });
+
+    document.getElementById('sumIncome').textContent = `$${totalIncome.toFixed(2)}`;
+    document.getElementById('sumExpense').textContent = `$${totalExpense.toFixed(2)}`;
+    document.getElementById('sumBalance').textContent = `$${(totalIncome - totalExpense).toFixed(2)}`;
+
+    const filteredFinances = filter === 'TODOS' 
+      ? finances 
+      : finances.filter(item => item.fecha === filter);
+
+    if (filteredFinances.length === 0) {
+      financeTableBody.innerHTML = `<tr><td colspan="7">No hay partidas registradas para este criterio.</td></tr>`;
+    } else {
+      filteredFinances.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><strong>${item.fecha}/2026</strong></td>
+          <td><span class="tag-${item.tipo.toLowerCase()}">${item.tipo}</span></td>
+          <td><small style="font-weight:bold;">${item.cuenta || 'General'}</small></td>
+          <td class="text-left">${item.nota}</td>
+          <td><strong>$${item.monto.toFixed(2)}</strong></td>
+          <td>✍️ ${item.secretaria}</td>
+          <td>
+            <button class="btn-edit" onclick="editFinance(${item.id})">Editar</button>
+            <button class="btn-delete" onclick="deleteFinance(${item.id})">Borrar</button>
+          </td>
+        `;
+        financeTableBody.appendChild(row);
+      });
+    }
+
+    // Renderizar / Actualizar la Gráfica Lineal
+    renderFinanceChart();
+  }
+
+  function renderFinanceChart() {
+    const ctx = document.getElementById('financeChart').getContext('2d');
+    
+    // Agrupar ingresos y gastos por cada fecha de la lista martes2026
+    const ingresosData = martes2026.map(f => {
+      return finances
+        .filter(item => item.fecha === f && item.tipo === 'Ingreso')
+        .reduce((sum, item) => sum + item.monto, 0);
+    });
+
+    const gastosData = martes2026.map(f => {
+      return finances
+        .filter(item => item.fecha === f && item.tipo === 'Gasto')
+        .reduce((sum, item) => sum + item.monto, 0);
+    });
+
+    if (myFinanceChart) {
+      myFinanceChart.destroy();
+    }
+
+    myFinanceChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: martes2026,
+        datasets: [
+          {
+            label: 'Ingresos / Ofrendas ($)',
+            data: ingresosData,
+            borderColor: '#27ae60',
+            backgroundColor: 'rgba(39, 174, 96, 0.1)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2
+          },
+          {
+            label: 'Gastos ($)',
+            data: gastosData,
+            borderColor: '#e74c3c',
+            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  function editFinance(id) {
+    const item = finances.find(f => f.id === id);
+    if (item) {
+      financeIdInput.value = item.id;
+      finFecha.value = item.fecha;
+      finTipo.value = item.tipo;
+      finCuenta.value = item.cuenta || 'Escuela Bíblica Martes';
+      finMonto.value = item.monto;
+      finSecretaria.value = item.secretaria;
+      finNota.value = item.nota;
+
+      document.getElementById('financeFormTitle').textContent = 'Editar Partida';
+      btnSubmitFinance.textContent = 'Actualizar Partida';
+      btnCancelFinance.style.display = 'inline-block';
+    }
+  }
+
+  function deleteFinance(id) {
+    if (confirm('¿Deseas eliminar este registro financiero?')) {
+      finances = finances.filter(f => f.id !== id);
+      saveAll();
+      renderFinanceTable();
+    }
+  }
+
+  function resetFinanceForm() {
+    financeForm.reset();
+    financeIdInput.value = '';
+    document.getElementById('financeFormTitle').textContent = 'Registrar Partida (Martes Oct-Dic 2026)';
+    btnSubmitFinance.textContent = 'Guardar Movimiento';
+    btnCancelFinance.style.display = 'none';
+  }
+
+  // --- REPORTES ---
+  function generarReporte() {
+    const grupo = document.getElementById('repGrupo').value;
+    const mes = document.getElementById('repMes').value;
+    const estudianteBusqueda = document.getElementById('repEstudiante').value.toLowerCase().trim();
+
+    let estudiantesFiltrados = students;
+
+    if (grupo) {
+      estudiantesFiltrados = estudiantesFiltrados.filter(s => s.grupo === grupo);
+    }
+
+    if (estudianteBusqueda) {
+      estudiantesFiltrados = estudiantesFiltrados.filter(s => 
+        (s.nombre + ' ' + s.apellido).toLowerCase().includes(estudianteBusqueda)
+      );
+    }
+
+    const resDiv = document.getElementById('resultado-reporte');
+    resDiv.style.display = 'block';
+
+    if (estudiantesFiltrados.length === 0) {
+      resDiv.innerHTML = '<h3>Resultados del Reporte</h3><p>No se encontraron estudiantes que coincidan con los criterios de búsqueda.</p>';
+      return;
+    }
+
+    let html = `<h3>Resultados del Reporte (${estudiantesFiltrados.length} estudiante(s) encontrado(s)):</h3>`;
+    html += `<table style="margin-top:10px;"><thead><tr><th class="text-left">Estudiante</th><th>Grupo de Estudio</th><th>Cumpleaños</th></tr></thead><tbody>`;
+
+    estudiantesFiltrados.forEach(s => {
+      html += `<tr><td class="text-left"><strong>${s.nombre} ${s.apellido}</strong></td><td>${s.grupo}</td><td>${s.fechaNacimiento}</td></tr>`;
+    });
+
+    html += '</tbody></table>';
+    resDiv.innerHTML = html;
+  }
+
+  // --- PERSISTENCIA ---
+  function saveAll() {
+    localStorage.setItem('biblical_students', JSON.stringify(students));
+    localStorage.setItem('biblical_attendance', JSON.stringify(attendanceData));
+    localStorage.setItem('biblical_finances', JSON.stringify(finances));
+  }
+
+  // Inicialización global al cargar
+  initDateSelectors();
+  startCarouselAuto();
+</script>
+
+</body>
+</html>
