@@ -481,7 +481,7 @@
               <option value="Elizabeth, Javiel y Ambiorix">Elizabeth, Javiel y Ambiorix</option>
               <option value="Ashley, Luis y Angela">Ashley, Luis y Angela</option>
               <option value="Katherine, Ingrid y Nathan">Katherine, Ingrid y Nathan</option>
-              <option value="Rosa y Alfonso">Rosa y Alfonso</option>
+              <option value="Rosa, Alfonso y Julio">Rosa, Alfonso y Julio</option>
             </select>
           </div>
         </div>
@@ -521,7 +521,7 @@
           <option value="Elizabeth, Javiel y Ambiorix">Elizabeth, Javiel y Ambiorix</option>
           <option value="Ashley, Luis y Angela">Ashley, Luis y Angela</option>
           <option value="Katherine, Ingrid y Nathan">Katherine, Ingrid y Nathan</option>
-          <option value="Rosa y Alfonso">Rosa y Alfonso</option>
+          <option value="Rosa, Alfonso y Julio">Rosa, Alfonso y Julio</option>
         </select>
         <button class="btn-pdf" onclick="exportarPDF()">📄 Exportar PDF</button>
       </div>
@@ -676,7 +676,7 @@
           <option value="Elizabeth, Javiel y Ambiorix">Elizabeth, Javiel y Ambiorix</option>
           <option value="Ashley, Luis y Angela">Ashley, Luis y Angela</option>
           <option value="Katherine, Ingrid y Nathan">Katherine, Ingrid y Nathan</option>
-          <option value="Rosa y Alfonso">Rosa y Alfonso</option>
+          <option value="Rosa, Alfonso y Julio">Rosa, Alfonso y Julio</option>
         </select>
       </div>
       <div class="filtro-grupo">
@@ -834,6 +834,7 @@
     saveAll();
     studentForm.reset();
     renderStudentTable();
+    mostrarNotificacion('✅ Estudiante guardado', 'success');
   });
 
   function renderStudentTable() {
@@ -875,6 +876,7 @@
       delete attendanceData[id];
       saveAll();
       renderStudentTable();
+      mostrarNotificacion('✅ Estudiante eliminado', 'success');
     }
   }
 
@@ -1108,6 +1110,7 @@
     saveAll();
     financeForm.reset();
     renderFinanceTable();
+    mostrarNotificacion('✅ Movimiento guardado', 'success');
   });
 
   function renderFinanceTable() {
@@ -1158,6 +1161,7 @@
       finances = finances.filter(f => f.id !== id);
       saveAll();
       renderFinanceTable();
+      mostrarNotificacion('✅ Movimiento eliminado', 'success');
     }
   }
 
