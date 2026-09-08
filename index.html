@@ -297,6 +297,19 @@
       border-radius: 8px;
       margin-top: 15px;
     }
+   .btn-status {
+    width: auto !important;
+    display: inline-block;
+    padding: 6px 12px;
+    margin-left: 5px;
+    min-width: 110px;
+
+    }
+    .user-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
 
     .stat-item {
       display: flex;
@@ -377,15 +390,75 @@
     .birthday-info p { margin: 0; font-size: 13px; }
 
     .modulo-content { display: none; }
+    .audit-select {
+      width: 140px;
+      padding: 6px;
+      border-radius: 4px;
+      font-weight: bold;
+      border: 1px solid #ccc;
+    }
+    .audit-select.pending {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    .audit-select.approved {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .audit-select.observed {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
   </style>
 </head>
 <body>
 
 <div class="notification" id="notification"></div>
+<div id="loginView">
+  <div class="card" style="max-width:400px; margin:100px auto;">
+    <h2>🔐 Iniciar Sesión</h2>
+    <br>
+  <input
+    type="text"
+    id="loginUser"
+    placeholder="Usuario">
+    <br><br>
+  <input
+  type="password"
+  id="loginPass"
+  placeholder="Contraseña">
+    <br><br>
+    <button
+    class="btn-save"
+    onclick="login()">
+  Ingresar
+  </button>
+  </div>
+</div>
 
-<div class="container">
-  <h1>📖 Escuela Bíblica - Sistema Integral</h1>
+<div class="container" style="display:none;">
 
+  <h1>📖 Escuela Bíblica - Cultivo System</h1>
+<div
+style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:15px;
+">
+<div id="userInfo"></div>
+<button
+id="logoutBtn"
+onclick="logout()"
+style="
+width:auto;
+background:#e74c3c;
+padding:8px 15px;
+">
+🚪 Cerrar Sesión
+</button>
+</div>
   <!-- HOME -->
   <div id="home-view">
     <div class="backup-section">
@@ -424,29 +497,44 @@
 
     <p class="home-subtitle">Seleccione un módulo para gestionar el sistema</p>
     
-    <div class="grid-menu">
-      <div class="menu-card" onclick="mostrarModulo('tab-estudiantes')">
+   <div class="grid-menu">
+
+    <div class="menu-card" id="menu-estudiantes" onclick="mostrarModulo('tab-estudiantes')">
         <span class="icon">👤</span>
         <h2>Estudiantes</h2>
-      </div>
-      <div class="menu-card" onclick="mostrarModulo('tab-asistencia')">
+    </div>
+
+    <div class="menu-card" id="menu-asistencia"  onclick="mostrarModulo('tab-asistencia')">
         <span class="icon">📅</span>
         <h2>Asistencia</h2>
-      </div>
-      <div class="menu-card" onclick="mostrarModulo('tab-cumpleaños')">
+    </div>
+
+    <div class="menu-card"id="menu-cumpleanos" onclick="mostrarModulo('tab-cumpleaños')">
         <span class="icon">🎂</span>
         <h2>Cumpleaños</h2>
-      </div>
-      <div class="menu-card" onclick="mostrarModulo('tab-finanzas')">
+    </div>
+
+    <div class="menu-card"
+         id="menu-finanzas"
+         onclick="mostrarModulo('tab-finanzas')">
         <span class="icon">💰</span>
         <h2>Finanzas</h2>
-      </div>
-      <div class="menu-card" onclick="mostrarModulo('tab-reportes')">
+    </div>
+
+    <div class="menu-card" id="menu-reportes"   onclick="mostrarModulo('tab-reportes')">
         <span class="icon">📊</span>
         <h2>Reportes</h2>
-      </div>
     </div>
-  </div>
+
+    <div class="menu-card"
+         id="menu-usuarios"
+         onclick="mostrarModulo('tab-usuarios')">
+        <span class="icon">⚙️</span>
+        <h2>Usuarios</h2>
+    </div>
+
+</div>
+</div> <!-- home-view -->
 
   <!-- ESTUDIANTES -->
   <div id="tab-estudiantes" class="modulo-content">
@@ -624,13 +712,7 @@
             <label>Monto ($):</label>
             <input type="number" id="finMonto" step="0.01" min="0.01" required placeholder="0.00">
           </div>
-          <div>
-            <label>Registrado por:</label>
-            <select id="finSecretaria" required>
-              <option value="Marisol">Marisol</option>
-              <option value="Aracelis">Aracelis</option>
-            </select>
-          </div>
+          
         </div>
         <div style="margin-bottom: 15px;">
           <label>Nota / Descripción:</label>
@@ -650,8 +732,9 @@
             <th>Cuenta</th>
             <th>Descripción</th>
             <th>Monto</th>
-            <th>Secretaria</th>
+            <th>Crado por </th>
             <th>Acciones</th>
+            <th>Estado</th>
           </tr>
         </thead>
         <tbody id="financeTableBody"></tbody>
@@ -668,48 +751,242 @@
 
     <div class="filtros-container">
       <div class="filtro-grupo">
-        <label>Grupo de Estudio:</label>
-        <select id="repGrupo" onchange="generarReporteDashboard()">
-          <option value="">Todos</option>
-          <option value="Carolina y Anyelina">Carolina y Anyelina</option>
-          <option value="Marialis, Raysa y Yilbania">Marialis, Raysa y Yilbania</option>
-          <option value="Elizabeth, Javiel y Ambiorix">Elizabeth, Javiel y Ambiorix</option>
-          <option value="Ashley, Luis y Angela">Ashley, Luis y Angela</option>
-          <option value="Katherine, Ingrid y Nathan">Katherine, Ingrid y Nathan</option>
-          <option value="Rosa, Alfonso y Julio">Rosa, Alfonso y Julio</option>
-        </select>
-      </div>
-      <div class="filtro-grupo">
-        <label>Mes:</label>
-        <select id="repMes" onchange="generarReporteDashboard()">
-          <option value="">Todos</option>
-          <option value="10">Octubre</option>
-          <option value="11">Noviembre</option>
-          <option value="12">Diciembre</option>
-        </select>
+     <label for="filterGroup">
+    <strong>Grupo de Estudio:</strong>
+</label>
+
+<select id="filterGroup"
+        onchange="renderAttendanceTable(); renderDashboardSimplified()"
+        style="max-width:320px;">
+
+    <option value="Carolina y Anyelina">Carolina y Anyelina</option>
+    <option value="Marialis, Raysa y Yilbania">Marialis, Raysa y Yilbania</option>
+    <option value="Elizabeth, Javiel y Ambiorix">Elizabeth, Javiel y Ambiorix</option>
+    <option value="Ashley, Luis y Angela">Ashley, Luis y Angela</option>
+    <option value="Katherine, Ingrid y Nathan">Katherine, Ingrid y Nathan</option>
+    <option value="Rosa, Alfonso y Julio">Rosa, Alfonso y Julio</option>
+
+    </select>
+
+    <label for="attendanceMonth">
+        <strong>Mes:</strong>
+    </label>
+
+    <select id="attendanceMonth"
+            onchange="renderAttendanceTable(); renderDashboardSimplified()"
+            style="max-width:180px;">
+
+        <option value="09">Septiembre</option>
+        <option value="10">Octubre</option>
+        <option value="11">Noviembre</option>
+        <option value="12">Diciembre</option>
+
+    </select>
       </div>
       <div class="filtro-grupo">
         <label>Estudiante:</label>
-        <input type="text" id="repEstudiante" placeholder="Nombre..." onchange="generarReporteDashboard()">
+        <input type="text" id="repEstudiante" placeholder="Nombre..." onchange="actualizarDashboardReportes()">
       </div>
     </div>
 
     <div id="dashboardReportes" class="dashboard-grid"></div>
+    <div id="teacherStatsContainer"class="card"></div>
+    <div id="financeSummary" class="card"></div>
+    <div class="card">
+
+    <h3>
+        📊 Asistencia Promedio por Grupo
+    </h3>
+    <div class="chart-container">
+        <canvas
+            id="attendanceGroupChart">
+        </canvas>
+    </div>
+
+</div>
+  
+   <div class="card">
+    <h3>📈 Evolución del Fondo Acumulado</h3>
+    <div class="chart-container">
+        <canvas id="financeTrendChart"></canvas>
+    </div>
   </div>
+  </div>
+  
+<!-- USUARIOS -->
+<div id="tab-usuarios" class="modulo-content">
+
+    <div class="header-modulo">
+        <h2>⚙️ Gestión de Usuarios</h2>
+        <button class="btn-home"
+                onclick="volverInicio()">
+            🏠 Inicio
+        </button>
+    </div>
+
+    <div class="card">
+
+        <h3>Crear Usuario</h3>
+
+        <form id="userForm">
+
+    <input type="hidden" id="userId">
+
+    <div class="form-group">
+
+        <div>
+            <label>Usuario:</label>
+
+            <input
+                type="text"
+                id="newUsername"
+                required>
+        </div>
+
+        <div>
+            <label>Contraseña:</label>
+
+            <input
+                type="password"
+                id="newPassword"
+                required>
+        </div>
+
+        <div>
+            <label>Rol:</label>
+
+            <select
+                id="newRole"
+                required>
+
+                <option value="maestro">Maestro</option>
+                <option value="registrador">Registrador</option>
+                <option value="admin">Admin Finanzas</option>
+                <option value="auditor">Auditor</option>
+                <option value="cumpleanos">Cumpleaños</option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+    <button
+        type="submit"
+        class="btn-save">
+
+        Guardar Usuario
+
+    </button>
+
+</form>
+
+    </div>
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody id="userTableBody"></tbody>
+
+        </table>
+
+    </div>
 
 </div>
 
+
+
 <script>
-  const martes2026 = [
-    "06/10", "13/10", "20/10", "27/10", 
-    "03/11", "10/11", "17/11", "24/11", 
-    "01/12", "08/12", "15/12", "22/12", "29/12"
-  ];
+ const martes2026 = [
+
+    // SEPTIEMBRE
+    "08/09",
+    "15/09",
+    "22/09",
+    "29/09",
+
+    // OCTUBRE
+    "06/10",
+    "13/10",
+    "20/10",
+    "27/10",
+
+    // NOVIEMBRE
+    "03/11",
+    "10/11",
+    "17/11",
+    "24/11",
+
+    // DICIEMBRE
+    "01/12",
+    "08/12",
+    "15/12",
+    "22/12",
+    "29/12"
+
+];
 
   let students = JSON.parse(localStorage.getItem('biblical_students')) || [];
   let attendanceData = JSON.parse(localStorage.getItem('biblical_attendance')) || {};
   let finances = JSON.parse(localStorage.getItem('biblical_finances')) || [];
+  let classTeachers =JSON.parse(localStorage.getItem( 'biblical_class_teachers') ) || {};
+  console.log("classTeachers cargado:", classTeachers);
+  let users = JSON.parse(localStorage.getItem('biblical_users')) || [
+
   
+  {
+  id: 1,
+  username: "marisol",
+  password: "1234",
+  role: "registrador",
+  activo: true
+  },
+  {
+  id: 2,
+  username: "aracelis",
+  password: "1234",
+  role: "admin",
+  activo: true
+  },
+  {
+  id: 3,
+  username: "ambiorix",
+  password: "1234",
+  role: "auditor"
+  }, 
+ {
+  id: 4,
+  username: "maestro",
+  password: "1234",
+  role: "maestro",
+  activo: true
+  },
+  {
+    id: 999,
+    username: "nathan",
+    password: "1234",
+    role: "superadmin",
+    activo: true
+
+  }
+  ];
+  users = users.map(u => ({
+    ...u,
+    activo: u.activo !== false
+}));
+
+  let currentUser = null;
+
   let dashboardCharts = {};
   let slideIndex = 0;
   let slideInterval;
@@ -717,6 +994,23 @@
   // Elementos
   const studentForm = document.getElementById('studentForm');
   const financeForm = document.getElementById('financeForm');
+ 
+
+//función para obtener fechas del mes
+  function getCurrentAttendanceDates() {
+
+    const selectedMonth =
+        document.getElementById(
+            'attendanceMonth'
+        ).value;
+
+    return martes2026.filter(
+        fecha =>
+            fecha.split('/')[1] ===
+            selectedMonth
+    );
+
+}
 
   function showSlides(n) {
     const slides = document.querySelectorAll('.carousel-slide');
@@ -725,6 +1019,412 @@
     slides.forEach(slide => slide.classList.remove('active'));
     slides[slideIndex].classList.add('active');
   }
+  function actualizarDashboardReportes() {
+
+    generarReporteDashboard();
+
+    renderTeacherStats();
+
+    renderFinanceTrendChart();
+
+    renderAttendanceGroupChart();
+
+}
+function getFinancialTrend() {
+
+    const trend = [];
+    let acumulado = 0;
+    const sortedFinances = [...finances];
+    sortedFinances.sort((a, b) => {
+        const [diaA, mesA] = a.fecha.split('/');
+        const [diaB, mesB] = b.fecha.split('/');
+
+        const dateA = new Date(
+            2026,
+            parseInt(mesA) - 1,
+            parseInt(diaA)
+        );
+        const dateB = new Date(
+            2026,
+            parseInt(mesB) - 1,
+            parseInt(diaB)
+        );
+        return dateA - dateB;
+    });
+    sortedFinances.forEach(item => {
+        if (item.tipo === 'Ingreso') {
+            acumulado += item.monto;
+        } else {
+            acumulado -= item.monto;
+        }
+        trend.push({
+            fecha: item.fecha,
+
+            balance: acumulado
+        });
+    });
+    return trend;
+
+}
+function renderFinanceTrendChart() {
+
+    const trend =
+        getFinancialTrend();
+
+    const labels =
+        trend.map(
+            t => t.fecha
+        );
+
+    const values =
+        trend.map(
+            t => t.balance
+        );
+
+    const ctx =
+        document.getElementById(
+            'financeTrendChart'
+        );
+
+    if (!ctx) return;
+
+    if (dashboardCharts.financeTrend) {
+
+        dashboardCharts.financeTrend.destroy();
+
+    }
+
+    dashboardCharts.financeTrend =
+        new Chart(
+            ctx,
+            {
+
+                type: 'line',
+
+                data: {
+
+                    labels: labels,
+
+                    datasets: [
+
+                        {
+
+                            label:
+                                'Fondo acumulado ($)',
+
+                            data: values,
+
+                            borderColor:
+                                '#27ae60',
+
+                            backgroundColor:
+                                'rgba(39,174,96,0.2)',
+
+                            fill: true,
+
+                            tension: 0.3
+
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    plugins: {
+
+                        legend: {
+
+                            position: 'bottom'
+
+                        }
+
+                    },
+
+                    scales: {
+
+                        y: {
+
+                            beginAtZero: true
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        );
+
+}
+function renderFinanceSummary() {
+
+    let ingresos = 0;
+    let gastos = 0;
+
+    finances.forEach(f => {
+
+        if (f.tipo === 'Ingreso') {
+
+            ingresos += f.monto;
+
+        } else {
+
+            gastos += f.monto;
+
+        }
+
+    });
+
+    const balance =
+        ingresos - gastos;
+
+    document.getElementById(
+        'financeSummary'
+    ).innerHTML = `
+
+        <h3>💰 Resumen Financiero</h3>
+
+        <br>
+
+        <div class="stat-item">
+
+            <span class="stat-label">
+                Ingresos
+            </span>
+
+            <span class="stat-value">
+                $${ingresos.toFixed(2)}
+            </span>
+
+        </div>
+
+        <div class="stat-item">
+
+            <span class="stat-label">
+                Gastos
+            </span>
+
+            <span class="stat-value">
+                $${gastos.toFixed(2)}
+            </span>
+
+        </div>
+
+        <div class="stat-item">
+
+            <span class="stat-label">
+                Fondo actual
+            </span>
+
+            <span class="stat-value">
+                $${balance.toFixed(2)}
+            </span>
+
+        </div>
+
+    `;
+
+}
+``
+function renderTeacherChart() {
+    const stats = getTeacherStats();
+    const labels =
+        Object.keys(stats);
+    const values =
+        Object.values(stats);
+    const ctx =
+        document.getElementById(
+            'teacherChart'
+        ).getContext('2d');
+    if (dashboardCharts.teacher) {
+
+        dashboardCharts.teacher.destroy();
+    }
+    dashboardCharts.teacher =
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label:
+                        'Clases impartidas',
+                    data: values,
+                    backgroundColor: [
+                        '#3498db',
+                        '#27ae60',
+                        '#f39c12',
+                        '#9b59b6',
+                        '#e74c3c',
+                        '#16a085'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+
+                    }
+
+                }
+
+            }
+
+        });
+
+}
+function updateTeacher(
+    grupo,
+    fecha,
+    maestro
+) {
+
+    if (!classTeachers[grupo]) {
+
+        classTeachers[grupo] = {};
+
+    }
+
+    classTeachers[grupo][fecha] = maestro;
+
+    saveAll();
+
+    mostrarNotificacion(
+        '✅ Maestro asignado',
+        'success'
+    );
+
+}
+
+function renderTeacherStats() {
+
+    const container =
+        document.getElementById(
+            'teacherStatsContainer'
+        );
+
+    const stats =
+        getTeacherStats();
+
+    let html = `
+        <h3>
+            👨‍🏫 Clases impartidas por maestro
+        </h3>
+        `;
+
+    const entries =
+        Object.entries(stats);
+
+    if (!entries.length) {
+
+        html += `
+            <p>
+                No hay clases asignadas.
+            </p>
+        `;
+
+        container.innerHTML = html;
+
+        return;
+
+    }
+
+    entries
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([maestro, total]) => {
+
+            html += `
+                <div class="stat-item">
+
+                    <span class="stat-label">
+                        ${maestro}
+                    </span>
+
+                    <span class="stat-value">
+                        ${total} clases
+                    </span>
+
+                </div>
+            `;
+
+        });
+
+    container.innerHTML = html;
+
+}
+
+  
+  function isTeacher() {
+        return currentUser &&
+              currentUser.role === 'maestro';
+ }
+ function isBirthdayUser() {
+
+    return currentUser &&
+           currentUser.role === 'cumpleanos';
+
+}
+    
+  function updateMenuByRole() {
+
+    const menuFinanzas =
+        document.getElementById('menu-finanzas');
+
+    const menuUsuarios =
+        document.getElementById('menu-usuarios');
+
+    if (isTeacher()) {
+        menuFinanzas.style.display = 'none';
+    } else {
+        menuFinanzas.style.display = 'flex';
+    }
+
+    if (!isSuperAdmin()) {
+        menuUsuarios.style.display = 'none';
+    } else {
+        menuUsuarios.style.display = 'flex';
+    }if (isBirthdayUser()) {
+
+    document.getElementById(
+        'menu-estudiantes'
+    ).style.display = 'none';
+
+    document.getElementById(
+        'menu-asistencia'
+    ).style.display = 'none';
+
+    document.getElementById(
+        'menu-finanzas'
+    ).style.display = 'none';
+
+    document.getElementById(
+        'menu-reportes'
+    ).style.display = 'none';
+
+    document.getElementById(
+        'menu-cumpleanos'
+    ).style.display = 'flex';
+
+}
+}
+    
 
   function moveSlide(n) {
     clearInterval(slideInterval);
@@ -732,6 +1432,14 @@
     showSlides(slideIndex);
     startCarouselAuto();
   }
+  function getAuditClass(estado) {
+  if (estado === 'Revisado')
+  return 'approved';
+  if (estado === 'Observado')
+  return 'observed';
+  return 'pending';
+  }
+
 
   function startCarouselAuto() {
     slideInterval = setInterval(() => {
@@ -789,20 +1497,66 @@
     setTimeout(() => notif.style.display = 'none', 4000);
   }
 
-  function mostrarModulo(id) {
-    document.getElementById('home-view').style.display = 'none';
-    document.querySelectorAll('.modulo-content').forEach(mod => mod.style.display = 'none');
-    document.getElementById(id).style.display = 'block';
-    
-    if (id === 'tab-estudiantes') renderStudentTable();
-    if (id === 'tab-asistencia') {
-      renderAttendanceTable();
-      renderDashboardSimplified();
+function mostrarModulo(id) {
+  if (
+    isBirthdayUser()
+    &&
+    id !== 'tab-cumpleaños'
+) {
+
+    mostrarNotificacion(
+        'No tiene permisos para este módulo',
+        'error'
+    );
+
+    return;
+
+}
+
+    if (id === 'tab-finanzas' && isTeacher()) {
+        mostrarNotificacion(
+            'No tiene acceso al módulo financiero',
+            'error'
+        );
+        return;
     }
-    if (id === 'tab-cumpleaños') mostrarCumpleañosPorMes();
-    if (id === 'tab-finanzas') renderFinanceTable();
-    if (id === 'tab-reportes') generarReporteDashboard();
-  }
+
+    if (id === 'tab-usuarios' && !isSuperAdmin()) {
+        mostrarNotificacion(
+            'No tiene permisos',
+            'error'
+        );
+        return;
+    }
+
+    document.getElementById('home-view').style.display = 'none';
+
+    document
+        .querySelectorAll('.modulo-content')
+        .forEach(mod => mod.style.display = 'none');
+
+    document.getElementById(id).style.display = 'block';
+
+    if (id === 'tab-estudiantes')
+        renderStudentTable();
+
+    if (id === 'tab-asistencia') {
+        renderAttendanceTable();
+        renderDashboardSimplified();
+    }
+
+    if (id === 'tab-cumpleaños')
+        mostrarCumpleañosPorMes();
+
+    if (id === 'tab-finanzas')
+        renderFinanceTable();
+
+    if (id === 'tab-reportes')
+        actualizarDashboardReportes();
+
+    if (id === 'tab-usuarios')
+        renderUsers();
+}
 
   function volverInicio() {
     document.querySelectorAll('.modulo-content').forEach(mod => mod.style.display = 'none');
@@ -810,11 +1564,564 @@
   }
 
   function saveAll() {
-    localStorage.setItem('biblical_students', JSON.stringify(students));
-    localStorage.setItem('biblical_attendance', JSON.stringify(attendanceData));
-    localStorage.setItem('biblical_finances', JSON.stringify(finances));
-  }
+localStorage.setItem(
+'biblical_students',
+JSON.stringify(students)
+);
+localStorage.setItem(
+'biblical_attendance',
+JSON.stringify(attendanceData)
+);
+localStorage.setItem(
+'biblical_finances',
+JSON.stringify(finances)
 
+);
+localStorage.setItem(
+'biblical_users',
+JSON.stringify(users)
+);
+
+localStorage.setItem(
+ 'biblical_class_teachers',
+ JSON.stringify(classTeachers)
+);
+
+}
+// Lista de maestro
+function getTeachers() {
+
+    return users.filter(
+        u =>
+            u.role === 'maestro'
+            &&
+            u.activo !== false
+    );
+
+}
+//Estadistica de maestros
+function getTeacherStats() {
+
+    const stats = {};
+
+    Object.values(classTeachers)
+        .forEach(groupData => {
+
+            Object.values(groupData)
+                .forEach(maestro => {
+
+                    if (!maestro) return;
+
+                    if (!stats[maestro]) {
+
+                        stats[maestro] = 0;
+
+                    }
+
+                    stats[maestro]++;
+
+                });
+
+        });
+
+    return stats;
+
+}
+function getAttendanceByGroup() {
+
+    const result = {};
+
+    const selectedMonth =
+        document.getElementById('repMes').value;
+
+    const grupos = [
+
+        "Carolina y Anyelina",
+
+        "Marialis, Raysa y Yilbania",
+
+        "Elizabeth, Javiel y Ambiorix",
+
+        "Ashley, Luis y Angela",
+
+        "Katherine, Ingrid y Nathan",
+
+        "Rosa, Alfonso y Julio"
+
+    ];
+
+    grupos.forEach(grupo => {
+
+        const groupStudents =
+            students.filter(
+                s => s.grupo === grupo
+            );
+
+        let presentes = 0;
+        let totalRegistros = 0;
+
+        groupStudents.forEach(student => {
+
+            martes2026.forEach(fecha => {
+
+                const mes =
+                    fecha.split('/')[1];
+
+                if (
+                    selectedMonth &&
+                    mes !== selectedMonth
+                ) {
+                    return;
+                }
+
+                const att =
+                    attendanceData[
+                        student.id
+                    ]?.[fecha];
+
+                if (!att) return;
+
+                totalRegistros++;
+
+                if (
+                    att.status === 'P'
+                ) {
+                    presentes++;
+                }
+
+            });
+
+        });
+
+        result[grupo] =
+
+            totalRegistros > 0
+
+                ? Number(
+                    (
+                        presentes /
+                        totalRegistros
+                    ) * 100
+                  ).toFixed(1)
+
+                : 0;
+
+    });
+
+    return result;
+
+}
+//Función para calcular asistencia mensual por grupo
+function getAttendanceByGroup() {
+
+    const result = {};
+
+    const selectedMonth =
+        document.getElementById('repMes').value;
+
+    const grupos = [
+
+        "Carolina y Anyelina",
+
+        "Marialis, Raysa y Yilbania",
+
+        "Elizabeth, Javiel y Ambiorix",
+
+        "Ashley, Luis y Angela",
+
+        "Katherine, Ingrid y Nathan",
+
+        "Rosa, Alfonso y Julio"
+
+    ];
+
+    grupos.forEach(grupo => {
+
+        const groupStudents =
+            students.filter(
+                s => s.grupo === grupo
+            );
+
+        let presentes = 0;
+        let totalRegistros = 0;
+
+        groupStudents.forEach(student => {
+
+            martes2026.forEach(fecha => {
+
+                const mesFecha =
+                    fecha.split('/')[1];
+
+                if (
+                    selectedMonth &&
+                    mesFecha !== selectedMonth
+                ) {
+                    return;
+                }
+
+                const att =
+                    attendanceData[
+                        student.id
+                    ]?.[fecha];
+
+                if (att) {
+
+                    totalRegistros++;
+
+                    if (
+                        att.status === 'P'
+                    ) {
+                        presentes++;
+                    }
+
+                }
+
+            });
+
+        });
+
+        result[grupo] =
+
+            totalRegistros > 0
+
+            ? Number(
+                (
+                    presentes /
+                    totalRegistros
+                ) * 100
+              ).toFixed(1)
+
+            : 0;
+
+    });
+
+    return result;
+
+}
+function renderAttendanceGroupChart() {
+
+    const stats =
+        getAttendanceByGroup();
+
+    const labels =
+        Object.keys(stats);
+
+    const values =
+        Object.values(stats);
+
+    const ctx =
+        document.getElementById(
+            'attendanceGroupChart'
+        );
+
+    if (!ctx) return;
+
+    if (
+        dashboardCharts.attendanceGroups
+    ) {
+
+        dashboardCharts.attendanceGroups
+            .destroy();
+
+    }
+
+    dashboardCharts.attendanceGroups =
+        new Chart(
+            ctx,
+            {type: 'bar',data: {labels,datasets: [
+                        {
+                            label:
+                                '% Asistencia',
+                            data: values,
+                            backgroundColor:
+                                '#3498db'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100
+                        }
+                    }
+                }
+            }
+        );
+}
+function renderAttendanceGroupChart() {
+
+    const stats =
+        getAttendanceByGroup();
+
+    const labels =
+        Object.keys(stats);
+
+    const values =
+        Object.values(stats);
+
+    const ctx =
+        document.getElementById(
+            'attendanceGroupChart'
+        );
+
+    if (!ctx) return;
+
+    if (
+        dashboardCharts.attendanceGroups
+    ) {
+
+        dashboardCharts.attendanceGroups
+            .destroy();
+
+    }
+
+    dashboardCharts.attendanceGroups =
+        new Chart(
+            ctx,
+            {
+
+                type: 'bar',
+
+                data: {
+
+                    labels,
+
+                    datasets: [
+
+                        {
+
+                            data: values,
+
+                            label:
+                                '% Asistencia',
+
+                            backgroundColor:
+                                values.map(v => {
+
+                                    if (v >= 80)
+                                        return '#27ae60';
+
+                                    if (v >= 60)
+                                        return '#f39c12';
+
+                                    return '#e74c3c';
+
+                                }),
+
+                            borderRadius: 8
+
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    plugins: {
+
+                        legend: {
+                            display: false
+                        }
+
+                    },
+
+                    scales: {
+
+                        y: {
+
+                            min: 0,
+
+                            max: 100,
+
+                            title: {
+
+                                display: true,
+
+                                text: '% Asistencia'
+
+                            }
+
+                        }
+
+                    }
+
+                },
+
+               plugins: [
+
+    {
+
+        id: 'labels',
+
+        afterDatasetsDraw(chart) {
+
+            const { ctx } = chart;
+
+            ctx.save();
+
+            chart
+                .getDatasetMeta(0)
+                .data
+                .forEach((bar, index) => {
+
+                    const value =
+                        values[index];
+
+                    ctx.fillStyle =
+                    value >= 60 && value < 80
+                        ? '#2c3e50'
+                        : '#ffffff';
+
+
+                    ctx.font =
+                        'bold 30x Arial';
+
+                    ctx.textAlign =
+                        'center';
+
+                    ctx.textBaseline =
+                        'middle';
+
+                    ctx.fillText(
+
+                        `${value}%`,
+
+                        bar.x,
+
+                        bar.y + (
+                            (bar.base - bar.y) / 2
+                        )
+
+                    );
+
+                });
+
+            ctx.restore();
+
+        }
+
+    }
+
+]
+
+            }
+
+        );
+
+}
+
+
+//Tabla de usuarios
+function renderUsers() {
+    const tbody =
+        document.getElementById(
+            'userTableBody'
+        );
+    tbody.innerHTML = '';
+    users.forEach(u => {
+        const row =
+            document.createElement('tr');
+        row.innerHTML = `
+            <td>${u.username}</td>
+
+            <td>${u.role}</td>
+            <td>
+           
+                ${u.activo
+
+                   ? '<span style="color:#27ae60;font-weight:bold;">🟢 Activo</span>'
+                    : '<span style="color:#e74c3c;font-weight:bold;">🔴 Inactivo</span>'
+                }
+           </td>
+
+            </td>
+           <td>
+            <div class="user-actions">
+              <button
+                class="btn-edit"
+                onclick="editUser(${u.id})">
+                Editar
+                </button>
+                <button
+                class="${u.activo ? 'btn-delete' : 'btn-save'} btn-status"
+                onclick="toggleUserStatus(${u.id})">
+                ${u.activo ? '🔒 Bloquear' : '🔓 Habilitar'}
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+
+    });
+
+}
+function toggleUserStatus(id) {
+  const user =
+    users.find(u => u.id === id);
+
+if (
+    user &&
+    user.role === 'superadmin'
+) {
+
+    mostrarNotificacion(
+        '❌ No puede inactivar el SuperAdmin',
+        'error'
+    );
+
+    return;
+
+}
+
+    users = users.map(u =>
+
+        u.id === id
+
+        ? {
+            ...u,
+            activo: !u.activo
+        }
+
+        : u
+
+    );
+
+    saveAll();
+
+    renderUsers();
+
+}
+function editUser(id) {
+    console.log("Editando usuario:", id);
+    const user =
+        users.find(u => u.id === id);
+
+    if (!user) return;
+
+    document.getElementById('userId').value =
+        user.id;
+
+    document.getElementById(
+        'newUsername'
+    ).value = user.username;
+
+    document.getElementById(
+        'newPassword'
+    ).value = user.password;
+
+    document.getElementById(
+        'newRole'
+    ).value = user.role;
+
+}
   // ESTUDIANTES
   studentForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -835,7 +2142,110 @@
     studentForm.reset();
     renderStudentTable();
     mostrarNotificacion('✅ Estudiante guardado', 'success');
+
+    
   });
+ 
+const userForm =
+    document.getElementById('userForm');
+
+userForm.addEventListener('submit', (e) => {
+
+    e.preventDefault();
+
+    const username =
+        document.getElementById('newUsername').value;
+
+    const password =
+        document.getElementById('newPassword').value;
+
+    const role =
+        document.getElementById('newRole').value;
+
+    const userId =
+    document.getElementById('userId').value;
+
+const userExists =
+    users.some(
+        u =>
+            u.username.toLowerCase() ===
+            username.toLowerCase()
+            &&
+            u.id !== parseInt(userId || 0)
+    );
+
+    if (userExists) {
+
+        mostrarNotificacion(
+            '❌ El usuario ya existe',
+            'error'
+        );
+
+        return;
+    }
+
+   
+    if (userId) {
+
+    users = users.map(u =>
+
+        u.id === parseInt(userId)
+
+        ? {
+            ...u,
+            username,
+            password,
+            role
+          }
+
+        : u
+
+    );
+
+    mostrarNotificacion(
+        '✅ Usuario actualizado',
+        'success'
+    );
+
+} else {
+
+    const newUser = {
+
+        id: Date.now(),
+
+        username,
+
+        password,
+
+        role,
+
+        activo: true
+
+    };
+
+    users.push(newUser);
+
+    mostrarNotificacion(
+        '✅ Usuario creado',
+        'success'
+    );
+
+}
+
+   //sers.push(newUser);
+
+    saveAll();
+
+    renderUsers();
+
+    userForm.reset();
+    document.getElementById(
+    'userId'
+).value = '';
+
+   
+
+});
 
   function renderStudentTable() {
     const tbody = document.getElementById('studentTableBody');
@@ -891,14 +2301,60 @@
     const header = document.getElementById('attendanceHeader');
     const tbody = document.getElementById('attendanceTableBody');
 
-    header.innerHTML = '<th class="text-left">Estudiante</th>';
-    martes2026.forEach(f => header.innerHTML += `<th>${f}</th>`);
+   const fechasMes =
+    getCurrentAttendanceDates();
+
+    header.innerHTML ='<th class="text-left">Estudiante</th>';
+    fechasMes.forEach(f =>
+    header.innerHTML += `<th>${f}</th>`
+    );
 
     const groupStudents = students.filter(s => s.grupo === grupo);
     tbody.innerHTML = '';
+    const teachers = getTeachers();
+
+let teacherRow = `
+<tr>
+    <td class="text-left">
+        <strong>👨‍🏫 Maestro Responsable</strong>
+    </td>
+`;
+
+fechasMes.forEach(fecha => {
+
+    teacherRow += `
+    <td>
+
+        <select onchange="updateTeacher('${grupo}','${fecha}',this.value)">
+            <option value="">
+                Seleccionar
+            </option>
+
+            ${teachers.map(t => `
+                <option
+                    value="${t.username}"
+                    ${classTeachers[grupo]?.[fecha] === t.username
+                        ? 'selected'
+                        : ''}>
+                    ${t.username}
+                </option>
+            `).join('')}
+
+        </select>
+
+    </td>
+    `;
+
+});
+
+
+
+teacherRow += '</tr>';
+
+tbody.innerHTML += teacherRow;
 
     if (!groupStudents.length) {
-      tbody.innerHTML = `<tr><td colspan="${martes2026.length + 1}">Sin estudiantes</td></tr>`;
+      tbody.innerHTML = `<td colspan="${fechasMes.length + 1}">Sin estudiantes</td></tr>`;
       return;
     }
 
@@ -906,7 +2362,7 @@
       const row = document.createElement('tr');
       let html = `<td class="text-left"><strong>${s.nombre} ${s.apellido}</strong></td>`;
       
-      martes2026.forEach(f => {
+      fechasMes.forEach(f => {
         if (!attendanceData[s.id]) attendanceData[s.id] = {};
         if (!attendanceData[s.id][f]) attendanceData[s.id][f] = { status: 'A', part: false };
         
@@ -919,6 +2375,7 @@
                 <option value="E" ${att.status === 'E' ? 'selected' : ''}>E</option>
                 <option value="A" ${att.status === 'A' ? 'selected' : ''}>A</option>
               </select>
+           
               <label style="font-size: 10px;">
                 <input type="checkbox" ${att.part ? 'checked' : ''} onchange="updateAttPart(${s.id}, '${f}', this.checked)">⭐
               </label>
@@ -931,6 +2388,40 @@
       tbody.appendChild(row);
     });
   }
+  //Seleccionar automáticamente el mes actual
+  function setCurrentMonth() {
+
+    const today =
+        new Date();
+
+    const currentMonth =
+        String(
+            today.getMonth() + 1
+        ).padStart(2, '0');
+
+    const selector =
+        document.getElementById(
+            'attendanceMonth'
+        );
+
+    if (!selector) return;
+
+    if (
+        ['09','10','11','12']
+        .includes(currentMonth)
+    ) {
+
+        selector.value =
+            currentMonth;
+
+    } else {
+
+        selector.value =
+            '09';
+
+    }
+
+}
 
   function updateAttStatus(sid, f, sel) {
     attendanceData[sid][f].status = sel.value;
@@ -1093,15 +2584,32 @@
   financeForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const id = document.getElementById('financeId').value;
-    const entry = {
+    const existingFinance =finances.find( f => f.id === parseInt(id) );
+    const entry  = {
       id: id ? parseInt(id) : Date.now(),
       fecha: document.getElementById('finFecha').value,
       tipo: document.getElementById('finTipo').value,
       cuenta: document.getElementById('finCuenta').value,
-      monto: parseFloat(document.getElementById('finMonto').value),
-      secretaria: document.getElementById('finSecretaria').value,
-      nota: document.getElementById('finNota').value
-    };
+      monto: parseFloat(
+      document.getElementById('finMonto').value
+      ),
+      nota: document.getElementById('finNota').value,
+      creadoPor:
+      existingFinance?.creadoPor ||
+      currentUser.username,
+      fechaCreacion:
+      existingFinance?.fechaCreacion ||
+      new Date().toLocaleString(),
+      modificadoPor:
+      id ? currentUser.username : null,
+      fechaModificacion:
+      id ? new Date().toLocaleString() : null,
+      estadoAuditoria:
+      existingFinance?.estadoAuditoria ||
+      'Pendiente'
+};
+
+      
     if (id) {
       finances = finances.map(f => f.id === parseInt(id) ? entry : f);
     } else {
@@ -1129,15 +2637,46 @@
         <td>${f.cuenta}</td>
         <td class="text-left">${f.nota}</td>
         <td>$${f.monto.toFixed(2)}</td>
-        <td>${f.secretaria}</td>
-        <td>
-          <button class="btn-edit" onclick="editFinance(${f.id})">Editar</button>
-          <button class="btn-delete" onclick="deleteFinance(${f.id})">Borrar</button>
-        </td>
+        <td>${f.creadoPor || 'No definido'}</td>
+        <td>${f.estadoAuditoria || 'Pendiente'}</td>
+       <td>
+
+        ${isAdmin() ? `
+
+          <button class="btn-edit"onclick="editFinance(${f.id})">
+            Editar
+          </button>
+          <button class="btn-delete" onclick="deleteFinance(${f.id})">
+            Borrar
+          </button>
+          `:
+          isAuditor() ? `
+            <select
+
+              class="audit-select ${getAuditClass(f.estadoAuditoria)}"
+              onchange="reviewFinance(${f.id}, this.value)">
+              <option value="Pendiente"
+              ${f.estadoAuditoria === 'Pendiente' ? 'selected' : ''}>
+              🟡 Pendiente
+              </option>
+              <option value="Revisado"
+              ${f.estadoAuditoria === 'Revisado' ? 'selected' : ''}>
+              ✅ Revisado
+              </option>
+              <option value="Observado"
+              ${f.estadoAuditoria === 'Observado' ? 'selected' : ''}>
+              ⚠️ Observado
+              </option>
+            </select>
+            
+
+        `: 'Solo lectura'}
+
+      </td>
       `;
       tbody.appendChild(row);
-    });
-
+    }); 
+      
     document.getElementById('sumIncome').textContent = `$${inc.toFixed(2)}`;
     document.getElementById('sumExpense').textContent = `$${exp.toFixed(2)}`;
     document.getElementById('sumBalance').textContent = `$${(inc - exp).toFixed(2)}`;
@@ -1151,7 +2690,7 @@
       document.getElementById('finTipo').value = f.tipo;
       document.getElementById('finCuenta').value = f.cuenta;
       document.getElementById('finMonto').value = f.monto;
-      document.getElementById('finSecretaria').value = f.secretaria;
+      //cument.getElementById('finSecretaria').value = f.secretaria;
       document.getElementById('finNota').value = f.nota;
     }
   }
@@ -1164,6 +2703,73 @@
       mostrarNotificacion('✅ Movimiento eliminado', 'success');
     }
   }
+function deleteUser(id) {
+
+    const user =
+        users.find(u => u.id === id);
+
+    if (
+        user &&
+        user.role === 'superadmin'
+    ) {
+
+        mostrarNotificacion(
+            '❌ No puede borrar el SuperAdmin',
+            'error'
+        );
+
+        return;
+
+    }
+
+    if (!confirm(
+        '¿Desea eliminar este usuario?'
+    )) {
+        return;
+    }
+
+    users = users.filter(
+        u => u.id !== id
+    );
+
+    saveAll();
+
+    renderUsers();
+
+}
+
+  function reviewFinance(id, estado) {
+    
+if (!isAuditor()) {
+mostrarNotificacion(
+'No tiene permisos',
+'error'
+);
+return;
+}
+finances = finances.map(f => {
+ 
+if (f.id === id) {
+return {
+...f,
+estadoAuditoria: estado,
+auditadoPor:
+currentUser.username,
+fechaAuditoria:
+new Date().toLocaleString()
+};
+}
+return f;
+});
+saveAll();
+renderFinanceTable();
+ 
+mostrarNotificacion(
+'Auditoría registrada',
+'success'
+);
+}
+
 
   function resetFinanceForm() {
     financeForm.reset();
@@ -1229,9 +2835,113 @@
     });
   }
 
-  window.addEventListener('DOMContentLoaded', () => {
-    startCarouselAuto();
-  });
+ 
+    function login() {
+
+    const username =
+        document.getElementById('loginUser').value;
+
+    const password =
+        document.getElementById('loginPass').value;
+
+    const user = users.find(u =>
+        u.username === username &&
+        u.password === password
+    );
+   
+
+    if (!user) {
+
+        mostrarNotificacion(
+            'Usuario o contraseña incorrectos',
+            'error'
+        );
+
+        return;
+    }if (user.activo === false) {
+
+    mostrarNotificacion(
+        '❌ Usuario inactivo',
+        'error'
+    );
+
+    return;
+
+}
+
+    currentUser = user;
+    updateMenuByRole();
+    localStorage.setItem(
+      'biblical_current_user',
+      JSON.stringify(user)
+      );
+    console.log(isAdmin());
+    document.getElementById('userInfo').innerHTML =
+
+`👤 Usuario: ${user.username} | 🔐 Rol: ${user.role}`;
+    document.getElementById(
+        'loginView'
+    ).style.display = 'none';
+
+    document.querySelector(
+        '.container'
+    ).style.display = 'block';
+
+    mostrarNotificacion(
+        `Bienvenido ${user.username}`,
+        'success'
+    );
+
+}
+ function logout() {
+
+      localStorage.removeItem(
+      'biblical_current_user'
+      );
+      currentUser = null;
+      location.reload();
+
+ }
+function isAdmin() {
+
+  return currentUser &&
+  currentUser.role === 'admin';
+ }
+  function isAuditor() {
+  return currentUser &&
+  currentUser.role === 'auditor';
+}
+function canRegisterFinance() {
+  return currentUser &&
+(
+currentUser.role === 'registrador' ||
+currentUser.role === 'admin'
+);
+}
+//Función super usuario
+function isSuperAdmin() {
+
+    return currentUser &&
+           currentUser.role === "superadmin";
+
+}
+
+
+window.addEventListener('DOMContentLoaded', () => {
+  startCarouselAuto();
+  setCurrentMonth();
+  const savedUser = JSON.parse(
+  localStorage.getItem('biblical_current_user')
+  );
+  if (savedUser) {
+  currentUser = savedUser;
+  updateMenuByRole();
+  document.getElementById('userInfo').innerHTML =
+  `👤 Usuario: ${savedUser.username} | 🔐 Rol: ${savedUser.role}`;
+  document.getElementById('loginView').style.display = 'none';
+  document.querySelector('.container').style.display = 'block';
+}
+});
 </script>
 </body>
 </html>
