@@ -437,7 +437,7 @@
   </div>
 </div>
 
-<div class="container" style="display:none;">
+<div class="container" style="idsplay:none;">
 
   <h1>📖 Escuela Bíblica - Cultivo System</h1>
 <div
@@ -742,76 +742,159 @@ padding:8px 15px;
     </div>
   </div>
 
-  <!-- REPORTES CON DASHBOARD COMPLETO -->
-  <div id="tab-reportes" class="modulo-content">
+ <!-- REPORTES -->
+<div id="tab-reportes" class="modulo-content">
+
     <div class="header-modulo">
-      <h2>📊 Reportes & Analytics</h2>
-      <button class="btn-home" onclick="volverInicio()">🏠 Inicio</button>
+        <h2>📊 Reportes & Analytics</h2>
+        <button class="btn-home" onclick="volverInicio()">
+            🏠 Inicio
+        </button>
     </div>
 
-    <div class="filtros-container">
-      <div class="filtro-grupo">
-     <label for="filterGroup">
-    <strong>Grupo de Estudio:</strong>
-</label>
+  <div class="filtros-container">
 
-<select id="filterGroup"
-        onchange="renderAttendanceTable(); renderDashboardSimplified()"
-        style="max-width:320px;">
+    <div class="filtro-grupo">
 
-    <option value="Carolina y Anyelina">Carolina y Anyelina</option>
-    <option value="Marialis, Raysa y Yilbania">Marialis, Raysa y Yilbania</option>
-    <option value="Elizabeth, Javiel y Ambiorix">Elizabeth, Javiel y Ambiorix</option>
-    <option value="Ashley, Luis y Angela">Ashley, Luis y Angela</option>
-    <option value="Katherine, Ingrid y Nathan">Katherine, Ingrid y Nathan</option>
-    <option value="Rosa, Alfonso y Julio">Rosa, Alfonso y Julio</option>
+        <label>Grupo de Estudio:</label>
 
-    </select>
+        <select
+            id="repGrupo"
+            onchange="actualizarDashboardReportes()">
 
-    <label for="attendanceMonth">
-        <strong>Mes:</strong>
-    </label>
+            <option value="">Todos</option>
 
-    <select id="attendanceMonth"
-            onchange="renderAttendanceTable(); renderDashboardSimplified()"
-            style="max-width:180px;">
+            <option value="Carolina y Anyelina">
+                Carolina y Anyelina
+            </option>
 
-        <option value="09">Septiembre</option>
-        <option value="10">Octubre</option>
-        <option value="11">Noviembre</option>
-        <option value="12">Diciembre</option>
+            <option value="Marialis, Raysa y Yilbania">
+                Marialis, Raysa y Yilbania
+            </option>
 
-    </select>
-      </div>
-      <div class="filtro-grupo">
+            <option value="Elizabeth, Javiel y Ambiorix">
+                Elizabeth, Javiel y Ambiorix
+            </option>
+
+            <option value="Ashley, Luis y Angela">
+                Ashley, Luis y Angela
+            </option>
+
+            <option value="Katherine, Ingrid y Nathan">
+                Katherine, Ingrid y Nathan
+            </option>
+
+            <option value="Rosa, Alfonso y Julio">
+                Rosa, Alfonso y Julio
+            </option>
+
+        </select>
+
+    </div>
+
+    <div class="filtro-grupo">
+
+        <label>Mes:</label>
+
+        <select
+            id="repMes"
+            onchange="actualizarDashboardReportes()">
+
+            <option value="">Todos</option>
+
+            <option value="09">Septiembre</option>
+
+            <option value="10">Octubre</option>
+
+            <option value="11">Noviembre</option>
+
+            <option value="12">Diciembre</option>
+
+        </select>
+
+    </div>
+
+    <div class="filtro-grupo">
+
         <label>Estudiante:</label>
-        <input type="text" id="repEstudiante" placeholder="Nombre..." onchange="actualizarDashboardReportes()">
-      </div>
-    </div>
 
-    <div id="dashboardReportes" class="dashboard-grid"></div>
-    <div id="teacherStatsContainer"class="card"></div>
-    <div id="financeSummary" class="card"></div>
-    <div class="card">
+        <input
+            type="text"
+            id="repEstudiante"
+            placeholder="Nombre..."
+            oninput="actualizarDashboardReportes()">
 
-    <h3>
-        📊 Asistencia Promedio por Grupo
-    </h3>
-    <div class="chart-container">
-        <canvas
-            id="attendanceGroupChart">
-        </canvas>
     </div>
 
 </div>
-  
-   <div class="card">
-    <h3>📈 Evolución del Fondo Acumulado</h3>
-    <div class="chart-container">
-        <canvas id="financeTrendChart"></canvas>
+
+    
+
+             
+
+    <!-- DASHBOARD EXISTENTE -->
+
+    <div
+        id="dashboardReportes"
+        class="dashboard-grid">
     </div>
-  </div>
-  </div>
+
+    <!-- ESTADÍSTICAS DE MAESTROS -->
+
+    <div
+        id="teacherStatsContainer"
+        class="card">
+    </div>
+
+    <!-- RESUMEN FINANCIERO -->
+
+    <div
+        id="financeSummary"
+        class="card">
+    </div>
+
+    <!-- ASISTENCIA POR GRUPO -->
+
+    <div class="card">
+
+        <h3>
+            📊 Asistencia Promedio por Grupo
+        </h3>
+
+        <div class="chart-container">
+
+            <canvas
+                id="attendanceGroupChart">
+            </canvas>
+
+        </div>
+
+    </div>
+
+    <!-- EVOLUCIÓN DEL FONDO -->
+
+    <div class="card">
+
+        <h3>
+            📈 Evolución del Fondo Acumulado
+        </h3>
+
+        <div class="chart-container">
+
+            <canvas
+                id="financeTrendChart">
+            </canvas>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+
   
 <!-- USUARIOS -->
 <div id="tab-usuarios" class="modulo-content">
@@ -997,12 +1080,17 @@ padding:8px 15px;
  
 
 //función para obtener fechas del mes
-  function getCurrentAttendanceDates() {
+ function getCurrentAttendanceDates() {
 
-    const selectedMonth =
+    const monthSelector =
         document.getElementById(
             'attendanceMonth'
-        ).value;
+        );
+
+    const selectedMonth =
+        monthSelector
+            ? monthSelector.value
+            : '09';
 
     return martes2026.filter(
         fecha =>
@@ -1024,6 +1112,7 @@ padding:8px 15px;
     generarReporteDashboard();
 
     renderTeacherStats();
+    renderFinanceSummary();
 
     renderFinanceTrendChart();
 
@@ -1631,8 +1720,12 @@ function getAttendanceByGroup() {
 
     const result = {};
 
+    const monthSelector =
+    document.getElementById('repMes');
     const selectedMonth =
-        document.getElementById('repMes').value;
+    monthSelector
+    ? monthSelector.value
+    : '';
 
     const grupos = [
 
@@ -2354,7 +2447,7 @@ teacherRow += '</tr>';
 tbody.innerHTML += teacherRow;
 
     if (!groupStudents.length) {
-      tbody.innerHTML = `<td colspan="${fechasMes.length + 1}">Sin estudiantes</td></tr>`;
+      tbody.innerHTML = ` <tr><td colspan="${fechasMes.length + 1}">Sin estudiantes</td></tr>`;
       return;
     }
 
