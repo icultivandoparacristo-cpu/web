@@ -437,7 +437,7 @@
   </div>
 </div>
 
-<div class="container" style="idsplay:none;">
+<div class="container" style="display: none,">
 
   <h1>📖 Escuela Bíblica - Cultivo System</h1>
 <div
@@ -2988,13 +2988,24 @@ mostrarNotificacion(
 }
  function logout() {
 
-      localStorage.removeItem(
-      'biblical_current_user'
-      );
-      currentUser = null;
-      location.reload();
+    localStorage.removeItem(
+        'biblical_current_user'
+    );
 
- }
+    currentUser = null;
+
+    document.querySelector(
+        '.container'
+    ).style.display = 'none';
+
+    document.getElementById(
+        'loginView'
+    ).style.display = 'block';
+
+    location.reload();
+
+}
+
 function isAdmin() {
 
   return currentUser &&
@@ -3021,19 +3032,48 @@ function isSuperAdmin() {
 
 
 window.addEventListener('DOMContentLoaded', () => {
-  startCarouselAuto();
-  setCurrentMonth();
-  const savedUser = JSON.parse(
-  localStorage.getItem('biblical_current_user')
-  );
-  if (savedUser) {
-  currentUser = savedUser;
-  updateMenuByRole();
-  document.getElementById('userInfo').innerHTML =
-  `👤 Usuario: ${savedUser.username} | 🔐 Rol: ${savedUser.role}`;
-  document.getElementById('loginView').style.display = 'none';
-  document.querySelector('.container').style.display = 'block';
-}
+
+    startCarouselAuto();
+
+    setCurrentMonth();
+
+    const savedUser = JSON.parse(
+        localStorage.getItem(
+            'biblical_current_user'
+        )
+    );
+
+    if (savedUser) {
+
+        currentUser = savedUser;
+
+        updateMenuByRole();
+
+        document.getElementById(
+            'loginView'
+        ).style.display = 'none';
+
+        document.querySelector(
+            '.container'
+        ).style.display = 'block';
+
+        document.getElementById(
+            'userInfo'
+        ).innerHTML =
+        `👤 Usuario: ${savedUser.username} | 🔐 Rol: ${savedUser.role}`;
+
+    } else {
+
+        document.getElementById(
+            'loginView'
+        ).style.display = 'block';
+
+        document.querySelector(
+            '.container'
+        ).style.display = 'none';
+
+    }
+
 });
 </script>
 </body>
