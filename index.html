@@ -1979,7 +1979,96 @@ button.auth-submit:hover {
     transform:
         translateY(-1px);
 }
+/* ==========================================
+   LOGIN CON GOOGLE
+========================================== */
 
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+    color: #87968e;
+    font-size: 11px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #e0e8e3;
+}
+
+.auth-divider span {
+    flex: 0 0 auto;
+}
+
+.auth-google-btn {
+    width: 100%;
+    min-height: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 11px;
+
+    padding: 11px 16px;
+
+    background: #ffffff;
+    color: #34443c;
+
+    border: 1px solid #ccd9d1;
+    border-radius: 10px;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s,
+        border-color 0.2s,
+        box-shadow 0.2s,
+        transform 0.2s;
+}
+
+.auth-google-btn:hover {
+    background: #f8fbf9;
+    border-color: #a9c5b5;
+
+    box-shadow:
+        0 5px 15px
+        rgba(21, 63, 45, 0.08);
+
+    transform: translateY(-1px);
+}
+
+.auth-google-btn:active {
+    transform: translateY(0);
+}
+
+.google-icon {
+    width: 25px;
+    height: 25px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+
+    color: #4285f4;
+
+    font-size: 14px;
+    font-weight: 800;
+}
 
 /* ==========================================
    MENSAJE DE SEGURIDAD
@@ -3192,6 +3281,23 @@ button.auth-submit:hover {
                     >
                         Ingresar a Cultivo System
                         →
+                    </button>
+                    <div class="auth-divider">
+                        <span>o</span>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="auth-google-btn"
+                        onclick="firebaseGoogleSignIn()"
+                    >
+                        <span class="google-icon">
+                            G
+                        </span>
+
+                        <span>
+                            Continuar con Google
+                        </span>
                     </button>
 
                 </form>
@@ -5647,6 +5753,8 @@ from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 import {
     getAuth,
     signInWithEmailAndPassword,
+    signInWithPopup,
+    GoogleAuthProvider,
     signOut,
     onAuthStateChanged,
     setPersistence,
@@ -5673,6 +5781,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+const SUPERADMIN_EMAIL = 'icultivandoparacristo@gmail.com';
+
+googleProvider.setCustomParameters({
+    prompt: 'select_account'
+});
 
 // Mantener la sesión entre recargas del navegador.
 await setPersistence(auth, browserLocalPersistence);
@@ -5681,7 +5795,55 @@ window.db = db;
 window.firebaseAuth = auth;
 window.firebaseSignIn = signInWithEmailAndPassword;
 window.firebaseSignOut = signOut;
+window.firebaseGoogleSignIn = async function() {
+    try {
 
+        console.log(
+            '🔐 Iniciando autenticación con Google...'
+        );
+
+        await signInWithPopup(
+            auth,
+            googleProvider
+        );
+
+        console.log(
+            '✅ Autenticación con Google completada'
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+            '❌ Error de autenticación con Google:',
+            error
+        );
+
+        let message =
+            'No se pudo iniciar sesión con Google.';
+
+        if (
+            error.code ===
+            'auth/popup-closed-by-user'
+        ) {
+            message =
+                'Inicio de sesión cancelado.';
+        }
+
+        else if (
+            error.code ===
+            'auth/popup-blocked'
+        ) {
+            message =
+                'El navegador bloqueó la ventana de Google.';
+        }
+
+        window.mostrarNotificacion?.(
+            message,
+            'error'
+        );
+    }
+};
 function toLocalSuperAdmin(firebaseUser) {
     return {
         id: firebaseUser.uid,
@@ -5693,24 +5855,137 @@ function toLocalSuperAdmin(firebaseUser) {
         authProvider: 'firebase'
     };
 }
+async function applyFirebaseAuthState(firebaseUser) {
 
-function applyFirebaseAuthState(firebaseUser) {
-    const loginView = document.getElementById('loginView');
-    const appContainer = document.querySelector('.container');
-    const userInfo = document.getElementById('userInfo');
-    const passwordChangeView = document.getElementById('initialPasswordChangeView');
+    const loginView =
+        document.getElementById('loginView');
 
-    if (firebaseUser) {
-        window.applyCultivoFirebaseUser?.(toLocalSuperAdmin(firebaseUser));
-        if (loginView) loginView.style.display = 'none';
-        if (passwordChangeView) passwordChangeView.style.display = 'none';
-        if (appContainer) appContainer.style.display = 'block';
-        if (userInfo) userInfo.textContent = `👤 Usuario: ${firebaseUser.email || 'superadmin'} | 🔐 Rol: superadmin`;
-    } else {
+    const appContainer =
+        document.querySelector('.container');
+
+    const userInfo =
+        document.getElementById('userInfo');
+
+    const passwordChangeView =
+        document.getElementById(
+            'initialPasswordChangeView'
+        );
+
+    // ==========================================
+    // NO HAY USUARIO AUTENTICADO
+    // ==========================================
+    if (!firebaseUser) {
+
         window.clearCultivoFirebaseUser?.();
-        if (appContainer) appContainer.style.display = 'none';
-        if (passwordChangeView) passwordChangeView.style.display = 'none';
-        if (loginView) loginView.style.display = 'block';
+
+        if (appContainer) {
+            appContainer.style.display = 'none';
+        }
+
+        if (passwordChangeView) {
+            passwordChangeView.style.display = 'none';
+        }
+
+        if (loginView) {
+            loginView.style.display = 'flex';
+        }
+
+        return;
+    }
+
+    // ==========================================
+    // NORMALIZAR CORREO
+    // ==========================================
+    const authenticatedEmail =
+        String(
+            firebaseUser.email || ''
+        )
+        .trim()
+        .toLowerCase();
+
+    const authorizedEmail =
+        SUPERADMIN_EMAIL
+        .trim()
+        .toLowerCase();
+
+    // ==========================================
+    // VALIDAR SUPERADMIN AUTORIZADO
+    // ==========================================
+    if (
+        !authenticatedEmail ||
+        authenticatedEmail !== authorizedEmail
+    ) {
+
+        console.warn(
+            '⛔ Acceso Firebase rechazado:',
+            authenticatedEmail || 'sin correo'
+        );
+
+        // No permitir que se vea la aplicación
+        window.clearCultivoFirebaseUser?.();
+
+        if (appContainer) {
+            appContainer.style.display = 'none';
+        }
+
+        if (passwordChangeView) {
+            passwordChangeView.style.display = 'none';
+        }
+
+        if (loginView) {
+            loginView.style.display = 'flex';
+        }
+
+        // Cerrar inmediatamente la sesión Firebase
+        try {
+
+            await signOut(auth);
+
+        } catch (error) {
+
+            console.error(
+                '❌ Error cerrando sesión no autorizada:',
+                error
+            );
+        }
+
+        window.mostrarNotificacion?.(
+            '⛔ Esta cuenta no está autorizada para acceder a Cultivo System.',
+            'error'
+        );
+
+        return;
+    }
+
+    // ==========================================
+    // SUPERADMIN AUTORIZADO
+    // ==========================================
+    console.log(
+        '✅ Superadmin Firebase autorizado:',
+        authenticatedEmail
+    );
+
+    window.applyCultivoFirebaseUser?.(
+        toLocalSuperAdmin(
+            firebaseUser
+        )
+    );
+
+    if (loginView) {
+        loginView.style.display = 'none';
+    }
+
+    if (passwordChangeView) {
+        passwordChangeView.style.display = 'none';
+    }
+
+    if (appContainer) {
+        appContainer.style.display = 'block';
+    }
+
+    if (userInfo) {
+        userInfo.textContent =
+            `👤 Usuario: ${authenticatedEmail} | 🔐 Rol: superadmin`;
     }
 }
 
@@ -22117,7 +22392,7 @@ function loadGroupOptions() {
         });
 
 }
-  // ==========================================
+// ==========================================
 // ESTUDIANTES - CARGAR SUBGRUPOS POR GRUPO
 // ==========================================
 function loadStudentSubGroups() {
