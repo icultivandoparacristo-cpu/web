@@ -22117,6 +22117,105 @@ function loadGroupOptions() {
         });
 
 }
+  // ==========================================
+// ESTUDIANTES - CARGAR SUBGRUPOS POR GRUPO
+// ==========================================
+function loadStudentSubGroups() {
+    const group =
+        document.getElementById(
+            'grupo'
+        )?.value;
+
+    const select =
+        document.getElementById(
+            'subgrupo'
+        );
+
+    if (!select) {
+        console.error(
+            '❌ No existe #subgrupo'
+        );
+        return;
+    }
+
+    // ======================================
+    // REINICIAR SELECTOR
+    // ======================================
+    select.innerHTML = `
+        <option value="">
+            Seleccione
+        </option>
+    `;
+
+    // ======================================
+    // SIN GRUPO SELECCIONADO
+    // ======================================
+    if (!group) {
+        return;
+    }
+
+    // ======================================
+    // OBTENER SUBGRUPOS DEL GRUPO
+    // ======================================
+    const subGroups = [
+        ...new Set(
+            classes
+                .filter(
+                    clase =>
+                        clase &&
+                        clase.grupo === group &&
+                        clase.materia &&
+                        clase.estado === 'Activa'
+                )
+                .map(
+                    clase =>
+                        clase.materia
+                )
+        )
+    ];
+
+    // ======================================
+    // ORDEN ALFABÉTICO
+    // ======================================
+    subGroups.sort(
+        (a, b) =>
+            a.localeCompare(
+                b,
+                'es'
+            )
+    );
+
+    // ======================================
+    // CONSTRUIR OPCIONES
+    // ======================================
+    subGroups.forEach(
+        subGroup => {
+            const option =
+                document.createElement(
+                    'option'
+                );
+
+            option.value =
+                subGroup;
+
+            option.textContent =
+                subGroup;
+
+            select.appendChild(
+                option
+            );
+        }
+    );
+
+    console.log(
+        '✅ Subgrupos de estudiantes:',
+        {
+            grupo: group,
+            subgrupos: subGroups
+        }
+    );
+}
+
  
 function getCurrentMonthBirthdays() {
 
