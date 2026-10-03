@@ -5747,7 +5747,16 @@ button.auth-submit:hover {
 import { initializeApp }
 from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 
-import { getFirestore }
+
+
+import {
+getFirestore,
+collection,
+getDocs,
+doc,
+setDoc,
+deleteDoc
+}
 from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
 import {
@@ -5792,6 +5801,7 @@ googleProvider.setCustomParameters({
 await setPersistence(auth, browserLocalPersistence);
 
 window.db = db;
+window.firestoreGroups = { collection, getDocs, doc, setDoc, deleteDoc };
 window.firebaseAuth = auth;
 window.firebaseSignIn = signInWithEmailAndPassword;
 window.firebaseSignOut = signOut;
@@ -5971,6 +5981,9 @@ async function applyFirebaseAuthState(firebaseUser) {
         )
     );
 
+    if (window.loadGroupsFromFirestore) {
+        await window.loadGroupsFromFirestore();
+    }
     if (loginView) {
         loginView.style.display = 'none';
     }
@@ -6009,7 +6022,7 @@ console.log('✅ Firebase + Authentication conectados');
   ) || [];
   let financeAuditLog =JSON.parse( localStorage.getItem('biblical_finance_audit_log')) || [];
   let sessionTeachers =JSON.parse(localStorage.getItem('biblical_session_teachers' )) || {};
-  let groups = JSON.parse(localStorage.getItem('biblical_groups')) || [];
+  let groups = []; // Fuente oficial: Cloud Firestore /groups
   let classTeachers =JSON.parse(localStorage.getItem( 'biblical_class_teachers') ) || {};console.log("classTeachers cargado:", classTeachers);
   let users = JSON.parse(localStorage.getItem('biblical_users')) || [
 
@@ -7395,7 +7408,6 @@ function runPreFirebaseDiagnostic() {
 
         'biblical_class_teachers',
 
-        'biblical_groups',
 
         'biblical_classes',
         'biblical_class_sessions',
@@ -22943,9 +22955,7 @@ function updateTeacher(
                 )
                     ? backup.bitacoraFinanciera
                     : [];
-                groups =
-                    backup.grupos ||
-                    [];
+                // Grupos conservados en Firestore; el respaldo local no los reemplaza
 
                 classes =
                     backup.clases ||
@@ -23201,7 +23211,7 @@ function mostrarModulo(id) {
         id === 'tab-grupos'
     ) {
 
-        renderGroups();
+        loadGroupsFromFirestore();
 
     }
 
@@ -23305,117 +23315,44 @@ function renderClasses() {
     document.querySelectorAll('.modulo-content').forEach(mod => mod.style.display = 'none');
     document.getElementById('home-view').style.display = 'block';
   }
-  function renderGroups() {
-
-    const tbody =
-        document.getElementById(
-            'groupTableBody'
-        );
-
-    tbody.innerHTML = '';
-
-    groups.forEach(g => {
-
-        const row =
-            document.createElement('tr');
-        row.innerHTML = `
-            <td>
-                ${g.nombre}
-            </td>
-           
-           <td>
-                ${g.estado === 'Activo'
-                ? '<span style="color:#27ae60;font-weight:bold;">🟢 Activo</span>'
-                : '<span style="color:#e74c3c;font-weight:bold;">🔴 Inactivo</span>'
-                }
-            </td>
-            <td>
-
-            <div class="user-actions">
-
-                <button
-                    class="btn-edit"
-                    onclick="editGroup(${g.id})">
-
-                    Editar
-
-                </button>
-
-                <button
-                    class="${
-                        g.estado === 'Activo'
-                            ? 'btn-delete'
-                            : 'btn-save'
-                    } btn-status"
-
-                    onclick="toggleGroupStatus(${g.id})">
-
-                    ${
-                        g.estado === 'Activo'
-                            ? '🔒 Inactivar'
-                            : '🔓 Activar'
-                    }
-
-                </button>
-
-            </div>
-
-        </td>
-        `;
-        tbody.appendChild(row);
-    });
-
+  async function loadGroupsFromFirestore() {
+    const api = window.firestoreGroups;
+    if (!window.db || !api) { mostrarNotificacion('Firestore todavía no está disponible', 'error'); return false; }
+    try {
+        const snapshot = await api.getDocs(api.collection(window.db, 'groups'));
+        groups = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+        groups.sort((a,b) => String(a.nombre||'').localeCompare(String(b.nombre||''), 'es'));
+        renderGroups(); loadGroupOptions(); loadClassGroups(); loadFinanceGroups();
+        console.log('✅ Grupos cargados desde Firestore:', groups); return true;
+    } catch (error) {
+        console.error('❌ Error cargando grupos desde Firestore:', error);
+        mostrarNotificacion('❌ No se pudieron cargar los grupos desde Firestore', 'error'); return false;
+    }
 }
-function toggleGroupStatus(id) {
-
-    groups = groups.map(g =>
-
-        g.id === id
-
-        ? {
-
-            ...g,
-
-            estado:
-                g.estado === 'Activo'
-                    ? 'Inactivo'
-                    : 'Activo'
-
-        }
-
-        : g
-
-    );
-
-    saveAll();
-
-    renderGroups();
-
+function renderGroups() {
+    const tbody=document.getElementById('groupTableBody'); if(!tbody)return; tbody.innerHTML='';
+    if(!groups.length){tbody.innerHTML='<tr><td colspan="3" style="text-align:center;color:#666;">No hay grupos registrados en Firestore</td></tr>';return;}
+    groups.forEach(g=>{ const row=document.createElement('tr'); const safeId=JSON.stringify(String(g.id));
+        row.innerHTML=`<td>${escapeHtml(g.nombre||'')}</td><td>${g.estado==='Activo'?'<span style="color:#27ae60;font-weight:bold;">🟢 Activo</span>':'<span style="color:#e74c3c;font-weight:bold;">🔴 Inactivo</span>'}</td><td><div class="user-actions"><button class="btn-edit" onclick='editGroup(${safeId})'>Editar</button><button class="${g.estado==='Activo'?'btn-delete':'btn-save'} btn-status" onclick='toggleGroupStatus(${safeId})'>${g.estado==='Activo'?'🔒 Inactivar':'🔓 Activar'}</button><button class="btn-delete" onclick='deleteGroup(${safeId})'>🗑️ Eliminar</button></div></td>`;
+        tbody.appendChild(row); });
 }
-function editGroup(id) {
-
-    const group =
-        groups.find(
-            g => g.id === id
-        );
-
-    if (!group) return;
-
-    document.getElementById(
-        'groupId'
-    ).value = group.id;
-
-    document.getElementById(
-        'groupName'
-    ).value = group.nombre;
-
-    document.getElementById(
-        'groupStatus'
-    ).value = group.estado;
-
+async function saveGroupToFirestore(group) {
+    const api=window.firestoreGroups; if(!window.db||!api) throw new Error('Firestore no disponible');
+    await api.setDoc(api.doc(window.db,'groups',String(group.id)), {nombre:String(group.nombre||'').trim(),estado:group.estado==='Inactivo'?'Inactivo':'Activo',updatedAt:new Date().toISOString(),updatedBy:currentUser?.email||currentUser?.username||'superadmin'}, {merge:true});
 }
-
-
+async function toggleGroupStatus(id) {
+    const group=groups.find(g=>String(g.id)===String(id)); if(!group)return;
+    try { await saveGroupToFirestore({...group,estado:group.estado==='Activo'?'Inactivo':'Activo'}); await loadGroupsFromFirestore(); mostrarNotificacion('✅ Estado del grupo actualizado en Firestore','success'); }
+    catch(error){console.error(error);mostrarNotificacion('❌ No se pudo actualizar el grupo','error');}
+}
+function editGroup(id) { const group=groups.find(g=>String(g.id)===String(id)); if(!group)return; document.getElementById('groupId').value=String(group.id); document.getElementById('groupName').value=group.nombre||''; document.getElementById('groupStatus').value=group.estado||'Activo'; }
+async function deleteGroup(id) {
+    const group=groups.find(g=>String(g.id)===String(id)); if(!group)return;
+    if(classes.some(c=>c.grupo===group.nombre)){mostrarNotificacion('⚠️ No se puede eliminar: el grupo tiene subgrupos asociados','warning');return;}
+    if(!confirm(`¿Eliminar definitivamente el grupo "${group.nombre}" de Firestore?`))return;
+    try{const api=window.firestoreGroups;await api.deleteDoc(api.doc(window.db,'groups',String(group.id)));await loadGroupsFromFirestore();mostrarNotificacion('✅ Grupo eliminado de Firestore','success');}
+    catch(error){console.error(error);mostrarNotificacion('❌ No se pudo eliminar el grupo','error');}
+}
   function saveAll() {
     console.log(
 'Antes de saveAll:',
@@ -23456,16 +23393,7 @@ localStorage.setItem(
  'biblical_class_teachers',
  JSON.stringify(classTeachers)
 );
-localStorage.setItem(
-    'biblical_groups',
-    JSON.stringify(groups)
-);
-console.log(
-'Después de saveAll:',
-localStorage.getItem(
-'biblical_groups'
-)
-);
+// Grupos ya no se guardan en localStorage. Fuente oficial: Firestore.
 localStorage.setItem(
 'biblical_classes',
 JSON.stringify(classes)
@@ -24022,126 +23950,17 @@ else {
 
 });
  //Grupos
-    const groupForm =
-    document.getElementById(
-        'groupForm'
-    );
-        document.getElementById('groupForm');
-
-console.log(
-    "groupForm encontrado:",
-    groupForm
-);
-
-if (groupForm) {
-
-
-console.log(
-"✅ Listener de grupos conectado"
-);
-    groupForm.addEventListener(
-        'submit',
-        (e) => {
-            console.log("Formulario de grupos ejecutado");
-            e.preventDefault();
-            const groupId =
-                document.getElementById(
-                'groupId'
-                ).value;
-             const oldGroup =
-                groupId
-                ? groups.find(
-                g => g.id === parseInt(groupId)
-                )
-                : null;
-            const groupData = {
-
-                id: Date.now(),
-
-                nombre:
-                    document.getElementById(
-                        'groupName'
-                    ).value,
-
-                
-                estado:
-                    document.getElementById(
-                        'groupStatus'
-                    ).value
-
-            };
-
-if (groupId) {
-
-    // Actualizar clases asociadas
-    if (
-        oldGroup &&
-        oldGroup.nombre !== groupData.nombre
-    ) {
-
-        classes = classes.map(c =>
-
-            c.grupo === oldGroup.nombre
-
-            ? {
-                ...c,
-                grupo: groupData.nombre
-            }
-
-            : c
-
-        );
-
-    }
-
-    // Actualizar grupo
-    groups = groups.map(g =>
-
-        g.id === parseInt(groupId)
-
-        ? {
-            ...g,
-            nombre: groupData.nombre,
-            estado: groupData.estado
-        }
-
-        : g
-
-    );
-
-    mostrarNotificacion(
-        '✅ Grupo actualizado',
-        'success'
-    );
-
-}
-else {
-
-    groups.push(
-        groupData
-    );
-
-    mostrarNotificacion(
-        '✅ Grupo creado',
-        'success'
-    );
-
-}
-
-            saveAll();
-
-            renderGroups();
-
-            groupForm.reset();
-            document.getElementById(
-                'groupId'
-            ).value = '';
-
-            
-
-        }
-    );
-
+const groupForm=document.getElementById('groupForm');
+if(groupForm){
+ groupForm.addEventListener('submit',async(e)=>{e.preventDefault();
+  const groupId=document.getElementById('groupId').value.trim(); const oldGroup=groupId?groups.find(g=>String(g.id)===String(groupId)):null;
+  const nombre=document.getElementById('groupName').value.trim(); const estado=document.getElementById('groupStatus').value;
+  if(!nombre){mostrarNotificacion('⚠️ Escriba el nombre del grupo','warning');return;}
+  if(groups.some(g=>String(g.nombre||'').trim().toLowerCase()===nombre.toLowerCase()&&String(g.id)!==String(groupId))){mostrarNotificacion('⚠️ Ya existe un grupo con ese nombre','warning');return;}
+  const groupData={id:groupId||`group_${Date.now()}`,nombre,estado};
+  try{await saveGroupToFirestore(groupData); if(oldGroup&&oldGroup.nombre!==nombre){classes=classes.map(c=>c.grupo===oldGroup.nombre?{...c,grupo:nombre}:c);saveAll();} await loadGroupsFromFirestore(); groupForm.reset();document.getElementById('groupId').value='';mostrarNotificacion(oldGroup?'✅ Grupo actualizado en Firestore':'✅ Grupo creado en Firestore','success');}
+  catch(error){console.error('❌ Error guardando grupo en Firestore:',error);mostrarNotificacion('❌ No se pudo guardar el grupo en Firestore','error');}
+ });
 }
 // CLASES
 
@@ -24329,28 +24148,7 @@ if (classForm) {
     );
 
 }
-//Eliminar Grupos
-function deleteGroup(id) {
-
-    if (
-        !confirm(
-            '¿Eliminar grupo?'
-        )
-    ) {
-        return;
-    }
-
-    groups =
-        groups.filter(
-            g => g.id !== id
-        );
-
-    saveAll();
-
-    renderGroups();
-
-}
-
+// Eliminación de grupos gestionada por Firestore.
 function renderStudentTable() {
 
     const tbody =
