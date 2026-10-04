@@ -25528,22 +25528,29 @@ async function updateAttStatus(
 
     renderDashboardSimplified();
 }
-
-  // DASHBOARD SIMPLIFICADO (Solo General + Semana en curso)
 // ==========================================
 // DASHBOARD SIMPLIFICADO DE ASISTENCIA
 // ==========================================
 function renderDashboardSimplified() {
 
+    // ==========================================
+    // CONTENEDOR REAL
+    // ==========================================
     const dashboardContainer =
         document.getElementById(
-            'attendanceDashboard'
+            'dashboardContainerSimplified'
         );
 
     if (!dashboardContainer) {
+        console.error(
+            '❌ No se encontró #dashboardContainerSimplified'
+        );
         return;
     }
 
+    // ==========================================
+    // CLASE Y FECHA
+    // ==========================================
     const clase =
         getSelectedClass();
 
@@ -25552,9 +25559,6 @@ function renderDashboardSimplified() {
             'attendanceDate'
         )?.value || '';
 
-    // ==========================================
-    // SIN SELECCIÓN
-    // ==========================================
     if (
         !clase ||
         !fecha
@@ -25572,12 +25576,11 @@ function renderDashboardSimplified() {
                 </p>
             </div>
         `;
-
         return;
     }
 
     // ==========================================
-    // ESTUDIANTES ACTIVOS DEL SUBGRUPO
+    // ESTUDIANTES ACTIVOS
     // ==========================================
     const groupStudents =
         students.filter(
@@ -25591,7 +25594,7 @@ function renderDashboardSimplified() {
         );
 
     // ==========================================
-    // SESIÓN REAL SELECCIONADA
+    // SESIÓN REAL DE LA FECHA
     // ==========================================
     const currentSession =
         getClassSession(
@@ -25612,7 +25615,6 @@ function renderDashboardSimplified() {
     // RESPONSABLE
     //
     // classSessions tiene prioridad.
-    // sessionTeachers queda como respaldo legacy.
     // ==========================================
     const responsable =
         currentSession?.responsable ||
@@ -25624,7 +25626,7 @@ function renderDashboardSimplified() {
         'Sin asignar';
 
     // ==========================================
-    // CONTADORES DE LA SESIÓN
+    // CONTADORES
     // ==========================================
     let presentes = 0;
     let ausentes = 0;
@@ -25633,8 +25635,8 @@ function renderDashboardSimplified() {
     let participaciones = 0;
 
     // ==========================================
-    // SOLO UNA SESIÓN REALIZADA
-    // GENERA ASISTENCIA
+    // SOLO SESIONES REALIZADAS
+    // GENERAN ASISTENCIA
     // ==========================================
     if (sessionCompleted) {
 
@@ -25687,16 +25689,13 @@ function renderDashboardSimplified() {
     }
 
     // ==========================================
-    // REGISTROS VÁLIDOS
+    // INDICADORES DE SESIÓN
     // ==========================================
     const totalRegistrados =
         presentes +
         ausentes +
         excusas;
 
-    // ==========================================
-    // PORCENTAJE DE ASISTENCIA
-    // ==========================================
     const porcentaje =
         sessionCompleted &&
         totalRegistrados > 0
@@ -25709,9 +25708,6 @@ function renderDashboardSimplified() {
             )
             : null;
 
-    // ==========================================
-    // PORCENTAJE DE PARTICIPACIÓN
-    // ==========================================
     const porcentajeParticipacion =
         sessionCompleted &&
         presentes > 0
@@ -25811,28 +25807,21 @@ function renderDashboardSimplified() {
                             line-height:1.7;
                         "
                     >
-
                         <div>
-                            <strong>
-                                Motivo:
-                            </strong>
-
+                            <strong>Motivo:</strong>
                             ${escapeHtml(
-                                currentSession
-                                    ?.motivoSuspension ||
+                                currentSession?.motivoSuspension ||
                                 'Sin especificar'
                             )}
                         </div>
 
                         ${
-                            currentSession
-                                ?.detalleSuspension
+                            currentSession?.detalleSuspension
                                 ? `
                                     <div>
                                         <strong>
                                             Detalle:
                                         </strong>
-
                                         ${escapeHtml(
                                             currentSession
                                                 .detalleSuspension
@@ -25846,14 +25835,11 @@ function renderDashboardSimplified() {
                             <strong>
                                 Bitácora:
                             </strong>
-
                             ${escapeHtml(
-                                currentSession
-                                    ?.nota ||
+                                currentSession?.nota ||
                                 'Sin nota registrada'
                             )}
                         </div>
-
                     </div>
                 </div>
             `
@@ -25879,7 +25865,6 @@ function renderDashboardSimplified() {
         'Sesión aún no registrada';
 
     if (sessionCompleted) {
-
         attendanceSubtitle =
             `${presentes} presentes`;
 
@@ -25888,7 +25873,6 @@ function renderDashboardSimplified() {
     }
 
     if (sessionSuspended) {
-
         attendanceSubtitle =
             'Sesión suspendida';
 
@@ -25897,202 +25881,35 @@ function renderDashboardSimplified() {
     }
 
     // ==========================================
-    // ESTADÍSTICAS DE SESIÓN
+    // VALORES DE ESTADÍSTICAS
     // ==========================================
-    const sessionStats =
-        sessionSuspended
-            ? `
-                <div class="stats-box">
+    const valuePresentes =
+        sessionCompleted
+            ? presentes
+            : 'N/A';
 
-                    <div class="stat-item">
+    const valueAusentes =
+        sessionCompleted
+            ? ausentes
+            : 'N/A';
 
-                        <span class="stat-label">
-                            ♟ Estudiantes
-                        </span>
+    const valueExcusas =
+        sessionCompleted
+            ? excusas
+            : 'N/A';
 
-                        <span class="stat-value">
-                            ${groupStudents.length}
-                        </span>
+    const valueSinRegistrar =
+        sessionCompleted
+            ? sinRegistrar
+            : 'N/A';
 
-                    </div>
-
-                    <div class="stat-item">
-
-                        <span class="stat-label">
-                            ⛔ Estado
-                        </span>
-
-                        <span
-                            class="stat-value"
-                            style="color:#c0392b;"
-                        >
-                            Suspendida
-                        </span>
-
-                    </div>
-
-                    <div class="stat-item">
-
-                        <span class="stat-label">
-                            ✅ Presentes
-                        </span>
-
-                        <span class="stat-value">
-                            N/A
-                        </span>
-
-                    </div>
-
-                    <div class="stat-item">
-
-                        <span class="stat-label">
-                            ❌ Ausentes
-                        </span>
-
-                        <span class="stat-value">
-                            N/A
-                        </span>
-
-                    </div>
-
-                    <div class="stat-item">
-
-                        <span class="stat-label">
-                            📝 Excusas
-                        </span>
-
-                        <span class="stat-value">
-                            N/A
-                        </span>
-
-                    </div>
-
-                    <div class="stat-item">
-
-                        <span class="stat-label">
-                            ⚪ Sin registrar
-                        </span>
-
-                        <span class="stat-value">
-                            N/A
-                        </span>
-
-                    </div>
-
-                    <div class="stat-item">
-
-                        <span class="stat-label">
-                            ⭐ Participaciones
-                        </span>
-
-                        <span class="stat-value">
-                            N/A
-                        </span>
-
-                    </div>
-
-                </div>
-            `
-            : `
-                <div class="stats-box">
-
-                    <div class="stat-item">
-
-                        <span class="stat-label">
-                            ♟ Estudiantes
-                        </span>
-
-                        <span class="stat-value">
-                            ${groupStudents.length}
-                        </span>
-
-                    </div>
-
-                    <div class="stat-item">
-
-                        <span class="stat-label">
-                            ✅ Presentes
-                        </span>
-
-                        <span class="stat-value">
-                            ${
-                                sessionCompleted
-                                    ? presentes
-                                    : 'N/A'
-                            }
-                        </span>
-
-                    </div>
-
-                    <div class="stat-item">
-
-                        <span class="stat-label">
-                            ❌ Ausentes
-                        </span>
-
-                        <span class="stat-value">
-                            ${
-                                sessionCompleted
-                                    ? ausentes
-                                    : 'N/A'
-                            }
-                        </span>
-
-                    </div>
-
-                    <div class="stat-item">
-
-                        <span class="stat-label">
-                            📝 Excusas
-                        </span>
-
-                        <span class="stat-value">
-                            ${
-                                sessionCompleted
-                                    ? excusas
-                                    : 'N/A'
-                            }
-                        </span>
-
-                    </div>
-
-                    <div class="stat-item">
-
-                        <span class="stat-label">
-                            ⚪ Sin registrar
-                        </span>
-
-                        <span class="stat-value">
-                            ${
-                                sessionCompleted
-                                    ? sinRegistrar
-                                    : 'N/A'
-                            }
-                        </span>
-
-                    </div>
-
-                    <div class="stat-item">
-
-                        <span class="stat-label">
-                            ⭐ Participaciones
-                        </span>
-
-                        <span class="stat-value">
-                            ${
-                                sessionCompleted
-                                    ? participaciones
-                                    : 'N/A'
-                            }
-                        </span>
-
-                    </div>
-
-                </div>
-            `;
+    const valueParticipaciones =
+        sessionCompleted
+            ? participaciones
+            : 'N/A';
 
     // ==========================================
-    // CONSTRUIR TARJETAS
+    // CONSTRUIR LAS DOS TARJETAS
     // ==========================================
     dashboardContainer.innerHTML = `
 
@@ -26112,13 +25929,9 @@ function renderDashboardSimplified() {
                     margin:8px 0 5px;
                 "
             >
-                👥 ${escapeHtml(
-                    clase.grupo
-                )}
+                👥 ${escapeHtml(clase.grupo)}
                 |
-                📚 ${escapeHtml(
-                    clase.materia
-                )}
+                📚 ${escapeHtml(clase.materia)}
             </p>
 
             <p
@@ -26127,9 +25940,7 @@ function renderDashboardSimplified() {
                     margin:5px 0;
                 "
             >
-                📅 ${escapeHtml(
-                    fecha
-                )}
+                📅 ${escapeHtml(fecha)}
             </p>
 
             <p
@@ -26140,9 +25951,7 @@ function renderDashboardSimplified() {
                 "
             >
                 👨‍🏫 Responsable:
-                ${escapeHtml(
-                    responsable
-                )}
+                ${escapeHtml(responsable)}
             </p>
 
             <div
@@ -26156,7 +25965,7 @@ function renderDashboardSimplified() {
             ${suspendedContent}
 
             <!-- =================================
-                 INDICADORES PRINCIPALES
+                 ASISTENCIA Y PARTICIPACIÓN
             ================================== -->
 
             <div
@@ -26171,8 +25980,6 @@ function renderDashboardSimplified() {
                     margin-bottom:15px;
                 "
             >
-
-                <!-- ASISTENCIA -->
 
                 <div
                     style="
@@ -26226,8 +26033,6 @@ function renderDashboardSimplified() {
 
                 </div>
 
-
-                <!-- PARTICIPACIÓN -->
 
                 <div
                     style="
@@ -26283,7 +26088,109 @@ function renderDashboardSimplified() {
 
             </div>
 
-            ${sessionStats}
+
+            <!-- =================================
+                 ESTADÍSTICAS SESIÓN
+            ================================== -->
+
+            <div class="stats-box">
+
+                <div class="stat-item">
+
+                    <span class="stat-label">
+                        ♟ Estudiantes
+                    </span>
+
+                    <span class="stat-value">
+                        ${groupStudents.length}
+                    </span>
+
+                </div>
+
+                ${
+                    sessionSuspended
+                        ? `
+                            <div class="stat-item">
+
+                                <span class="stat-label">
+                                    ⛔ Estado
+                                </span>
+
+                                <span
+                                    class="stat-value"
+                                    style="
+                                        color:#c0392b;
+                                    "
+                                >
+                                    Suspendida
+                                </span>
+
+                            </div>
+                        `
+                        : ''
+                }
+
+                <div class="stat-item">
+
+                    <span class="stat-label">
+                        ✅ Presentes
+                    </span>
+
+                    <span class="stat-value">
+                        ${valuePresentes}
+                    </span>
+
+                </div>
+
+                <div class="stat-item">
+
+                    <span class="stat-label">
+                        ❌ Ausentes
+                    </span>
+
+                    <span class="stat-value">
+                        ${valueAusentes}
+                    </span>
+
+                </div>
+
+                <div class="stat-item">
+
+                    <span class="stat-label">
+                        📝 Excusas
+                    </span>
+
+                    <span class="stat-value">
+                        ${valueExcusas}
+                    </span>
+
+                </div>
+
+                <div class="stat-item">
+
+                    <span class="stat-label">
+                        ⚪ Sin registrar
+                    </span>
+
+                    <span class="stat-value">
+                        ${valueSinRegistrar}
+                    </span>
+
+                </div>
+
+                <div class="stat-item">
+
+                    <span class="stat-label">
+                        ⭐ Participaciones
+                    </span>
+
+                    <span class="stat-value">
+                        ${valueParticipaciones}
+                    </span>
+
+                </div>
+
+            </div>
 
         </div>
 
@@ -26304,13 +26211,9 @@ function renderDashboardSimplified() {
                     margin:8px 0 15px;
                 "
             >
-                👥 ${escapeHtml(
-                    clase.grupo
-                )}
+                👥 ${escapeHtml(clase.grupo)}
                 |
-                📚 ${escapeHtml(
-                    clase.materia
-                )}
+                📚 ${escapeHtml(clase.materia)}
             </p>
 
             <div
@@ -26355,7 +26258,7 @@ function renderDashboardSimplified() {
     `;
 
     // ==========================================
-    // DIBUJAR HISTÓRICO
+    // HISTÓRICO
     // ==========================================
     drawGeneralChart(
         groupStudents
@@ -26365,7 +26268,6 @@ function renderDashboardSimplified() {
         '✅ Dashboard de asistencia:',
         {
             fecha,
-
             estado:
                 sessionStatus ||
                 'Sin sesión',
@@ -26398,6 +26300,9 @@ function drawGeneralChart(
     groupStudents
 ) {
 
+    // ==========================================
+    // CLASE
+    // ==========================================
     const clase =
         getSelectedClass();
 
@@ -26416,9 +26321,9 @@ function drawGeneralChart(
     // ==========================================
     // SESIONES REALES
     //
-    // NO usamos generateClassDates().
+    // classSessions es la única fuente.
     //
-    // classSessions es la fuente oficial.
+    // NO generateClassDates().
     // ==========================================
     const sessions =
         getAcademicReportSessions({
@@ -26447,9 +26352,7 @@ function drawGeneralChart(
         );
 
     // ==========================================
-    // CONTADORES
-    //
-    // SOLO REALIZADAS generan P/A/E.
+    // ACUMULADORES
     // ==========================================
     let presentes = 0;
     let ausentes = 0;
@@ -26457,6 +26360,9 @@ function drawGeneralChart(
     let sinRegistrar = 0;
     let participaciones = 0;
 
+    // ==========================================
+    // SOLO REALIZADAS GENERAN ASISTENCIA
+    // ==========================================
     completedSessions.forEach(
         session => {
 
@@ -26500,13 +26406,16 @@ function drawGeneralChart(
         suspendedSessions.length;
 
     // ==========================================
-    // ASISTENCIA HISTÓRICA
+    // REGISTROS VÁLIDOS
     // ==========================================
     const totalRegistrados =
         presentes +
         ausentes +
         excusas;
 
+    // ==========================================
+    // ASISTENCIA HISTÓRICA
+    // ==========================================
     const porcentaje =
         totalRegistrados > 0
             ? Number(
@@ -26579,7 +26488,10 @@ function drawGeneralChart(
                     value > 0
             );
 
-        if (hasChartData) {
+        if (
+            hasChartData &&
+            typeof Chart !== 'undefined'
+        ) {
 
             dashboardCharts.general =
                 new Chart(
@@ -26634,78 +26546,21 @@ function drawGeneralChart(
                     }
                 );
         }
-        else {
-
-            // ==================================
-            // SIN DATOS DE ASISTENCIA
-            //
-            // Ejemplo:
-            // solo existen suspendidas.
-            // ==================================
-            const ctx =
-                canvas.getContext(
-                    '2d'
-                );
-
-            if (ctx) {
-
-                const width =
-                    canvas.clientWidth ||
-                    canvas.width ||
-                    300;
-
-                const height =
-                    canvas.clientHeight ||
-                    canvas.height ||
-                    150;
-
-                ctx.clearRect(
-                    0,
-                    0,
-                    canvas.width,
-                    canvas.height
-                );
-
-                ctx.save();
-
-                ctx.fillStyle =
-                    '#777';
-
-                ctx.font =
-                    '14px sans-serif';
-
-                ctx.textAlign =
-                    'center';
-
-                ctx.textBaseline =
-                    'middle';
-
-                ctx.fillText(
-                    totalSuspendidas > 0
-                        ? 'Sin asistencia aplicable'
-                        : 'Sin datos de asistencia',
-                    width / 2,
-                    height / 2
-                );
-
-                ctx.restore();
-            }
-        }
     }
 
     // ==========================================
-    // ESTADÍSTICAS DEL HISTÓRICO
+    // ESTADÍSTICAS GENERALES
     // ==========================================
-    const stats =
+    const statsContainer =
         document.getElementById(
             'statsGeneral'
         );
 
-    if (!stats) {
+    if (!statsContainer) {
         return;
     }
 
-    stats.innerHTML = `
+    statsContainer.innerHTML = `
 
         <!-- ===================================
              INDICADORES HISTÓRICOS
@@ -26859,660 +26714,6 @@ function drawGeneralChart(
 
 
         <!-- ===================================
-             SESIONES INSTITUCIONALES
-        ==================================== -->
-
-        <div
-            style="
-                margin-bottom:12px;
-                padding:10px;
-                border-radius:8px;
-                background:#f8f9fa;
-                border:1px solid #eee;
-            "
-        >
-
-            <div class="stat-item">
-
-                <span class="stat-label">
-                    📅 Sesiones
-                </span>
-
-                <span class="stat-value">
-                    ${totalSesiones}
-                </span>
-
-            </div>
-
-
-            <div class="stat-item">
-
-                <span class="stat-label">
-                    ✅ Realizadas
-                </span>
-
-                <span
-                    class="stat-value"
-                    style="color:#1e8449;"
-                >
-                    ${totalRealizadas}
-                </span>
-
-            </div>
-
-
-            <div class="stat-item">
-
-                <span class="stat-label">
-                    ⛔ Suspendidas
-                </span>
-
-                <span
-                    class="stat-value"
-                    style="color:#c0392b;"
-                >
-                    ${totalSuspendidas}
-                </span>
-
-            </div>
-
-
-            <div class="stat-item">
-
-                <span class="stat-label">
-                    📈 Tasa de realización
-                </span>
-
-                <span class="stat-value">
-                    ${tasaRealizacion.toFixed(1)}%
-                </span>
-
-            </div>
-
-        </div>
-
-
-        <!-- ===================================
-             ASISTENCIA ACUMULADA
-        ==================================== -->
-
-        <div>
-
-            <div class="stat-item">
-
-                <span class="stat-label">
-                    ✅ Presentes
-                </span>
-
-                <span class="stat-value">
-                    ${presentes}
-                </span>
-
-            </div>
-
-
-            <div class="stat-item">
-
-                <span class="stat-label">
-                    ❌ Ausentes
-                </span>
-
-                <span class="stat-value">
-                    ${ausentes}
-                </span>
-
-            </div>
-
-
-            <div class="stat-item">
-
-                <span class="stat-label">
-                    📝 Excusas
-                </span>
-
-                <span class="stat-value">
-                    ${excusas}
-                </span>
-
-            </div>
-
-
-            <div class="stat-item">
-
-                <span class="stat-label">
-                    ⚪ Sin registrar
-                </span>
-
-                <span class="stat-value">
-                    ${sinRegistrar}
-                </span>
-
-            </div>
-
-
-            <div class="stat-item">
-
-                <span class="stat-label">
-                    ⭐ Participaciones
-                </span>
-
-                <span class="stat-value">
-                    ${participaciones}
-                </span>
-
-            </div>
-
-        </div>
-    `;
-
-    console.log(
-        '✅ Histórico de asistencia normalizado:',
-        {
-            grupo:
-                clase.grupo,
-
-            subgrupo:
-                clase.materia,
-
-            sesiones:
-                totalSesiones,
-
-            realizadas:
-                totalRealizadas,
-
-            suspendidas:
-                totalSuspendidas,
-
-            presentes,
-            ausentes,
-            excusas,
-            sinRegistrar,
-            participaciones,
-
-            asistencia:
-                porcentaje,
-
-            participacion:
-                porcentajeParticipacion
-        }
-    );
-}
- function drawGeneralChart(
-    groupStudents
-) {
-
-    // ==========================================
-    // CLASE / SUBGRUPO
-    // ==========================================
-    const clase =
-        getSelectedClass();
-
-    if (!clase) {
-        return;
-    }
-
-    if (
-        !Array.isArray(
-            groupStudents
-        )
-    ) {
-        return;
-    }
-
-    // ==========================================
-    // SESIONES REALES
-    //
-    // IMPORTANTE:
-    //
-    // Ya NO usamos generateClassDates().
-    //
-    // Solamente classSessions determina
-    // qué ocurrió históricamente.
-    // ==========================================
-    const sessions =
-        getAcademicReportSessions({
-            classIds: [
-                clase.id
-            ],
-
-            states: [
-                'Realizada',
-                'Suspendida'
-            ]
-        });
-
-    const completedSessions =
-        sessions.filter(
-            session =>
-                session.estado ===
-                'Realizada'
-        );
-
-    const suspendedSessions =
-        sessions.filter(
-            session =>
-                session.estado ===
-                'Suspendida'
-        );
-
-    // ==========================================
-    // CONTADORES HISTÓRICOS
-    //
-    // SOLO REALIZADAS alimentan P/A/E.
-    // ==========================================
-    let presentes = 0;
-    let ausentes = 0;
-    let excusas = 0;
-    let sinRegistrar = 0;
-    let participaciones = 0;
-
-    // ==========================================
-    // RECORRER SESIONES REALIZADAS
-    // ==========================================
-    completedSessions.forEach(
-        session => {
-
-            const stats =
-                buildAcademicSessionStats(
-                    session,
-                    groupStudents
-                );
-
-            if (!stats) {
-                return;
-            }
-
-            presentes +=
-                stats.presentes;
-
-            ausentes +=
-                stats.ausentes;
-
-            excusas +=
-                stats.excusas;
-
-            sinRegistrar +=
-                stats.sinRegistrar;
-
-            participaciones +=
-                stats.participaciones;
-        }
-    );
-
-    // ==========================================
-    // SESIONES
-    // ==========================================
-    const totalSesiones =
-        sessions.length;
-
-    const totalRealizadas =
-        completedSessions.length;
-
-    const totalSuspendidas =
-        suspendedSessions.length;
-
-    // ==========================================
-    // REGISTROS VÁLIDOS PARA ASISTENCIA
-    // ==========================================
-    const totalRegistrados =
-        presentes +
-        ausentes +
-        excusas;
-
-    // ==========================================
-    // ASISTENCIA HISTÓRICA
-    //
-    // Sin registrar NO entra al denominador.
-    // Suspendidas tampoco.
-    // ==========================================
-    const porcentaje =
-        totalRegistrados > 0
-            ? Number(
-                (
-                    presentes *
-                    100 /
-                    totalRegistrados
-                ).toFixed(1)
-            )
-            : null;
-
-    // ==========================================
-    // PARTICIPACIÓN HISTÓRICA
-    // ==========================================
-    const porcentajeParticipacion =
-        presentes > 0
-            ? Number(
-                (
-                    participaciones *
-                    100 /
-                    presentes
-                ).toFixed(1)
-            )
-            : null;
-
-    // ==========================================
-    // TASA DE REALIZACIÓN
-    // ==========================================
-    const tasaRealizacion =
-        totalSesiones > 0
-            ? Number(
-                (
-                    totalRealizadas *
-                    100 /
-                    totalSesiones
-                ).toFixed(1)
-            )
-            : 0;
-
-    // ==========================================
-    // GRÁFICO
-    //
-    // El donut continúa representando
-    // P/A/E/Sin registrar.
-    //
-    // Suspendidas se muestran en las
-    // estadísticas institucionales, pero
-    // NO como asistencia.
-    // ==========================================
-    const canvas =
-        document.getElementById(
-            'chartGeneral'
-        );
-
-    if (canvas) {
-
-        if (
-            dashboardCharts.general
-        ) {
-            dashboardCharts
-                .general
-                .destroy();
-        }
-
-        const chartValues = [
-            presentes,
-            ausentes,
-            excusas,
-            sinRegistrar
-        ];
-
-        const hasChartData =
-            chartValues.some(
-                value =>
-                    value > 0
-            );
-
-        if (hasChartData) {
-
-            dashboardCharts.general =
-                new Chart(
-                    canvas,
-                    {
-                        type:
-                            'doughnut',
-
-                        data: {
-                            labels: [
-                                'Presentes',
-                                'Ausentes',
-                                'Excusas',
-                                'Sin registrar'
-                            ],
-
-                            datasets: [
-                                {
-                                    data:
-                                        chartValues,
-
-                                    backgroundColor: [
-                                        '#27ae60',
-                                        '#e74c3c',
-                                        '#f39c12',
-                                        '#95a5a6'
-                                    ],
-
-                                    borderWidth:
-                                        0
-                                }
-                            ]
-                        },
-
-                        options: {
-                            responsive:
-                                true,
-
-                            maintainAspectRatio:
-                                false,
-
-                            plugins: {
-                                legend: {
-                                    position:
-                                        'bottom'
-                                }
-                            }
-                        }
-                    }
-                );
-        }
-        else {
-
-            // ==================================
-            // SIN P/A/E
-            //
-            // Por ejemplo:
-            // solo existen suspendidas.
-            // ==================================
-            const ctx =
-                canvas.getContext(
-                    '2d'
-                );
-
-            if (ctx) {
-
-                ctx.clearRect(
-                    0,
-                    0,
-                    canvas.width,
-                    canvas.height
-                );
-
-                ctx.save();
-
-                ctx.fillStyle =
-                    '#777';
-
-                ctx.font =
-                    '14px sans-serif';
-
-                ctx.textAlign =
-                    'center';
-
-                ctx.textBaseline =
-                    'middle';
-
-                ctx.fillText(
-                    totalSuspendidas > 0
-                        ? 'Sin asistencia aplicable'
-                        : 'Sin datos de asistencia',
-                    canvas.width / 2,
-                    canvas.height / 2
-                );
-
-                ctx.restore();
-            }
-
-            delete dashboardCharts.general;
-        }
-    }
-
-    // ==========================================
-    // ESTADÍSTICAS GENERALES
-    // ==========================================
-    const stats =
-        document.getElementById(
-            'statsGeneral'
-        );
-
-    if (!stats) {
-        return;
-    }
-
-    stats.innerHTML = `
-
-        <!-- ===================================
-             INDICADORES HISTÓRICOS
-        ==================================== -->
-
-        <div
-            style="
-                display:grid;
-                grid-template-columns:
-                    repeat(
-                        2,
-                        minmax(120px, 1fr)
-                    );
-                gap:12px;
-                margin-bottom:18px;
-            "
-        >
-
-            <!-- ASISTENCIA -->
-
-            <div
-                style="
-                    background:#eef5fb;
-                    border:
-                        1px solid #d6e4f0;
-                    border-radius:10px;
-                    padding:16px 10px;
-                    text-align:center;
-                "
-            >
-
-                <div
-                    style="
-                        font-size:26px;
-                        margin-bottom:4px;
-                    "
-                >
-                    📊
-                </div>
-
-                <div
-                    style="
-                        font-size:24px;
-                        font-weight:bold;
-                        color:#2980b9;
-                    "
-                >
-                    ${
-                        porcentaje === null
-                            ? 'N/A'
-                            : porcentaje.toFixed(1) + '%'
-                    }
-                </div>
-
-                <div
-                    style="
-                        margin-top:5px;
-                        font-size:11px;
-                        font-weight:bold;
-                        color:#666;
-                    "
-                >
-                    ASISTENCIA HISTÓRICA
-                </div>
-
-                <div
-                    style="
-                        margin-top:6px;
-                        font-size:11px;
-                        color:#777;
-                    "
-                >
-                    ${presentes}
-                    registro${
-                        presentes === 1
-                            ? ''
-                            : 's'
-                    }
-                    presente${
-                        presentes === 1
-                            ? ''
-                            : 's'
-                    }
-                </div>
-
-            </div>
-
-
-            <!-- PARTICIPACIÓN -->
-
-            <div
-                style="
-                    background:#fff9ed;
-                    border:
-                        1px solid #f0d9a5;
-                    border-radius:10px;
-                    padding:16px 10px;
-                    text-align:center;
-                "
-            >
-
-                <div
-                    style="
-                        font-size:26px;
-                        margin-bottom:4px;
-                    "
-                >
-                    ⭐
-                </div>
-
-                <div
-                    style="
-                        font-size:24px;
-                        font-weight:bold;
-                        color:#f1b500;
-                    "
-                >
-                    ${
-                        porcentajeParticipacion === null
-                            ? 'N/A'
-                            : porcentajeParticipacion
-                                .toFixed(1) + '%'
-                    }
-                </div>
-
-                <div
-                    style="
-                        margin-top:5px;
-                        font-size:11px;
-                        font-weight:bold;
-                        color:#666;
-                    "
-                >
-                    PARTICIPACIÓN HISTÓRICA
-                </div>
-
-                <div
-                    style="
-                        margin-top:6px;
-                        font-size:11px;
-                        color:#777;
-                    "
-                >
-                    ${participaciones}
-                    de
-                    ${presentes}
-                    registros presentes
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- ===================================
              SESIONES
         ==================================== -->
 
@@ -27526,9 +26727,7 @@ function drawGeneralChart(
             "
         >
 
-            <div
-                class="stat-item"
-            >
+            <div class="stat-item">
 
                 <span class="stat-label">
                     📅 Sesiones
@@ -27540,9 +26739,8 @@ function drawGeneralChart(
 
             </div>
 
-            <div
-                class="stat-item"
-            >
+
+            <div class="stat-item">
 
                 <span class="stat-label">
                     ✅ Realizadas
@@ -27559,9 +26757,8 @@ function drawGeneralChart(
 
             </div>
 
-            <div
-                class="stat-item"
-            >
+
+            <div class="stat-item">
 
                 <span class="stat-label">
                     ⛔ Suspendidas
@@ -27578,9 +26775,8 @@ function drawGeneralChart(
 
             </div>
 
-            <div
-                class="stat-item"
-            >
+
+            <div class="stat-item">
 
                 <span class="stat-label">
                     📈 Tasa de realización
@@ -27613,6 +26809,7 @@ function drawGeneralChart(
 
             </div>
 
+
             <div class="stat-item">
 
                 <span class="stat-label">
@@ -27624,6 +26821,7 @@ function drawGeneralChart(
                 </span>
 
             </div>
+
 
             <div class="stat-item">
 
@@ -27637,6 +26835,7 @@ function drawGeneralChart(
 
             </div>
 
+
             <div class="stat-item">
 
                 <span class="stat-label">
@@ -27648,6 +26847,7 @@ function drawGeneralChart(
                 </span>
 
             </div>
+
 
             <div class="stat-item">
 
@@ -27664,9 +26864,6 @@ function drawGeneralChart(
         </div>
     `;
 
-    // ==========================================
-    // DIAGNÓSTICO
-    // ==========================================
     console.log(
         '✅ Histórico de asistencia normalizado:',
         {
@@ -27699,6 +26896,7 @@ function drawGeneralChart(
         }
     );
 }
+  
 
 
   function exportarPDF() {
