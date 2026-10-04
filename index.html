@@ -5803,6 +5803,7 @@ await setPersistence(auth, browserLocalPersistence);
 window.db = db;
 window.firestoreGroups = { collection, getDocs, doc, setDoc, deleteDoc };
 window.firestoreStudents = { collection, getDocs, doc, setDoc, deleteDoc };
+window.firestoreClasses = { collection, getDocs, doc, setDoc, deleteDoc };
 window.firebaseAuth = auth;
 window.firebaseSignIn = signInWithEmailAndPassword;
 window.firebaseSignOut = signOut;
@@ -6005,6 +6006,7 @@ onAuthStateChanged(auth, async (firebaseUser) => {
     if (firebaseUser) {
         setTimeout(async () => {
             if (window.loadGroupsFromFirestore) await window.loadGroupsFromFirestore();
+            if (window.loadClassesFromFirestore) await window.loadClassesFromFirestore();
             if (window.loadStudentsFromFirestore) await window.loadStudentsFromFirestore();
         }, 0);
     }
@@ -6020,7 +6022,7 @@ console.log('✅ Firebase + Authentication conectados');
   //  let enrollments =JSON.parse(localStorage.getItem('biblical_enrollments')) || [];
   let attendanceData = JSON.parse(localStorage.getItem('biblical_attendance')) || {};
   let finances = JSON.parse(localStorage.getItem('biblical_finances')) || [];
-  let classes = JSON.parse( localStorage.getItem('biblical_classes')) || [];
+  let classes = []; // Fuente oficial: Cloud Firestore /classes
 
   // Sesiones reales de clase: realizada o suspendida + bitácora
   let classSessions = JSON.parse(
@@ -7408,7 +7410,6 @@ function runPreFirebaseDiagnostic() {
         'biblical_class_teachers',
 
 
-        'biblical_classes',
         'biblical_class_sessions',
 
         'biblical_session_teachers'
@@ -19228,8 +19229,8 @@ function loadReportTeachers() {
     const clase =
         classes.find(
             c =>
-                c.id ===
-                parseInt(classId)
+                String(c.id) ===
+                String(classId)
         );
 
     teacherSelect.innerHTML =
@@ -22207,8 +22208,8 @@ function loadAttendanceDates() {
     const clase =
         classes.find(
             c =>
-                c.id ===
-                parseInt(classId)
+                String(c.id) ===
+                String(classId)
         );
 
     if (!clase) return;
@@ -22242,7 +22243,7 @@ function getSelectedClass() {
     if (!classId) return null;
 
     return classes.find(
-        c => c.id === parseInt(classId)
+        c => String(c.id) === String(classId)
     );
 
 }
@@ -22251,7 +22252,7 @@ function editClass(id) {
 
     const clase =
         classes.find(
-            c => c.id === id
+            c => String(c.id) === String(id)
         );
 
     if (!clase) return;
@@ -22954,9 +22955,7 @@ function updateTeacher(
                     : [];
                 // Grupos conservados en Firestore; el respaldo local no los reemplaza
 
-                classes =
-                    backup.clases ||
-                    [];
+                // Subgrupos/Clases conservados en Firestore; el respaldo local no los reemplaza.
 
                 classSessions =
                     Array.isArray(backup.sesionesClase)
@@ -23221,11 +23220,29 @@ function mostrarModulo(id) {
         id === 'tab-clases'
     ) {
 
-        renderClasses();
+        loadClassesFromFirestore();
 
     }
 
 }
+async function loadClassesFromFirestore() {
+    const api = window.firestoreClasses;
+    if (!window.db || !api) { mostrarNotificacion('Firestore todavía no está disponible para subgrupos', 'error'); return false; }
+    try {
+        const snapshot = await api.getDocs(api.collection(window.db, 'classes'));
+        classes = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+        classes.sort((a,b) => `${a.grupo||''} ${a.materia||''}`.localeCompare(`${b.grupo||''} ${b.materia||''}`, 'es'));
+        renderClasses(); loadAttendanceClasses(); loadStudentSubGroups(); loadFinanceSubGroups();
+        console.log('✅ Subgrupos cargados desde Firestore:', classes); return true;
+    } catch(error) { console.error('❌ Error cargando subgrupos desde Firestore:', error); mostrarNotificacion('❌ No se pudieron cargar los subgrupos desde Firestore', 'error'); return false; }
+}
+async function saveClassToFirestore(clase) {
+    const api = window.firestoreClasses;
+    if (!window.db || !api) throw new Error('Firestore no disponible para subgrupos');
+    const data = { ...clase, id: String(clase.id), updatedAt: new Date().toISOString(), updatedBy: currentUser?.email || currentUser?.username || 'superadmin' };
+    await api.setDoc(api.doc(window.db, 'classes', String(clase.id)), data, { merge: true });
+}
+
 function renderClasses() {
 
     loadClassGroups();
@@ -23275,7 +23292,7 @@ function renderClasses() {
 
                 <button
                 class="btn-edit"
-                onclick="editClass(${c.id})">
+                onclick='editClass(${JSON.stringify(String(c.id))})'>
 
                 Editar
 
@@ -23287,7 +23304,7 @@ function renderClasses() {
                     : 'btn-save'
                     }"
 
-                    onclick="toggleClassStatus(${c.id})">
+                    onclick='toggleClassStatus(${JSON.stringify(String(c.id))})'>
 
                     ${
                     c.estado === 'Activa'
@@ -23388,10 +23405,7 @@ localStorage.setItem(
  JSON.stringify(classTeachers)
 );
 // Grupos ya no se guardan en localStorage. Fuente oficial: Firestore.
-localStorage.setItem(
-'biblical_classes',
-JSON.stringify(classes)
-);
+// Subgrupos/Clases ya no se guardan en localStorage. Fuente oficial: Firestore.
 localStorage.setItem(
     'biblical_class_sessions',
     JSON.stringify(classSessions)
@@ -23485,42 +23499,11 @@ function getTeacherStats() {
 
 }
 //Función editar clases
-function toggleClassStatus(id) {
-
-    classes = classes.map(c =>
-
-        c.id === id
-
-        ? {
-
-            ...c,
-
-            estado:
-                c.estado === 'Activa'
-                    ? 'Inactiva'
-                    : 'Activa'
-
-        }
-
-        : c
-
-    );
-
-    saveAll();
-
-    renderClasses();
-
-    mostrarNotificacion(
-        '✅ Estado actualizado',
-        'success'
-    );
-
+async function toggleClassStatus(id) {
+    const clase=classes.find(c=>String(c.id)===String(id)); if(!clase)return;
+    try{await saveClassToFirestore({...clase,estado:clase.estado==='Activa'?'Inactiva':'Activa'});await loadClassesFromFirestore();mostrarNotificacion('✅ Estado del subgrupo actualizado en Firestore','success');}
+    catch(error){console.error(error);mostrarNotificacion('❌ No se pudo actualizar el subgrupo','error');}
 }
-
-
-
-
-
 //Tabla de usuarios
 function renderUsers() {
     const tbody =
@@ -23830,189 +23813,23 @@ if(groupForm){
 }
 // CLASES
 
-const classForm =
-    document.getElementById(
-        'classForm'
-    );
-
+const classForm = document.getElementById('classForm');
 if (classForm) {
-
-    console.log(
-        '✅ Listener de clases conectado'
-    );
-
-    classForm.addEventListener(
-        'submit',
-        (e) => {
-
-            console.log(
-                '✅ Submit clases ejecutado'
-            );
-
-            e.preventDefault();
-
-            const classId =
-                document.getElementById(
-                    'classId'
-                ).value;
-
-            const dias =
-                [
-                    ...document.querySelectorAll(
-                        '#daysContainer input:checked'
-                    )
-                ].map(
-                    x => x.value
-                );
-
-            const maestros =
-                [
-                    ...document.querySelectorAll(
-                        '#teachersCheckboxContainer input:checked'
-                    )
-                ].map(
-                    x => x.value
-                );
-
-            if (!dias.length) {
-
-                mostrarNotificacion(
-                    'Seleccione al menos un día',
-                    'warning'
-                );
-
-                return;
-
-            }
-
-            if (!maestros.length) {
-
-                mostrarNotificacion(
-                    'Seleccione al menos un maestro',
-                    'warning'
-                );
-
-                return;
-
-            }
-
-            const fechaInicio =
-                document.getElementById(
-                    'classStart'
-                ).value;
-
-            const fechaFin =
-                document.getElementById(
-                    'classEnd'
-                ).value;
-
-            if (
-                fechaFin < fechaInicio
-            ) {
-
-                mostrarNotificacion(
-                    'La fecha final no puede ser menor que la fecha inicial',
-                    'warning'
-                );
-
-                return;
-
-            }
-
-            const classData = {
-
-                id:
-                    classId
-                        ? parseInt(classId)
-                        : Date.now(),
-
-                materia:
-                    document.getElementById(
-                        'classSubject'
-                    ).value,
-
-                grupo:
-                    document.getElementById(
-                        'classGroup'
-                    ).value,
-
-                fechaInicio,
-
-                fechaFin,
-
-                dias,
-
-                maestros,
-
-                estado:
-                    document.getElementById(
-                        'classStatus'
-                    ).value
-
-            };
-
-            console.log(
-                'classId:',
-                classId
-            );
-
-            console.log(
-                'classData:',
-                classData
-            );
-
-            if (classId) {
-
-                classes = classes.map(
-                    c =>
-
-                        c.id ===
-                        parseInt(classId)
-
-                            ? classData
-
-                            : c
-                );
-
-                mostrarNotificacion(
-                    '✅ Clase actualizada',
-                    'success'
-                );
-
-            }
-
-            else {
-
-                classes.push(
-                    classData
-                );
-
-                mostrarNotificacion(
-                    '✅ Clase creada',
-                    'success'
-                );
-
-            }
-
-            saveAll();
-
-            console.log(
-                'Classes:',
-                classes
-            );
-
-            renderClasses();
-
-            classForm.reset();
-
-            document.getElementById(
-                'classId'
-            ).value = '';
-
-        }
-
-    );
-
+    classForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const classId = document.getElementById('classId').value;
+        const dias = [...document.querySelectorAll('#daysContainer input:checked')].map(x => x.value);
+        const maestros = [...document.querySelectorAll('#teachersCheckboxContainer input:checked')].map(x => x.value);
+        if (!dias.length) { mostrarNotificacion('Seleccione al menos un día','warning'); return; }
+        if (!maestros.length) { mostrarNotificacion('Seleccione al menos un maestro','warning'); return; }
+        const fechaInicio=document.getElementById('classStart').value;
+        const fechaFin=document.getElementById('classEnd').value;
+        if (fechaFin < fechaInicio) { mostrarNotificacion('La fecha final no puede ser menor que la fecha inicial','warning'); return; }
+        const classData={id:classId?String(classId):`class_${Date.now()}`,materia:document.getElementById('classSubject').value.trim(),grupo:document.getElementById('classGroup').value,fechaInicio,fechaFin,dias,maestros,estado:document.getElementById('classStatus').value};
+        if(classes.some(c=>String(c.id)!==String(classData.id)&&c.grupo===classData.grupo&&String(c.materia||'').trim().toLowerCase()===classData.materia.toLowerCase())){mostrarNotificacion('⚠️ Ya existe este subgrupo dentro del grupo seleccionado','warning');return;}
+        try { await saveClassToFirestore(classData); await loadClassesFromFirestore(); classForm.reset(); document.getElementById('classId').value=''; mostrarNotificacion(classId?'✅ Subgrupo actualizado en Firestore':'✅ Subgrupo creado en Firestore','success'); }
+        catch(error){console.error('❌ Error guardando subgrupo:',error);mostrarNotificacion('❌ No se pudo guardar el subgrupo en Firestore','error');}
+    });
 }
 // Eliminación de grupos gestionada por Firestore.
 async function loadStudentsFromFirestore() {
