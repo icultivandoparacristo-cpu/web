@@ -12844,35 +12844,28 @@ function loadClassReportSubGroups() {
 }
 
 function generateGroupReport() {
-
     // ==========================================
     // FILTROS
     // ==========================================
-
     const group =
         document.getElementById(
-            'reportGroup'
+            'groupReportGroup'
         )?.value || '';
 
     const subGroup =
         document.getElementById(
-            'reportSubGroup'
+            'groupReportSubGroup'
         )?.value || '';
 
     const startDate =
         document.getElementById(
-            'groupStartDate'
+            'reportStartDate'
         )?.value || '';
 
     const endDate =
         document.getElementById(
-            'groupEndDate'
+            'reportEndDate'
         )?.value || '';
-
-
-    // ==========================================
-    // CONTENEDORES
-    // ==========================================
 
     const summaryContainer =
         document.getElementById(
@@ -12884,867 +12877,429 @@ function generateGroupReport() {
             'reportResultsContainer'
         );
 
-
     // ==========================================
-    // VALIDAR CONTENEDORES
+    // VALIDACIONES
     // ==========================================
-
-    if (
-        !summaryContainer ||
-        !resultsContainer
-    ) {
-
-        console.error(
-            '❌ No se encontraron los contenedores del reporte'
-        );
-
-        return;
-    }
-
-
-    // ==========================================
-    // LIMPIAR REPORTE ANTERIOR
-    // ==========================================
-
-    summaryContainer.innerHTML = '';
-
-    resultsContainer.innerHTML = '';
-
-
-    // ==========================================
-    // VALIDAR GRUPO
-    // ==========================================
-
     if (!group) {
-
-        summaryContainer.style.display =
-            'none';
-
-        resultsContainer.style.display =
-            'none';
-
         mostrarNotificacion(
             'Seleccione un grupo',
             'warning'
         );
-
         return;
     }
-
-
-    // ==========================================
-    // VALIDAR RANGO DE FECHAS
-    // ==========================================
 
     if (
         startDate &&
         endDate &&
         startDate > endDate
     ) {
-
-        summaryContainer.style.display =
-            'none';
-
-        resultsContainer.style.display =
-            'none';
-
         mostrarNotificacion(
             'La fecha inicial no puede ser mayor que la fecha final',
             'warning'
         );
-
         return;
     }
 
+    if (
+        !summaryContainer ||
+        !resultsContainer
+    ) {
+        console.error(
+            '❌ No se encontraron los contenedores del reporte'
+        );
+        return;
+    }
 
     // ==========================================
-    // BUSCAR CLASES DEL GRUPO
-    //
-    // subGroup === ''
-    // significa:
-    // Todos los subgrupos.
+    // SUBGRUPOS DEL GRUPO
     // ==========================================
-
-    const clasesGrupo =
+    let groupClasses =
         classes.filter(
             clase =>
                 clase.grupo === group
-                &&
-                (
-                    !subGroup
-                    ||
-                    clase.materia === subGroup
-                )
         );
 
-
-    // ==========================================
-    // VALIDAR SUBGRUPOS
-    // ==========================================
-
-    if (
-        clasesGrupo.length === 0
-    ) {
-
-        summaryContainer.style.display =
-            'none';
-
-        resultsContainer.style.display =
-            'block';
-
-        resultsContainer.innerHTML = `
-
-            <h3>
-                👥 Reporte de ${group}
-            </h3>
-
-            <p
-                style="
-                    padding:20px;
-                    text-align:center;
-                    color:#666;
-                "
-            >
-                No existen subgrupos
-                asociados a los filtros
-                seleccionados.
-            </p>
-        `;
-
-        return;
-    }
-
-
-    // ==========================================
-    // CONSTRUIR REPORTES
-    //
-    // buildGroupSubgroupReport()
-    // realiza todos los cálculos.
-    //
-    // generateGroupReport()
-    // ya NO recalcula asistencias.
-    // ==========================================
-
-    const reports =
-        clasesGrupo
-            .map(
+    if (subGroup) {
+        groupClasses =
+            groupClasses.filter(
                 clase =>
-                    buildGroupSubgroupReport(
-                        clase,
-                        startDate,
-                        endDate
-                    )
-            )
-            .filter(
-                report =>
-                    report !== null
-                    &&
-                    report !== undefined
+                    clase.materia ===
+                    subGroup
             );
+    }
 
+    const subGroups =
+        [
+            ...new Set(
+                groupClasses
+                    .map(
+                        clase =>
+                            clase.materia
+                    )
+                    .filter(Boolean)
+            )
+        ].sort(
+            (a, b) =>
+                a.localeCompare(
+                    b,
+                    'es'
+                )
+        );
 
-    // ==========================================
-    // VALIDAR REPORTES
-    // ==========================================
-
-    if (
-        reports.length === 0
-    ) {
+    if (!subGroups.length) {
+        mostrarNotificacion(
+            'No se encontraron subgrupos para el grupo seleccionado',
+            'warning'
+        );
 
         summaryContainer.style.display =
             'none';
 
         resultsContainer.style.display =
-            'block';
-
-        resultsContainer.innerHTML = `
-
-            <h3>
-                👥 Reporte de ${group}
-            </h3>
-
-            <p
-                style="
-                    padding:20px;
-                    text-align:center;
-                    color:#666;
-                "
-            >
-                No existen datos para
-                generar el reporte.
-            </p>
-        `;
+            'none';
 
         return;
     }
 
-
     // ==========================================
-    // ESTUDIANTES ÚNICOS DEL REPORTE
-    //
-    // Se cuentan por ID.
-    // Si un estudiante aparece en más de un
-    // subgrupo, se cuenta una sola vez en
-    // el resumen general.
+    // CONSTRUIR INFORME DE CADA SUBGRUPO
     // ==========================================
-
-    const studentIds =
-        new Set();
-
-
-    classes
-        .filter(
-            clase =>
-                clasesGrupo.some(
-                    selectedClass =>
-                        selectedClass.id ===
-                        clase.id
+    const reports =
+        subGroups.map(
+            currentSubGroup =>
+                buildGroupSubgroupReport(
+                    group,
+                    currentSubGroup,
+                    startDate,
+                    endDate
                 )
-        )
-        .forEach(
-            clase => {
-
-                students
-                    .filter(
-                        student =>
-                            student.estado ===
-                                'Activo'
-                            &&
-                            isStudentEnrolledIn(
-                                student,
-                                clase.grupo,
-                                clase.materia
-                            )
-                    )
-                    .forEach(
-                        student => {
-
-                            studentIds.add(
-                                student.id
-                            );
-                        }
-                    );
-            }
         );
 
-
     // ==========================================
-    // TOTALES GENERALES
+    // ESTUDIANTES ÚNICOS DEL GRUPO
     //
-    // Se obtienen directamente de los
-    // reportes ya calculados.
+    // Un estudiante puede estar inscrito en
+    // más de un subgrupo. No debemos contarlo
+    // dos veces en la tarjeta general.
     // ==========================================
-
-    const totalSesiones =
-        reports.reduce(
-            (
-                total,
-                report
-            ) =>
-                total +
-                report.sesiones,
-            0
-        );
-
-
-    const totalPresentes =
-        reports.reduce(
-            (
-                total,
-                report
-            ) =>
-                total +
-                report.presentes,
-            0
-        );
-
-
-    const totalAusentes =
-        reports.reduce(
-            (
-                total,
-                report
-            ) =>
-                total +
-                report.ausentes,
-            0
-        );
-
-
-    const totalExcusas =
-        reports.reduce(
-            (
-                total,
-                report
-            ) =>
-                total +
-                report.excusas,
-            0
-        );
-
-
-    const totalSinRegistrar =
-        reports.reduce(
-            (
-                total,
-                report
-            ) =>
-                total +
-                report.sinRegistrar,
-            0
-        );
-
-
-    const totalParticipaciones =
-        reports.reduce(
-            (
-                total,
-                report
-            ) =>
-                total +
-                report.participaciones,
-            0
-        );
-
-
-    // ==========================================
-    // ASISTENCIA GENERAL
-    //
-    // Regla:
-    //
-    // Presentes / (P + A + E)
-    //
-    // SR NO participa en el promedio.
-    // ==========================================
-
-    const totalRegistrados =
-        totalPresentes +
-        totalAusentes +
-        totalExcusas;
-
-
-    const asistenciaGeneral =
-        totalRegistrados > 0
-            ? Number(
-                (
-                    totalPresentes *
-                    100 /
-                    totalRegistrados
-                ).toFixed(1)
-            )
-            : 0;
-
-
-    // ==========================================
-    // PARTICIPACIÓN GENERAL
-    //
-    // Regla:
-    //
-    // Participaciones / Presentes
-    //
-    // Es un indicador independiente de
-    // la asistencia.
-    // ==========================================
-
-    const participacionGeneral =
-        totalPresentes > 0
-            ? Number(
-                (
-                    totalParticipaciones *
-                    100 /
-                    totalPresentes
-                ).toFixed(1)
-            )
-            : 0;
-
-
-    // ==========================================
-    // MAESTROS ÚNICOS
-    // ==========================================
-
-    const maestros =
-        new Set();
-
+    const uniqueStudents =
+        new Map();
 
     reports.forEach(
         report => {
-
-            if (
-                Array.isArray(
-                    report.maestros
-                )
-            ) {
-
-                report.maestros.forEach(
-                    maestro => {
-
-                        if (maestro) {
-
-                            maestros.add(
-                                maestro
-                            );
-                        }
-                    }
-                );
-            }
+            report.students.forEach(
+                student => {
+                    uniqueStudents.set(
+                        String(student.id),
+                        student
+                    );
+                }
+            );
         }
     );
 
+    // ==========================================
+    // ACUMULADORES INSTITUCIONALES
+    // ==========================================
+    const totals =
+        reports.reduce(
+            (acc, report) => {
+
+                acc.sesiones +=
+                    report.totalSesiones;
+
+                acc.realizadas +=
+                    report.sesionesRealizadas;
+
+                acc.suspendidas +=
+                    report.sesionesSuspendidas;
+
+                acc.presentes +=
+                    report.presentes;
+
+                acc.ausentes +=
+                    report.ausentes;
+
+                acc.excusas +=
+                    report.excusas;
+
+                acc.sinRegistrar +=
+                    report.sinRegistrar;
+
+                acc.participaciones +=
+                    report.participaciones;
+
+                return acc;
+            },
+            {
+                sesiones: 0,
+                realizadas: 0,
+                suspendidas: 0,
+                presentes: 0,
+                ausentes: 0,
+                excusas: 0,
+                sinRegistrar: 0,
+                participaciones: 0
+            }
+        );
 
     // ==========================================
-    // COLOR PARTICIPACIÓN GENERAL
+    // INDICADORES GENERALES
     // ==========================================
+    const registrados =
+        totals.presentes +
+        totals.ausentes +
+        totals.excusas;
 
-    let colorParticipacion =
-        '#e74c3c';
+    const asistenciaGeneral =
+        registrados > 0
+            ? Number(
+                (
+                    totals.presentes *
+                    100 /
+                    registrados
+                ).toFixed(1)
+            )
+            : 0;
 
+    const participacionGeneral =
+        totals.presentes > 0
+            ? Number(
+                (
+                    totals.participaciones *
+                    100 /
+                    totals.presentes
+                ).toFixed(1)
+            )
+            : null;
 
-    if (
-        participacionGeneral >= 80
-    ) {
-
-        colorParticipacion =
-            '#27ae60';
-    }
-    else if (
-        participacionGeneral >= 60
-    ) {
-
-        colorParticipacion =
-            '#f1c40f';
-    }
-    else if (
-        participacionGeneral >= 40
-    ) {
-
-        colorParticipacion =
-            '#e67e22';
-    }
-
+    const tasaRealizacion =
+        totals.sesiones > 0
+            ? Number(
+                (
+                    totals.realizadas *
+                    100 /
+                    totals.sesiones
+                ).toFixed(1)
+            )
+            : 0;
 
     // ==========================================
-    // MOSTRAR RESUMEN
+    // RESUMEN GENERAL
     // ==========================================
-
     summaryContainer.style.display =
         'block';
 
-
     summaryContainer.innerHTML = `
+        <div class="session-report-summary">
 
-        <div
-            style="
-                margin-bottom:15px;
-            "
-        >
+            <div>
+                📚
+                <strong>
+                    Subgrupos
+                </strong>
+                <br>
+                ${reports.length}
+            </div>
 
-            <h3
-                style="
-                    margin-bottom:5px;
-                "
-            >
-                👥 Resumen de ${group}
-            </h3>
+            <div>
+                👥
+                <strong>
+                    Estudiantes
+                </strong>
+                <br>
+                ${uniqueStudents.size}
+            </div>
 
-            <p
-                style="
-                    color:#666;
-                    font-size:13px;
-                    margin:0;
-                "
-            >
-                📚 ${
-                    subGroup ||
-                    'Todos los subgrupos'
+            <div>
+                📅
+                <strong>
+                    Sesiones
+                </strong>
+                <br>
+                ${totals.sesiones}
+            </div>
+
+            <div>
+                ✅
+                <strong>
+                    Realizadas
+                </strong>
+                <br>
+                ${totals.realizadas}
+            </div>
+
+            <div>
+                ⛔
+                <strong>
+                    Suspendidas
+                </strong>
+                <br>
+                ${totals.suspendidas}
+            </div>
+
+            <div>
+                📈
+                <strong>
+                    Tasa de realización
+                </strong>
+                <br>
+                ${tasaRealizacion.toFixed(1)}%
+            </div>
+
+            <div>
+                📊
+                <strong>
+                    Asistencia
+                </strong>
+                <br>
+                ${asistenciaGeneral.toFixed(1)}%
+            </div>
+
+            <div>
+                ⭐
+                <strong>
+                    Participación
+                </strong>
+                <br>
+                ${
+                    participacionGeneral === null
+                        ? 'N/A'
+                        : participacionGeneral
+                            .toFixed(1) + '%'
                 }
-            </p>
-
-        </div>
-
-
-        <!-- ==================================
-             INDICADORES GENERALES
-        =================================== -->
-
-        <div
-            style="
-                display:grid;
-                grid-template-columns:
-                    repeat(
-                        2,
-                        minmax(140px, 1fr)
-                    );
-                gap:12px;
-                margin-bottom:20px;
-            "
-        >
-
-            <!-- ASISTENCIA GENERAL -->
-
-            <div
-                style="
-                    background:#eef5fb;
-                    border:
-                        1px solid #d6e4f0;
-                    border-radius:10px;
-                    padding:16px 10px;
-                    text-align:center;
-                "
-            >
-
-                <div
-                    style="
-                        font-size:26px;
-                    "
-                >
-                    📊
-                </div>
-
-                <div
-                    style="
-                        font-size:24px;
-                        font-weight:bold;
-                        color:#2980b9;
-                    "
-                >
-                    ${asistenciaGeneral}%
-                </div>
-
-                <div
-                    style="
-                        font-size:11px;
-                        color:#666;
-                        font-weight:bold;
-                    "
-                >
-                    ASISTENCIA GENERAL
-                </div>
-
             </div>
 
-
-            <!-- PARTICIPACIÓN GENERAL -->
-
-            <div
-                style="
-                    background:#fffaf0;
-                    border:
-                        1px solid #f4e5b8;
-                    border-radius:10px;
-                    padding:16px 10px;
-                    text-align:center;
-                "
-            >
-
-                <div
-                    style="
-                        font-size:34px;
-                        line-height:1;
-                        color:${colorParticipacion};
-                    "
-                >
-                    ★
-                </div>
-
-                <div
-                    style="
-                        font-size:24px;
-                        font-weight:bold;
-                        color:${colorParticipacion};
-                    "
-                >
-                    ${participacionGeneral}%
-                </div>
-
-                <div
-                    style="
-                        font-size:11px;
-                        color:#666;
-                        font-weight:bold;
-                    "
-                >
-                    PARTICIPACIÓN GENERAL
-                </div>
-
+            <div>
+                ✅ Presentes
+                <br>
+                ${totals.presentes}
             </div>
 
-        </div>
-
-
-        <!-- ==================================
-             CONTADORES GENERALES
-        =================================== -->
-
-        <div
-            class="stats-box"
-            style="
-                margin-bottom:15px;
-            "
-        >
-
-            <div class="stat-item">
-
-                <span class="stat-label">
-                    👤 Estudiantes
-                </span>
-
-                <span class="stat-value">
-                    ${studentIds.size}
-                </span>
-
+            <div>
+                ❌ Ausentes
+                <br>
+                ${totals.ausentes}
             </div>
 
-
-            <div class="stat-item">
-
-                <span class="stat-label">
-                    📚 Subgrupos
-                </span>
-
-                <span class="stat-value">
-                    ${reports.length}
-                </span>
-
+            <div>
+                📝 Excusas
+                <br>
+                ${totals.excusas}
             </div>
 
-
-            <div class="stat-item">
-
-                <span class="stat-label">
-                    📅 Sesiones
-                </span>
-
-                <span class="stat-value">
-                    ${totalSesiones}
-                </span>
-
+            <div>
+                ⚪ Sin registrar
+                <br>
+                ${totals.sinRegistrar}
             </div>
 
-
-            <div class="stat-item">
-
-                <span class="stat-label">
-                    ✅ Presentes
-                </span>
-
-                <span class="stat-value">
-                    ${totalPresentes}
-                </span>
-
+            <div>
+                ⭐ Participaciones
+                <br>
+                ${totals.participaciones}
             </div>
-
-
-            <div class="stat-item">
-
-                <span class="stat-label">
-                    ❌ Ausentes
-                </span>
-
-                <span class="stat-value">
-                    ${totalAusentes}
-                </span>
-
-            </div>
-
-
-            <div class="stat-item">
-
-                <span class="stat-label">
-                    📝 Excusas
-                </span>
-
-                <span class="stat-value">
-                    ${totalExcusas}
-                </span>
-
-            </div>
-
-
-            <div class="stat-item">
-
-                <span class="stat-label">
-                    ⚪ Sin registrar
-                </span>
-
-                <span class="stat-value">
-                    ${totalSinRegistrar}
-                </span>
-
-            </div>
-
-
-            <div class="stat-item">
-
-                <span class="stat-label">
-                    ⭐ Participaciones
-                </span>
-
-                <span class="stat-value">
-                    ${totalParticipaciones}
-                </span>
-
-            </div>
-
-        </div>
-
-
-        <!-- ==================================
-             MAESTROS
-        =================================== -->
-
-        <div
-            style="
-                color:#666;
-                font-size:13px;
-                margin-top:15px;
-            "
-        >
-
-            <strong>
-                👨‍🏫 Maestros:
-            </strong>
-
-            ${
-                [
-                    ...maestros
-                ].join(', ')
-                ||
-                'Sin datos registrados'
-            }
 
         </div>
     `;
 
-
     // ==========================================
-    // ESTRUCTURA DEL REPORTE
+    // RESULTADOS
     //
-    // YA NO EXISTE:
-    //
-    // - groupAttendanceChart
-    // - tabla consolidada
-    // - filas consolidadas
-    //
-    // Solo se crean las tarjetas.
+    // Conservamos renderGroupReportCard()
+    // para no reconstruir toda la capa visual
+    // si ya funciona correctamente.
     // ==========================================
-
     resultsContainer.style.display =
         'block';
 
-
     resultsContainer.innerHTML = `
 
-        <div
+        <h3>
+            👥 Reporte General de Grupo
+        </h3>
+
+        <p
             style="
-                margin-bottom:20px;
+                margin:8px 0 15px;
+                color:#666;
             "
         >
+            👥 ${escapeHtml(group)}
 
-            <h3
-                style="
-                    margin-bottom:5px;
-                "
-            >
-                📚 Detalle por subgrupo
-            </h3>
+            ${
+                subGroup
+                    ? ` | 📚 ${escapeHtml(
+                        subGroup
+                    )}`
+                    : ''
+            }
+        </p>
 
-            <p
-                style="
-                    color:#777;
-                    font-size:12px;
-                    margin-top:0;
-                "
-            >
-                ${
-                    reports.length === 1
-                        ? 'Reporte del subgrupo seleccionado'
-                        : `${reports.length} subgrupos encontrados`
-                }
-            </p>
-
-        </div>
-
+        <p class="report-session-note">
+            Los indicadores académicos se calculan
+            exclusivamente sobre sesiones realizadas.
+            Las sesiones suspendidas forman parte del
+            historial institucional, pero no generan
+            asistencia pendiente ni estudiantes sin
+            registrar.
+        </p>
 
         <div
-            id="groupReportCards"
-            style="
-                display:grid;
-                grid-template-columns:1fr;
-                gap:20px;
-            "
+            id="groupReportCardsContainer"
         >
+            ${
+                reports
+                    .map(
+                        report =>
+                            renderGroupReportCard(
+                                report
+                            )
+                    )
+                    .join('')
+            }
         </div>
     `;
 
-
     // ==========================================
-    // CONTENEDOR DE TARJETAS
+    // DIAGNÓSTICO
     // ==========================================
-
-    const cardsContainer =
-        document.getElementById(
-            'groupReportCards'
-        );
-
-
-    if (!cardsContainer) {
-
-        console.error(
-            '❌ No se encontró #groupReportCards'
-        );
-
-        return;
-    }
-
-
-    // ==========================================
-    // GENERAR UNA TARJETA POR SUBGRUPO
-    //
-    // Ya tenemos los objetos "report"
-    // calculados.
-    //
-    // NO llamamos nuevamente a
-    // buildGroupSubgroupReport().
-    // ==========================================
-
-    reports.forEach(
-        report => {
-
-            renderGroupReportCard(
-                report,
-                cardsContainer
-            );
-        }
-    );
-
-
-    // ==========================================
-    // DIAGNÓSTICO FINAL
-    // ==========================================
-
     console.log(
-        '✅ Reporte de grupo generado:',
+        '✅ Reporte de Grupos normalizado:',
         {
             grupo:
                 group,
 
-            subgrupo:
+            filtroSubgrupo:
                 subGroup ||
                 'Todos',
 
-            reportes:
+            subgrupos:
                 reports.length,
 
-            tarjetas:
-                cardsContainer
-                    .children
-                    .length,
-
-            estudiantes:
-                studentIds.size,
+            estudiantesUnicos:
+                uniqueStudents.size,
 
             sesiones:
-                totalSesiones,
+                totals.sesiones,
+
+            realizadas:
+                totals.realizadas,
+
+            suspendidas:
+                totals.suspendidas,
+
+            presentes:
+                totals.presentes,
+
+            ausentes:
+                totals.ausentes,
+
+            excusas:
+                totals.excusas,
+
+            sinRegistrar:
+                totals.sinRegistrar,
 
             asistencia:
                 asistenciaGeneral,
@@ -13752,20 +13307,6 @@ function generateGroupReport() {
             participacion:
                 participacionGeneral
         }
-    );
-
-
-    // ==========================================
-    // NOTIFICACIÓN
-    // ==========================================
-
-    mostrarNotificacion(
-        `✅ Reporte generado: ${reports.length} subgrupo${
-            reports.length === 1
-                ? ''
-                : 's'
-        }`,
-        'success'
     );
 }
 
@@ -14394,636 +13935,398 @@ function getStudentParticipationAlert(
     };
 }
 function buildGroupSubgroupReport(
-    clase,
-    fechaInicio = '',
-    fechaFin = ''
+    group,
+    subGroup,
+    startDate = '',
+    endDate = ''
 ) {
-
     // ==========================================
-    // VALIDAR CLASE
+    // CLASES DEL SUBGRUPO
     // ==========================================
-
-    if (!clase) {
-        return null;
-    }
-
+    const selectedClasses =
+        classes.filter(
+            clase =>
+                clase.grupo === group &&
+                clase.materia === subGroup
+        );
 
     // ==========================================
     // ESTUDIANTES ACTIVOS DEL SUBGRUPO
     // ==========================================
-
-    const estudiantes =
+    const subGroupStudents =
         students.filter(
             student =>
-                student.estado === 'Activo'
-                &&
+                student.estado === 'Activo' &&
                 isStudentEnrolledIn(
                     student,
-                    clase.grupo,
-                    clase.materia
+                    group,
+                    subGroup
                 )
         );
 
-
     // ==========================================
-    // FECHAS REALES DEL SUBGRUPO
+    // SESIONES REALES
+    //
+    // classSessions es la única fuente
+    // histórica.
     // ==========================================
+    const sessions =
+        selectedClasses.length
+            ? getAcademicReportSessions({
+                classIds:
+                    selectedClasses.map(
+                        clase => clase.id
+                    ),
+                startDate,
+                endDate,
+                states: [
+                    'Realizada',
+                    'Suspendida'
+                ]
+            })
+            : [];
 
-    let fechas =
-        generateClassDates(
-            clase
+    const sessionSummary =
+        getAcademicSessionSummary(
+            sessions
         );
 
+    const completedSessions =
+        sessionSummary.sesionesRealizadas;
+
+    const suspendedSessions =
+        sessionSummary.sesionesSuspendidas;
 
     // ==========================================
-    // CONVERTIR DD/MM/YYYY A DATE
+    // ACUMULADORES
+    //
+    // SOLO sesiones realizadas alimentan
+    // asistencia y participación.
     // ==========================================
-
-    const convertirFecha =
-        fecha => {
-
-            const partes =
-                fecha.split('/');
-
-            if (
-                partes.length !== 3
-            ) {
-                return null;
-            }
-
-            const [
-                dia,
-                mes,
-                anio
-            ] = partes;
-
-            return new Date(
-                Number(anio),
-                Number(mes) - 1,
-                Number(dia)
-            );
-        };
-
-
-    // ==========================================
-    // FILTRO FECHA INICIO
-    // ==========================================
-
-    if (fechaInicio) {
-
-        const [
-            anioInicio,
-            mesInicio,
-            diaInicio
-        ] =
-            fechaInicio.split('-');
-
-        const inicio =
-            new Date(
-                Number(anioInicio),
-                Number(mesInicio) - 1,
-                Number(diaInicio)
-            );
-
-        fechas =
-            fechas.filter(
-                fecha => {
-
-                    const fechaConvertida =
-                        convertirFecha(
-                            fecha
-                        );
-
-                    return (
-                        fechaConvertida
-                        &&
-                        fechaConvertida >= inicio
-                    );
-                }
-            );
-    }
-
-
-    // ==========================================
-    // FILTRO FECHA FIN
-    // ==========================================
-
-    if (fechaFin) {
-
-        const [
-            anioFin,
-            mesFin,
-            diaFin
-        ] =
-            fechaFin.split('-');
-
-        const fin =
-            new Date(
-                Number(anioFin),
-                Number(mesFin) - 1,
-                Number(diaFin)
-            );
-
-        fechas =
-            fechas.filter(
-                fecha => {
-
-                    const fechaConvertida =
-                        convertirFecha(
-                            fecha
-                        );
-
-                    return (
-                        fechaConvertida
-                        &&
-                        fechaConvertida <= fin
-                    );
-                }
-            );
-    }
-
-
-    // ==========================================
-    // CONTADORES GENERALES
-    // ==========================================
-
     let presentes = 0;
     let ausentes = 0;
     let excusas = 0;
     let sinRegistrar = 0;
     let participaciones = 0;
 
-
-    // ==========================================
-    // MAESTROS QUE PARTICIPARON
-    // ==========================================
-
     const maestros =
         new Set();
 
-
-    // ==========================================
-    // NUEVO:
-    // DETALLE INDEPENDIENTE POR SESIÓN
-    //
-    // Este arreglo alimentará el gráfico
-    // exclusivo de esta tarjeta.
-    // ==========================================
-
     const detalleSesiones = [];
 
-
     // ==========================================
-    // DETALLE POR ESTUDIANTE
+    // RECORRER SESIONES REALES
     // ==========================================
-
-    const detalleEstudiantes =
-        estudiantes.map(
-            student => {
-
-                let studentP = 0;
-                let studentA = 0;
-                let studentE = 0;
-                let studentSR = 0;
-                let studentPART = 0;
-
-
-                fechas.forEach(
-                    fecha => {
-
-                        const att =
-                            getStudentAttendance(
-                                student.id,
-                                clase.id,
-                                fecha
-                            );
-
-
-                        // ========================
-                        // SIN REGISTRAR
-                        // ========================
-
-                        if (
-                            !att ||
-                            !att.status
-                        ) {
-
-                            sinRegistrar++;
-
-                            studentSR++;
-
-                            return;
-                        }
-
-
-                        // ========================
-                        // PRESENTE
-                        // ========================
-
-                        if (
-                            att.status === 'P'
-                        ) {
-
-                            presentes++;
-
-                            studentP++;
-                        }
-
-
-                        // ========================
-                        // AUSENTE
-                        // ========================
-
-                        else if (
-                            att.status === 'A'
-                        ) {
-
-                            ausentes++;
-
-                            studentA++;
-                        }
-
-
-                        // ========================
-                        // EXCUSA
-                        // ========================
-
-                        else if (
-                            att.status === 'E'
-                        ) {
-
-                            excusas++;
-
-                            studentE++;
-                        }
-
-
-                        // ========================
-                        // PARTICIPACIÓN
-                        //
-                        // Solo cuenta cuando
-                        // el estudiante está
-                        // presente.
-                        // ========================
-
-                        if (
-                            att.status === 'P'
-                            &&
-                            att.part === true
-                        ) {
-
-                            participaciones++;
-
-                            studentPART++;
-                        }
-                    }
-                );
-
-
-                // ================================
-                // ASISTENCIA DEL ESTUDIANTE
-                //
-                // SR no entra en el porcentaje.
-                // ================================
-
-                const studentRegistrados =
-                    studentP +
-                    studentA +
-                    studentE;
-
-
-                const studentAsistencia =
-                    studentRegistrados > 0
-                        ? (
-                            studentP *
-                            100 /
-                            studentRegistrados
-                        ).toFixed(1)
-                        : '0.0';
-
-
-                // ================================
-                // PARTICIPACIÓN DEL ESTUDIANTE
-                //
-                // Participaciones / Presentes
-                // ================================
-
-                const studentParticipacion =
-                    studentP > 0
-                        ? (
-                            studentPART *
-                            100 /
-                            studentP
-                        ).toFixed(1)
-                        : '0.0';
-
-
-                return {
-
-                    id:
-                        student.id,
-
-                    nombre:
-                        `${student.nombre} ${student.apellido}`,
-
-                    presentes:
-                        studentP,
-
-                    ausentes:
-                        studentA,
-
-                    excusas:
-                        studentE,
-
-                    sinRegistrar:
-                        studentSR,
-
-                    participaciones:
-                        studentPART,
-
-                    asistencia:
-                        Number(
-                            studentAsistencia
-                        ),
-
-                    participacion:
-                        Number(
-                            studentParticipacion
-                        )
-                };
-            }
-        );
-
-
-    // ==========================================
-    // NUEVO:
-    // CONSTRUIR DETALLE POR SESIÓN
-    //
-    // Se hace independientemente del detalle
-    // por estudiante para preparar el gráfico.
-    // ==========================================
-
-    fechas.forEach(
-        fecha => {
-
-            let sessionP = 0;
-            let sessionA = 0;
-            let sessionE = 0;
-            let sessionSR = 0;
-            let sessionPART = 0;
-
+    sessions.forEach(
+        session => {
 
             // ==================================
-            // MAESTRO RESPONSABLE
+            // RESPONSABLE HISTÓRICO
             // ==================================
-
-            const responsable =
-                sessionTeachers[
-                    clase.id
-                ]?.[
-                    fecha
-                ] || 'Sin asignar';
-
-
-            if (
-                responsable !==
-                'Sin asignar'
-            ) {
-
+            if (session.responsable) {
                 maestros.add(
-                    responsable
+                    session.responsable
                 );
             }
 
-
             // ==================================
-            // ASISTENCIA DE ESTA SESIÓN
-            // ==================================
-
-            estudiantes.forEach(
-                student => {
-
-                    const att =
-                        getStudentAttendance(
-                            student.id,
-                            clase.id,
-                            fecha
-                        );
-
-
-                    // ==========================
-                    // SIN REGISTRAR
-                    // ==========================
-
-                    if (
-                        !att ||
-                        !att.status
-                    ) {
-
-                        sessionSR++;
-
-                        return;
-                    }
-
-
-                    // ==========================
-                    // PRESENTE
-                    // ==========================
-
-                    if (
-                        att.status === 'P'
-                    ) {
-
-                        sessionP++;
-                    }
-
-
-                    // ==========================
-                    // AUSENTE
-                    // ==========================
-
-                    else if (
-                        att.status === 'A'
-                    ) {
-
-                        sessionA++;
-                    }
-
-
-                    // ==========================
-                    // EXCUSA
-                    // ==========================
-
-                    else if (
-                        att.status === 'E'
-                    ) {
-
-                        sessionE++;
-                    }
-
-
-                    // ==========================
-                    // PARTICIPACIÓN
-                    // ==========================
-
-                    if (
-                        att.status === 'P'
-                        &&
-                        att.part === true
-                    ) {
-
-                        sessionPART++;
-                    }
-                }
-            );
-
-
-            // ==================================
-            // REGISTROS PARA ASISTENCIA
+            // SESIÓN SUSPENDIDA
             //
-            // Solo P + A + E
+            // IMPORTANTE:
+            //
+            // NO llama getStudentAttendance()
+            // NO genera Sin registrar
+            // NO afecta P/A/E
+            // NO afecta participación
             // ==================================
+            if (
+                session.estado ===
+                'Suspendida'
+            ) {
+                detalleSesiones.push({
+                    fecha:
+                        session.fecha,
 
-            const registradosSesion =
-                sessionP +
-                sessionA +
-                sessionE;
+                    estado:
+                        'Suspendida',
 
+                    responsable:
+                        session.responsable ||
+                        'Sin asignar',
 
-            // ==================================
-            // ASISTENCIA DE ESTA SESIÓN
-            // ==================================
+                    motivoSuspension:
+                        session.motivoSuspension ||
+                        '',
 
-            const asistenciaSesion =
-                registradosSesion > 0
-                    ? Number(
-                        (
-                            sessionP *
-                            100 /
-                            registradosSesion
-                        ).toFixed(1)
-                    )
-                    : 0;
+                    detalleSuspension:
+                        session.detalleSuspension ||
+                        '',
 
-
-            // ==================================
-            // PARTICIPACIÓN DE ESTA SESIÓN
-            // ==================================
-
-            const participacionSesion =
-                sessionP > 0
-                    ? Number(
-                        (
-                            sessionPART *
-                            100 /
-                            sessionP
-                        ).toFixed(1)
-                    )
-                    : 0;
-
-
-            // ==================================
-            // GUARDAR SESIÓN
-            // ==================================
-
-            detalleSesiones.push(
-                {
-
-                    fecha,
-
-                    etiqueta:
-                        formatSessionLabel(
-                            fecha
-                        ),
-
-                    responsable,
+                    nota:
+                        session.nota ||
+                        '',
 
                     presentes:
-                        sessionP,
+                        0,
 
                     ausentes:
-                        sessionA,
+                        0,
 
                     excusas:
-                        sessionE,
+                        0,
 
                     sinRegistrar:
-                        sessionSR,
+                        0,
 
                     participaciones:
-                        sessionPART,
+                        0,
+
+                    registrados:
+                        0,
 
                     asistencia:
-                        asistenciaSesion,
+                        null,
 
                     participacion:
-                        participacionSesion
-                }
-            );
+                        null,
+
+                    classId:
+                        session.classId
+                });
+
+                return;
+            }
+
+            // ==================================
+            // SESIÓN REALIZADA
+            // ==================================
+            const stats =
+                buildAcademicSessionStats(
+                    session,
+                    subGroupStudents
+                );
+
+            if (!stats) {
+                return;
+            }
+
+            presentes +=
+                stats.presentes;
+
+            ausentes +=
+                stats.ausentes;
+
+            excusas +=
+                stats.excusas;
+
+            sinRegistrar +=
+                stats.sinRegistrar;
+
+            participaciones +=
+                stats.participaciones;
+
+            // ==================================
+            // DETALLE DE SESIÓN REALIZADA
+            // ==================================
+            detalleSesiones.push({
+                fecha:
+                    session.fecha,
+
+                estado:
+                    'Realizada',
+
+                responsable:
+                    stats.responsable ||
+                    'Sin asignar',
+
+                motivoSuspension:
+                    '',
+
+                detalleSuspension:
+                    '',
+
+                nota:
+                    stats.nota ||
+                    '',
+
+                presentes:
+                    stats.presentes,
+
+                ausentes:
+                    stats.ausentes,
+
+                excusas:
+                    stats.excusas,
+
+                sinRegistrar:
+                    stats.sinRegistrar,
+
+                participaciones:
+                    stats.participaciones,
+
+                registrados:
+                    stats.registrados,
+
+                asistencia:
+                    stats.asistencia,
+
+                participacion:
+                    stats.participacion,
+
+                classId:
+                    session.classId
+            });
         }
     );
 
-
     // ==========================================
-    // ASISTENCIA DEL SUBGRUPO
-    //
-    // Solo P + A + E
+    // TOTALES GENERALES
     // ==========================================
-
-    const totalRegistrados =
+    const registrados =
         presentes +
         ausentes +
         excusas;
 
-
     const asistencia =
-        totalRegistrados > 0
-            ? (
-                presentes *
-                100 /
-                totalRegistrados
-            ).toFixed(1)
-            : '0.0';
-
-
-    // ==========================================
-    // PARTICIPACIÓN DEL SUBGRUPO
-    //
-    // Participaciones / Presentes
-    // ==========================================
+        registrados > 0
+            ? Number(
+                (
+                    presentes *
+                    100 /
+                    registrados
+                ).toFixed(1)
+            )
+            : 0;
 
     const participacion =
         presentes > 0
-            ? (
-                participaciones *
-                100 /
-                presentes
-            ).toFixed(1)
-            : '0.0';
+            ? Number(
+                (
+                    participaciones *
+                    100 /
+                    presentes
+                ).toFixed(1)
+            )
+            : null;
 
+    const totalSesiones =
+        sessions.length;
+
+    const sesionesRealizadas =
+        completedSessions.length;
+
+    const sesionesSuspendidas =
+        suspendedSessions.length;
+
+    const tasaRealizacion =
+        totalSesiones > 0
+            ? Number(
+                (
+                    sesionesRealizadas *
+                    100 /
+                    totalSesiones
+                ).toFixed(1)
+            )
+            : 0;
 
     // ==========================================
-    // RESULTADO
+    // ESTADÍSTICAS POR ESTUDIANTE
+    //
+    // Importante:
+    // buildAcademicStudentStats recibe
+    // solamente sesiones realizadas.
     // ==========================================
+    const detalleEstudiantes =
+        subGroupStudents.map(
+            student => {
 
+                const stats =
+                    buildAcademicStudentStats(
+                        student,
+                        completedSessions
+                    );
+
+                return {
+                    student,
+                    estudiante:
+                        student.nombre ||
+                        student.name ||
+                        'Sin nombre',
+
+                    sesiones:
+                        stats.sesiones,
+
+                    presentes:
+                        stats.presentes,
+
+                    ausentes:
+                        stats.ausentes,
+
+                    excusas:
+                        stats.excusas,
+
+                    sinRegistrar:
+                        stats.sinRegistrar,
+
+                    participaciones:
+                        stats.participaciones,
+
+                    asistencia:
+                        stats.asistencia,
+
+                    participacion:
+                        stats.participacion,
+
+                    detalle:
+                        stats.detalle
+                };
+            }
+        );
+
+    // ==========================================
+    // RESULTADO NORMALIZADO
+    //
+    // Conservamos nombres de propiedades
+    // habituales para evitar romper
+    // renderGroupReportCard().
+    // ==========================================
     return {
-
-        classId:
-            clase.id,
-
         grupo:
-            clase.grupo,
+            group,
 
         subgrupo:
-            clase.materia,
+            subGroup,
+
+        clases:
+            selectedClasses,
+
+        students:
+            subGroupStudents,
 
         estudiantes:
-            estudiantes.length,
+            subGroupStudents.length,
+
+        totalEstudiantes:
+            subGroupStudents.length,
+
+        sessions,
+
+        totalSesiones,
 
         sesiones:
-            fechas.length,
+            totalSesiones,
 
-        fechas,
+        sesionesRealizadas,
+
+        realizadas:
+            sesionesRealizadas,
+
+        sesionesSuspendidas,
+
+        suspendidas:
+            sesionesSuspendidas,
+
+        tasaRealizacion,
 
         presentes,
 
@@ -15035,40 +14338,38 @@ function buildGroupSubgroupReport(
 
         participaciones,
 
-        asistencia:
-            Number(
-                asistencia
-            ),
+        registrados,
 
-        participacion:
-            Number(
-                participacion
-            ),
+        asistencia,
 
+        porcentajeAsistencia:
+            asistencia,
 
-        // ======================================
-        // MAESTROS
-        // ======================================
+        participacion,
+
+        porcentajeParticipacion:
+            participacion,
 
         maestros:
-            [
-                ...maestros
-            ],
-
-
-        // ======================================
-        // NUEVO:
-        // DATOS PARA EL GRÁFICO
-        // ======================================
+            Array
+                .from(maestros)
+                .sort(
+                    (a, b) =>
+                        a.localeCompare(
+                            b,
+                            'es'
+                        )
+                ),
 
         detalleSesiones,
 
+        detalleEstudiantes,
 
-        // ======================================
-        // DETALLE ACTUAL DE ESTUDIANTES
-        // ======================================
+        sesionesRealizadasDetalle:
+            completedSessions,
 
-        detalleEstudiantes
+        sesionesSuspendidasDetalle:
+            suspendedSessions
     };
 }
 function renderGroupReportCard(
