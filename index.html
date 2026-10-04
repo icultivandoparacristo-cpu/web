@@ -24729,8 +24729,8 @@ function resetStudentForm() {
                         data-status="${att.status}"
                         onchange="
                             updateAttStatus(
-                                ${s.id},
-                                ${clase.id},
+                                ${JSON.stringify(String(s.id))},
+                                ${JSON.stringify(String(clase.id))},
                                 '${fecha}',
                                 this
                             )
@@ -24803,8 +24803,8 @@ function resetStudentForm() {
 
                             onchange="
                                 updateAttPart(
-                                    ${s.id},
-                                    ${clase.id},
+                                    ${JSON.stringify(String(s.id))},
+                                    ${JSON.stringify(String(clase.id))},
                                     '${fecha}',
                                     this.checked
                                 )
