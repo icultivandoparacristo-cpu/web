@@ -5802,6 +5802,7 @@ await setPersistence(auth, browserLocalPersistence);
 
 window.db = db;
 window.firestoreGroups = { collection, getDocs, doc, setDoc, deleteDoc };
+window.firestoreStudents = { collection, getDocs, doc, setDoc, deleteDoc };
 window.firebaseAuth = auth;
 window.firebaseSignIn = signInWithEmailAndPassword;
 window.firebaseSignOut = signOut;
@@ -5981,9 +5982,6 @@ async function applyFirebaseAuthState(firebaseUser) {
         )
     );
 
-    if (window.loadGroupsFromFirestore) {
-        await window.loadGroupsFromFirestore();
-    }
     if (loginView) {
         loginView.style.display = 'none';
     }
@@ -6002,7 +6000,15 @@ async function applyFirebaseAuthState(firebaseUser) {
     }
 }
 
-onAuthStateChanged(auth, applyFirebaseAuthState);
+onAuthStateChanged(auth, async (firebaseUser) => {
+    await applyFirebaseAuthState(firebaseUser);
+    if (firebaseUser) {
+        setTimeout(async () => {
+            if (window.loadGroupsFromFirestore) await window.loadGroupsFromFirestore();
+            if (window.loadStudentsFromFirestore) await window.loadStudentsFromFirestore();
+        }, 0);
+    }
+});
 console.log('✅ Firebase + Authentication conectados');
 </script>
 
@@ -6010,7 +6016,7 @@ console.log('✅ Firebase + Authentication conectados');
 
  
 
-  let students = JSON.parse(localStorage.getItem('biblical_students')) || [];
+  let students = []; // Fuente oficial: Cloud Firestore /students
   //  let enrollments =JSON.parse(localStorage.getItem('biblical_enrollments')) || [];
   let attendanceData = JSON.parse(localStorage.getItem('biblical_attendance')) || {};
   let finances = JSON.parse(localStorage.getItem('biblical_finances')) || [];
@@ -6336,12 +6342,7 @@ function migrateStudentEnrollments() {
 
     if (migrated) {
 
-        localStorage.setItem(
-            'biblical_students',
-            JSON.stringify(
-                students
-            )
-        );
+        // Persistencia legacy de estudiantes desactivada: Firestore es la fuente oficial.
 
 
         console.log(
@@ -7395,8 +7396,6 @@ function runPreFirebaseDiagnostic() {
     // ==========================================
 
     const expectedStorageKeys = [
-
-        'biblical_students',
 
         'biblical_attendance',
 
@@ -22938,9 +22937,7 @@ function updateTeacher(
                     );
                 }
 
-                students =
-                    backup.estudiantes ||
-                    [];
+                // Estudiantes conservados en Firestore; el respaldo local no los reemplaza
 
                 attendanceData =
                     backup.asistencia ||
@@ -23358,10 +23355,7 @@ async function deleteGroup(id) {
 'Antes de saveAll:',
 groups
 );
-localStorage.setItem(
-'biblical_students',
-JSON.stringify(students)
-);
+// Estudiantes ya no se guardan en localStorage. Fuente oficial: Firestore.
 localStorage.setItem(
     'biblical_session_teachers',
     JSON.stringify(
@@ -23643,162 +23637,34 @@ if (passwordInput) {
 
 
   
-studentForm.addEventListener(
-    'submit',
-    (e) => {
-
-        e.preventDefault();
-
-
-        // ======================================
-        // ID
-        // ======================================
-
-        const id =
-            document.getElementById(
-                'studentId'
-            ).value;
-
-
-        // ======================================
-        // INSCRIPCIONES
-        // ======================================
-
-        const enrollments =
-            getStudentEnrollmentDraft();
-
-
-        if (
-            enrollments.length === 0
-        ) {
-
-            mostrarNotificacion(
-                '⚠️ Agregue al menos una inscripción',
-                'warning'
-            );
-
-            return;
-        }
-
-
-        // ======================================
-        // INSCRIPCIÓN PRINCIPAL
-        // COMPATIBILIDAD TEMPORAL
-        // ======================================
-
-        const primaryEnrollment =
-            enrollments[0];
-
-
-        const grupo =
-            primaryEnrollment.grupo;
-
-
-        const subgrupo =
-            primaryEnrollment.subgrupo;
-
-
-        // ======================================
-        // DATOS DEL ESTUDIANTE
-        // ======================================
-
-        const studentData = {
-
-            id:
-                id
-                    ? parseInt(id)
-                    : Date.now(),
-
-            nombre:
-                document.getElementById(
-                    'nombre'
-                ).value.trim(),
-
-            apellido:
-                document.getElementById(
-                    'apellido'
-                ).value.trim(),
-
-            fechaNacimiento:
-                document.getElementById(
-                    'fechaNacimiento'
-                ).value.trim(),
-
-
-            // ==================================
-            // COMPATIBILIDAD TEMPORAL
-            // ==================================
-
-            grupo:
-                grupo,
-
-            subgrupo:
-                subgrupo,
-
-
-            // ==================================
-            // NUEVO MODELO
-            // ==================================
-
-            inscripciones:
-                normalizeStudentEnrollments(
-                    enrollments
-                ),
-
-
-            estado:
-                document.getElementById(
-                    'studentStatus'
-                ).value
-        };
-
-        if (id) {
-
-            students =
-                students.map(
-                    s =>
-                        s.id === parseInt(id)
-                            ? studentData
-                            : s
-                );
-
-            mostrarNotificacion(
-                '✅ Estudiante actualizado',
-                'success'
-            );
-
-        } else {
-
-            students.push(
-                studentData
-            );
-
-            mostrarNotificacion(
-                '✅ Estudiante creado',
-                'success'
-            );
-
-        }
-
-        saveAll();
-
-        renderStudentTable();
-
-        studentForm.reset();
-        resetStudentEnrollmentDraft();
-        renderStudentEnrollmentDraft();
-
-        document.getElementById(
-            'studentId'
-        ).value = '';
-
-        document.getElementById(
-            'subgrupo'
-        ).innerHTML =
-            '<option value="">Seleccione</option>';
-
+studentForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('studentId').value;
+    const enrollments = getStudentEnrollmentDraft();
+    if (enrollments.length === 0) { mostrarNotificacion('⚠️ Agregue al menos una inscripción', 'warning'); return; }
+    const primaryEnrollment = enrollments[0];
+    const studentData = {
+        id: id ? String(id) : `student_${Date.now()}`,
+        nombre: document.getElementById('nombre').value.trim(),
+        apellido: document.getElementById('apellido').value.trim(),
+        fechaNacimiento: document.getElementById('fechaNacimiento').value.trim(),
+        grupo: primaryEnrollment.grupo,
+        subgrupo: primaryEnrollment.subgrupo,
+        inscripciones: normalizeStudentEnrollments(enrollments),
+        estado: document.getElementById('studentStatus').value
+    };
+    try {
+        await saveStudentToFirestore(studentData);
+        await loadStudentsFromFirestore();
+        mostrarNotificacion(id ? '✅ Estudiante actualizado en Firestore' : '✅ Estudiante creado en Firestore', 'success');
+        studentForm.reset(); resetStudentEnrollmentDraft(); renderStudentEnrollmentDraft();
+        document.getElementById('studentId').value = '';
+        document.getElementById('subgrupo').innerHTML = '<option value="">Seleccione</option>';
+    } catch(error) {
+        console.error('❌ Error guardando estudiante en Firestore:', error);
+        mostrarNotificacion('❌ No se pudo guardar el estudiante en Firestore', 'error');
     }
-);
+});
  //Usuarios
 const userForm =
     document.getElementById('userForm');
@@ -24149,6 +24015,29 @@ if (classForm) {
 
 }
 // Eliminación de grupos gestionada por Firestore.
+async function loadStudentsFromFirestore() {
+    const api = window.firestoreStudents;
+    if (!window.db || !api) { mostrarNotificacion('Firestore todavía no está disponible para estudiantes', 'error'); return false; }
+    try {
+        const snapshot = await api.getDocs(api.collection(window.db, 'students'));
+        students = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+        students.sort((a,b) => `${a.nombre||''} ${a.apellido||''}`.localeCompare(`${b.nombre||''} ${b.apellido||''}`, 'es'));
+        renderStudentTable();
+        console.log('✅ Estudiantes cargados desde Firestore:', students);
+        return true;
+    } catch(error) {
+        console.error('❌ Error cargando estudiantes desde Firestore:', error);
+        mostrarNotificacion('❌ No se pudieron cargar los estudiantes desde Firestore', 'error');
+        return false;
+    }
+}
+async function saveStudentToFirestore(student) {
+    const api = window.firestoreStudents;
+    if (!window.db || !api) throw new Error('Firestore no disponible para estudiantes');
+    const data = { ...student, id: String(student.id), updatedAt: new Date().toISOString(), updatedBy: currentUser?.email || currentUser?.username || 'superadmin' };
+    await api.setDoc(api.doc(window.db, 'students', String(student.id)), data, { merge: true });
+}
+
 function renderStudentTable() {
 
     const tbody =
@@ -24396,7 +24285,7 @@ function renderStudentTable() {
                         class="btn-edit"
                         onclick="
                             editStudent(
-                                ${student.id}
+                                ${JSON.stringify(String(student.id))}
                             )
                         ">
 
@@ -24409,7 +24298,7 @@ function renderStudentTable() {
                         class="btn-delete"
                         onclick="
                             deleteStudent(
-                                ${student.id}
+                                ${JSON.stringify(String(student.id))}
                             )
                         ">
 
@@ -24436,8 +24325,7 @@ function renderStudentTable() {
 
     const student =
         students.find(
-            s =>
-                s.id === id
+            s => String(s.id) === String(id)
         );
 
 
@@ -24616,41 +24504,22 @@ function renderStudentTable() {
     );
 }
 
-  function deleteStudent(id) {
-
-    const student =
-        students.find(
-            s => s.id === id
-        );
-
-    if (!student)
-        return;
-
-    const confirmado =
-        confirm(
-            `¿Desea eliminar a ${student.nombre} ${student.apellido}?\n\n` +
-            'También se eliminará su historial de asistencia.'
-        );
-
-    if (!confirmado)
-        return;
-
-    students =
-        students.filter(
-            s => s.id !== id
-        );
-
-    delete attendanceData[id];
-
-    saveAll();
-
-    renderStudentTable();
-
-    mostrarNotificacion(
-        '✅ Estudiante eliminado',
-        'success'
-    );
-
+  async function deleteStudent(id) {
+    const student = students.find(s => String(s.id) === String(id));
+    if (!student) return;
+    const confirmado = confirm(`¿Desea eliminar a ${student.nombre} ${student.apellido}?\n\nEl estudiante se eliminará de Firestore. Su historial de asistencia local también se eliminará en este navegador.`);
+    if (!confirmado) return;
+    try {
+        const api = window.firestoreStudents;
+        await api.deleteDoc(api.doc(window.db, 'students', String(student.id)));
+        delete attendanceData[id];
+        saveAll();
+        await loadStudentsFromFirestore();
+        mostrarNotificacion('✅ Estudiante eliminado de Firestore', 'success');
+    } catch(error) {
+        console.error('❌ Error eliminando estudiante:', error);
+        mostrarNotificacion('❌ No se pudo eliminar el estudiante', 'error');
+    }
 }
 
 function resetStudentForm() {
