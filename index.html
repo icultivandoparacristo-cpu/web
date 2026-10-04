@@ -24724,95 +24724,80 @@ function resetStudentForm() {
 
                 <div class="att-cell">
 
-                    <select
-                        class="att-select"
-                        data-status="${att.status}"
-                        onchange="
-                            updateAttStatus(
-                                ${JSON.stringify(String(s.id))},
-                                ${JSON.stringify(String(clase.id))},
-                                '${fecha}',
-                                this
-                            )
-                        ">
-                        <option
-                            value=""
-                            ${att.status === '' ? 'selected' : ''}>
+              <select
+    class="att-select"
+    data-status="${att.status}"
+    onchange="
+        updateAttStatus(
+            '${String(s.id)}',
+            '${String(clase.id)}',
+            '${fecha}',
+            this
+        )
+    "
+>
+    <option
+        value=""
+        ${att.status === '' ? 'selected' : ''}
+    >
+        -
+    </option>
 
-                            -
+    <option
+        value="P"
+        ${att.status === 'P' ? 'selected' : ''}
+    >
+        P
+    </option>
 
-                        </option>
-                        <option
-                            value="P"
-                            ${
-                                att.status === 'P'
-                                    ? 'selected'
-                                    : ''
-                            }>
+    <option
+        value="E"
+        ${att.status === 'E' ? 'selected' : ''}
+    >
+        E
+    </option>
 
-                            P
-
-                        </option>
-
-                        <option
-                            value="E"
-                            ${
-                                att.status === 'E'
-                                    ? 'selected'
-                                    : ''
-                            }>
-
-                            E
-
-                        </option>
-
-                        <option
-                            value="A"
-                            ${
-                                att.status === 'A'
-                                    ? 'selected'
-                                    : ''
-                            }>
-
-                            A
-
-                        </option>
-
-                    </select>
+    <option
+        value="A"
+        ${att.status === 'A' ? 'selected' : ''}
+    >
+        A
+    </option>
+</select>
 
                     <label
-                        style="
-                            font-size:10px;
-                        ">
+    style="
+        font-size:10px;
+    "
+>
+    <input
+        type="checkbox"
+        class="part-check"
 
-                      <input
-                            type="checkbox"
-                            class="part-check"
+        ${
+            att.part
+                ? 'checked'
+                : ''
+        }
 
-                            ${
-                                att.part
-                                    ? 'checked'
-                                    : ''
-                            }
+        ${
+            att.status !== 'P'
+                ? 'disabled'
+                : ''
+        }
 
-                            ${
-                                att.status !== 'P'
-                                    ? 'disabled'
-                                    : ''
-                            }
+        onchange="
+            updateAttPart(
+                '${String(s.id)}',
+                '${String(clase.id)}',
+                '${fecha}',
+                this.checked
+            )
+        "
+    >
 
-                            onchange="
-                                updateAttPart(
-                                    ${JSON.stringify(String(s.id))},
-                                    ${JSON.stringify(String(clase.id))},
-                                    '${fecha}',
-                                    this.checked
-                                )
-                            ">
-
-                        ⭐
-
-                    </label>
+    ⭐
+</label>
 
                 </div>
 
@@ -25934,48 +25919,48 @@ else if (
     // Tarjeta 2:
     // Histórico general del subgrupo
     // ==========================================
-    container.innerHTML = `
+   container.innerHTML = `
 
-        <!-- ===================================
-             SESIÓN SELECCIONADA
-        ==================================== -->
+    <!-- ===================================
+         SESIÓN SELECCIONADA
+    ==================================== -->
 
-        <div class="dashboard-card">
+    <div class="dashboard-card">
 
-    <h3>
-        📅 Sesión seleccionada
-    </h3>
+        <h3>
+            📅 Sesión seleccionada
+        </h3>
 
-    <p
-        style="
-            color:#666;
-            margin:8px 0 5px;
-        "
-    >
-        👥 ${clase.grupo}
-        |
-        📚 ${clase.materia}
-    </p>
+        <p
+            style="
+                color:#666;
+                margin:8px 0 5px;
+            "
+        >
+            👥 ${clase.grupo}
+            |
+            📚 ${clase.materia}
+        </p>
 
-    <p
-        style="
-            color:#666;
-            margin:5px 0;
-        "
-    >
-        📅 ${fecha}
-    </p>
+        <p
+            style="
+                color:#666;
+                margin:5px 0;
+            "
+        >
+            📅 ${fecha}
+        </p>
 
-    <p
-        style="
-            color:#2c3e50;
-            margin:5px 0 18px;
-            font-weight:bold;
-        "
-    >
-        👨‍🏫 Responsable:
-        ${responsable}
-    </p>
+        <p
+            style="
+                color:#2c3e50;
+                margin:5px 0 18px;
+                font-weight:bold;
+            "
+        >
+            👨‍🏫 Responsable:
+            ${responsable}
+        </p>
 
     <!-- ===================================
          INDICADORES PRINCIPALES
