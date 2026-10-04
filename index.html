@@ -5804,6 +5804,8 @@ window.db = db;
 window.firestoreGroups = { collection, getDocs, doc, setDoc, deleteDoc };
 window.firestoreStudents = { collection, getDocs, doc, setDoc, deleteDoc };
 window.firestoreClasses = { collection, getDocs, doc, setDoc, deleteDoc };
+window.firestoreClassSessions = { collection, getDocs, doc, setDoc, deleteDoc };
+window.firestoreAttendance = { collection, getDocs, doc, setDoc, deleteDoc };
 window.firebaseAuth = auth;
 window.firebaseSignIn = signInWithEmailAndPassword;
 window.firebaseSignOut = signOut;
@@ -6008,6 +6010,8 @@ onAuthStateChanged(auth, async (firebaseUser) => {
             if (window.loadGroupsFromFirestore) await window.loadGroupsFromFirestore();
             if (window.loadClassesFromFirestore) await window.loadClassesFromFirestore();
             if (window.loadStudentsFromFirestore) await window.loadStudentsFromFirestore();
+            if (window.loadClassSessionsFromFirestore) await window.loadClassSessionsFromFirestore();
+            if (window.loadAttendanceFromFirestore) await window.loadAttendanceFromFirestore();
         }, 0);
     }
 });
@@ -6020,16 +6024,14 @@ console.log('✅ Firebase + Authentication conectados');
 
   let students = []; // Fuente oficial: Cloud Firestore /students
   //  let enrollments =JSON.parse(localStorage.getItem('biblical_enrollments')) || [];
-  let attendanceData = JSON.parse(localStorage.getItem('biblical_attendance')) || {};
+  let attendanceData = {}; // Fuente oficial: Cloud Firestore /attendance
   let finances = JSON.parse(localStorage.getItem('biblical_finances')) || [];
   let classes = []; // Fuente oficial: Cloud Firestore /classes
 
   // Sesiones reales de clase: realizada o suspendida + bitácora
-  let classSessions = JSON.parse(
-      localStorage.getItem('biblical_class_sessions')
-  ) || [];
+  let classSessions = []; // Fuente oficial: Cloud Firestore /classSessions
   let financeAuditLog =JSON.parse( localStorage.getItem('biblical_finance_audit_log')) || [];
-  let sessionTeachers =JSON.parse(localStorage.getItem('biblical_session_teachers' )) || {};
+  let sessionTeachers = {}; // Derivado de classSessions; no se persiste por separado
   let groups = []; // Fuente oficial: Cloud Firestore /groups
   let classTeachers =JSON.parse(localStorage.getItem( 'biblical_class_teachers') ) || {};console.log("classTeachers cargado:", classTeachers);
   let users = JSON.parse(localStorage.getItem('biblical_users')) || [
@@ -21871,7 +21873,7 @@ function updateClassSessionPanelVisibility() {
 function handleClassSessionStatusChange() { updateClassSessionPanelVisibility(); }
 function handleClassSessionReasonChange() { updateClassSessionPanelVisibility(); }
 
-function saveAttendanceClassSession() {
+async function saveAttendanceClassSession() {
     const clase = getSelectedClass();
     const fecha = document.getElementById('attendanceDate')?.value;
     if (!clase || !fecha) {
@@ -21894,7 +21896,7 @@ function saveAttendanceClassSession() {
         mostrarNotificacion('⚠️ La bitácora es obligatoria para una clase suspendida', 'warning'); return;
     }
 
-    const saved = saveClassSession(clase.id, fecha, { estado, motivoSuspension, detalleSuspension, nota, responsable });
+    const saved = await saveClassSession(clase.id, fecha, { estado, motivoSuspension, detalleSuspension, nota, responsable });
     if (!saved) {
         mostrarNotificacion('❌ No se pudo guardar el estado de la clase', 'error'); return;
     }
@@ -21904,7 +21906,7 @@ function saveAttendanceClassSession() {
 }
 
 //Guardar Maestro responsable
-function saveSessionTeacher() {
+async function saveSessionTeacher() {
 
     const clase =
         getSelectedClass();
@@ -21947,9 +21949,9 @@ function saveSessionTeacher() {
 
     const existingSession = getClassSession(clase.id, fecha);
     if (existingSession) {
-        updateClassSession(clase.id, fecha, { responsable: maestro });
+        await updateClassSession(clase.id, fecha, { responsable: maestro });
     } else {
-        saveAll();
+        await saveClassSession(clase.id, fecha, { estado: 'Realizada', responsable: maestro, nota: '' });
     }
     mostrarNotificacion(
     `👨‍🏫 Responsable asignado: ${maestro}`,
@@ -22073,6 +22075,81 @@ card.innerHTML = `
 
 //función que genere las fechas de una clase
 // ==========================================
+// FIRESTORE - SESIONES Y ASISTENCIA
+// ==========================================
+function firestoreSafeId(value) {
+  return encodeURIComponent(String(value ?? '')).replace(/%/g, '_');
+}
+function classSessionDocumentId(classId, fecha) {
+  return `${firestoreSafeId(classId)}__${firestoreSafeId(fecha)}`;
+}
+function attendanceDocumentId(studentId, classId, fecha) {
+  return `${firestoreSafeId(studentId)}__${firestoreSafeId(classId)}__${firestoreSafeId(fecha)}`;
+}
+function rebuildSessionTeachersFromClassSessions() {
+  sessionTeachers = {};
+  classSessions.forEach(session => {
+    if (!session?.classId || !session?.fecha || !session?.responsable) return;
+    if (!sessionTeachers[session.classId]) sessionTeachers[session.classId] = {};
+    sessionTeachers[session.classId][session.fecha] = session.responsable;
+  });
+}
+async function saveClassSessionToFirestore(session) {
+  const api = window.firestoreClassSessions;
+  if (!api || !window.db || !session) throw new Error('Firestore classSessions no disponible');
+  const payload = {...session};
+  const ref = api.doc(window.db, 'classSessions', classSessionDocumentId(session.classId, session.fecha));
+  await api.setDoc(ref, payload);
+  rebuildSessionTeachersFromClassSessions();
+}
+async function loadClassSessionsFromFirestore() {
+  const api = window.firestoreClassSessions;
+  if (!api || !window.db) return;
+  const snapshot = await api.getDocs(api.collection(window.db, 'classSessions'));
+  classSessions = snapshot.docs.map(d => ({...d.data(), firestoreId:d.id}));
+  classSessions.sort((a,b) => parseClassSessionDate(a.fecha)-parseClassSessionDate(b.fecha));
+  rebuildSessionTeachersFromClassSessions();
+  console.log(`✅ classSessions cargadas desde Firestore: ${classSessions.length}`);
+}
+window.loadClassSessionsFromFirestore = loadClassSessionsFromFirestore;
+
+async function loadAttendanceFromFirestore() {
+  const api = window.firestoreAttendance;
+  if (!api || !window.db) return;
+  const snapshot = await api.getDocs(api.collection(window.db, 'attendance'));
+  attendanceData = {};
+  snapshot.docs.forEach(d => {
+    const r = d.data();
+    if (r.studentId == null || r.classId == null || !r.fecha) return;
+    if (!attendanceData[r.studentId]) attendanceData[r.studentId] = {};
+    if (!attendanceData[r.studentId][r.classId]) attendanceData[r.studentId][r.classId] = {};
+    attendanceData[r.studentId][r.classId][r.fecha] = {status:r.status || '', part:r.part === true};
+  });
+  console.log(`✅ attendance cargada desde Firestore: ${snapshot.size}`);
+}
+window.loadAttendanceFromFirestore = loadAttendanceFromFirestore;
+
+async function persistAttendanceRecord(studentId, classId, fecha) {
+  const api = window.firestoreAttendance;
+  if (!api || !window.db) throw new Error('Firestore attendance no disponible');
+  const attendance = getStudentAttendance(studentId, classId, fecha);
+  const ref = api.doc(window.db, 'attendance', attendanceDocumentId(studentId, classId, fecha));
+  if (!attendance || (!attendance.status && attendance.part !== true)) {
+    await api.deleteDoc(ref);
+    return;
+  }
+  await api.setDoc(ref, {
+    studentId,
+    classId,
+    fecha,
+    status: attendance.status || '',
+    part: attendance.status === 'P' && attendance.part === true,
+    updatedBy: currentUser?.username || 'Sistema',
+    updatedAt: new Date().toISOString()
+  });
+}
+
+// ==========================================
 // CULTIVO SYSTEM - MODELO DE SESIONES DE CLASE
 // ==========================================
 function generateClassSessionId() {
@@ -22083,7 +22160,7 @@ function getClassSession(classId, fecha) {
   return classSessions.find(s => String(s.classId) === String(classId) && s.fecha === fecha) || null;
 }
 function classSessionExists(classId, fecha) { return !!getClassSession(classId, fecha); }
-function createClassSession(classId, fecha, options = {}) {
+async function createClassSession(classId, fecha, options = {}) {
   if (classId == null || !fecha) return null;
   const clase = classes.find(c => String(c.id) === String(classId));
   if (!clase) { console.error('❌ No existe el subgrupo asociado:', classId); return null; }
@@ -22100,19 +22177,19 @@ function createClassSession(classId, fecha, options = {}) {
     responsable: options.responsable || sessionTeachers[clase.id]?.[fecha] || '',
     createdBy: username, createdAt: now, updatedBy: username, updatedAt: now
   };
-  classSessions.push(session); saveAll(); return session;
+  classSessions.push(session); await saveClassSessionToFirestore(session); return session;
 }
-function updateClassSession(classId, fecha, changes = {}) {
+async function updateClassSession(classId, fecha, changes = {}) {
   const session = getClassSession(classId, fecha);
   if (!session) return null;
   if (changes.estado === 'Realizada' || changes.estado === 'Suspendida') session.estado = changes.estado;
   ['motivoSuspension','detalleSuspension','nota','responsable'].forEach(k => { if (changes[k] !== undefined) session[k] = changes[k]; });
   if (session.estado === 'Realizada') { session.motivoSuspension = null; session.detalleSuspension = ''; }
   session.updatedBy = currentUser?.username || 'Sistema'; session.updatedAt = new Date().toISOString();
-  saveAll(); return session;
+  await saveClassSessionToFirestore(session); return session;
 }
-function saveClassSession(classId, fecha, data = {}) {
-  return getClassSession(classId, fecha) ? updateClassSession(classId, fecha, data) : createClassSession(classId, fecha, data);
+async function saveClassSession(classId, fecha, data = {}) {
+  return getClassSession(classId, fecha) ? await updateClassSession(classId, fecha, data) : await createClassSession(classId, fecha, data);
 }
 function parseClassSessionDate(value) {
   if (!value || typeof value !== 'string') return new Date(0);
@@ -23374,17 +23451,6 @@ groups
 );
 // Estudiantes ya no se guardan en localStorage. Fuente oficial: Firestore.
 localStorage.setItem(
-    'biblical_session_teachers',
-    JSON.stringify(
-        sessionTeachers
-    )
-);
-
-localStorage.setItem(
-'biblical_attendance',
-JSON.stringify(attendanceData)
-);
-localStorage.setItem(
 'biblical_finances',
 JSON.stringify(finances)
 );
@@ -23406,10 +23472,6 @@ localStorage.setItem(
 );
 // Grupos ya no se guardan en localStorage. Fuente oficial: Firestore.
 // Subgrupos/Clases ya no se guardan en localStorage. Fuente oficial: Firestore.
-localStorage.setItem(
-    'biblical_class_sessions',
-    JSON.stringify(classSessions)
-);
 const autoBackup = {
 
     version:
@@ -25502,7 +25564,7 @@ function migrateLegacyAttendance() {
     }
 
 }
-function updateAttPart(
+async function updateAttPart(
     studentId,
     classId,
     fecha,
@@ -25554,7 +25616,7 @@ function updateAttPart(
     // GUARDAR
     // ==========================================
 
-    saveAll();
+    await persistAttendanceRecord(studentId, classId, fecha);
 
 
     // ==========================================
@@ -25564,7 +25626,7 @@ function updateAttPart(
     renderDashboardSimplified();
 }
 
-function updateAttStatus(
+async function updateAttStatus(
     studentId,
     classId,
     fecha,
@@ -25629,7 +25691,7 @@ function updateAttStatus(
     // PERSISTIR
     // ==========================================
 
-    saveAll();
+    await persistAttendanceRecord(studentId, classId, fecha);
 
 
     // ==========================================
