@@ -17008,452 +17008,454 @@ function buildStudentTrendData(
 
     return trend;
 }
+function renderStudentTrendChart(trendData) {
+    // ==========================================================
+    // GRÁFICO DE TENDENCIA INDIVIDUAL DEL ESTUDIANTE
+    // Fuente de datos: buildStudentTrendData()
+    // Recibe directamente trendData
+    // ==========================================================
 
-function renderStudentTrendChart(
-    trendData
-) {
-    // ==========================================
-    // VALIDAR DATOS
-    // ==========================================
-    if (
-        !Array.isArray(trendData) ||
-        trendData.length === 0
-    ) {
-        console.log(
-            'ℹ️ Sin sesiones realizadas para generar tendencia'
+    console.log('📈 renderStudentTrendChart() ejecutada', trendData);
+
+    // ----------------------------------------------------------
+    // 1. LOCALIZAR EL CONTENEDOR DEL GRÁFICO
+    // ----------------------------------------------------------
+
+    const container =
+        document.getElementById('studentTrendChart') ||
+        document.getElementById('studentTrendChartContainer') ||
+        document.getElementById('studentTrendContainer');
+
+    if (!container) {
+        console.warn(
+            '⚠️ No se encontró el contenedor del gráfico de tendencia del estudiante.'
         );
-
-        if (
-            dashboardCharts.studentTrend
-        ) {
-            dashboardCharts
-                .studentTrend
-                .destroy();
-
-            delete dashboardCharts
-                .studentTrend;
-        }
-
-        return null;
+        return;
     }
 
-    // ==========================================
-    // CANVAS
-    //
-    // El canvas ya es creado por
-    // generateStudentReport().
-    // ==========================================
-    const canvas =
-        document.getElementById(
-            'studentTrendChart'
+    // ----------------------------------------------------------
+    // 2. VALIDAR LOS DATOS RECIBIDOS
+    // ----------------------------------------------------------
+
+    if (!Array.isArray(trendData) || trendData.length === 0) {
+        console.warn(
+            '⚠️ No hay datos suficientes para generar el gráfico de tendencia.',
+            trendData
         );
+
+        container.innerHTML = `
+            <div style="
+                padding: 20px;
+                text-align: center;
+                color: #6b7280;
+            ">
+                Datos insuficientes para generar el gráfico de tendencia.
+            </div>
+        `;
+
+        return;
+    }
+
+    // ----------------------------------------------------------
+    // 3. NORMALIZAR LOS DATOS
+    // ----------------------------------------------------------
+    // Cada elemento generado por buildStudentTrendData()
+    // puede contener fecha, asistencia y participación.
+    //
+    // Se mantienen únicamente sesiones académicas válidas.
+    // Las sesiones suspendidas deben haber sido excluidas
+    // previamente por buildStudentTrendData().
+    // ----------------------------------------------------------
+
+    const validData = trendData.filter(item => {
+        if (!item) return false;
+
+        const status =
+            item.status ??
+            item.estado ??
+            item.attendance ??
+            item.asistencia ??
+            null;
+
+        return status !== 'SUSPENDIDA' &&
+               status !== 'Suspendida' &&
+               status !== 'suspendida';
+    });
+
+    if (validData.length === 0) {
+        container.innerHTML = `
+            <div style="
+                padding: 20px;
+                text-align: center;
+                color: #6b7280;
+            ">
+                Datos insuficientes para generar el gráfico de tendencia.
+            </div>
+        `;
+
+        console.warn(
+            '⚠️ No existen sesiones realizadas válidas para el gráfico.'
+        );
+
+        return;
+    }
+
+    // ----------------------------------------------------------
+    // 4. CONSTRUIR ETIQUETAS
+    // ----------------------------------------------------------
+
+    const labels = validData.map(item => {
+        const rawDate =
+            item.fecha ??
+            item.date ??
+            item.sessionDate ??
+            '';
+
+        if (!rawDate) {
+            return '';
+        }
+
+        // Evita desplazamientos de fecha por zona horaria
+        const parts = String(rawDate).split('-');
+
+        if (parts.length === 3) {
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        return String(rawDate);
+    });
+
+    // ----------------------------------------------------------
+    // 5. DATOS DE ASISTENCIA
+    // ----------------------------------------------------------
+    // Escala:
+    // Presente = 100
+    // Excusa   = 50
+    // Ausente  = 0
+    //
+    // Si buildStudentTrendData() ya entrega un valor numérico,
+    // ese valor también es aceptado.
+    // ----------------------------------------------------------
+
+    const attendanceData = validData.map(item => {
+        const directValue =
+            item.attendanceValue ??
+            item.valorAsistencia ??
+            item.attendancePercentage;
+
+        if (
+            directValue !== undefined &&
+            directValue !== null &&
+            directValue !== ''
+        ) {
+            const numericValue = Number(directValue);
+
+            if (!Number.isNaN(numericValue)) {
+                return numericValue;
+            }
+        }
+
+        const status =
+            item.status ??
+            item.estado ??
+            item.attendance ??
+            item.asistencia ??
+            '';
+
+        const normalizedStatus = String(status)
+            .trim()
+            .toUpperCase();
+
+        switch (normalizedStatus) {
+            case 'P':
+            case 'PRESENTE':
+                return 100;
+
+            case 'E':
+            case 'EXCUSA':
+            case 'EXCUSADO':
+                return 50;
+
+            case 'A':
+            case 'AUSENTE':
+                return 0;
+
+            default:
+                return null;
+        }
+    });
+
+    // ----------------------------------------------------------
+    // 6. DATOS DE PARTICIPACIÓN
+    // ----------------------------------------------------------
+
+    const participationData = validData.map(item => {
+        const directValue =
+            item.participationValue ??
+            item.valorParticipacion ??
+            item.participationPercentage;
+
+        if (
+            directValue !== undefined &&
+            directValue !== null &&
+            directValue !== ''
+        ) {
+            const numericValue = Number(directValue);
+
+            if (!Number.isNaN(numericValue)) {
+                return numericValue;
+            }
+        }
+
+        const participation =
+            item.participation ??
+            item.participacion ??
+            item.participated ??
+            false;
+
+        if (
+            participation === true ||
+            participation === 1 ||
+            participation === '1' ||
+            String(participation).toLowerCase() === 'true' ||
+            String(participation).toLowerCase() === 'si' ||
+            String(participation).toLowerCase() === 'sí'
+        ) {
+            return 100;
+        }
+
+        return 0;
+    });
+
+    // ----------------------------------------------------------
+    // 7. VALIDAR CHART.JS
+    // ----------------------------------------------------------
+
+    if (typeof Chart === 'undefined') {
+        console.error(
+            '❌ Chart.js no está disponible.'
+        );
+
+        container.innerHTML = `
+            <div style="
+                padding: 20px;
+                text-align: center;
+                color: #dc2626;
+            ">
+                No se pudo cargar el gráfico de tendencia.
+            </div>
+        `;
+
+        return;
+    }
+
+    // ----------------------------------------------------------
+    // 8. PREPARAR EL CANVAS
+    // ----------------------------------------------------------
+
+    container.innerHTML = `
+        <div style="
+            position: relative;
+            width: 100%;
+            height: 340px;
+        ">
+            <canvas id="studentTrendChartCanvas"></canvas>
+        </div>
+    `;
+
+    const canvas = document.getElementById(
+        'studentTrendChartCanvas'
+    );
 
     if (!canvas) {
         console.error(
-            '❌ No se encontró #studentTrendChart'
+            '❌ No se pudo crear el canvas del gráfico.'
         );
-
-        return null;
+        return;
     }
 
-    // ==========================================
-    // CHART.JS
-    // ==========================================
+    const ctx = canvas.getContext('2d');
+
+    // ----------------------------------------------------------
+    // 9. DESTRUIR GRÁFICO ANTERIOR
+    // ----------------------------------------------------------
+    // Evita:
+    // "Canvas is already in use"
+    // ----------------------------------------------------------
+
     if (
-        typeof Chart === 'undefined'
+        window.studentTrendChartInstance &&
+        typeof window.studentTrendChartInstance.destroy === 'function'
     ) {
-        console.error(
-            '❌ Chart.js no está disponible'
-        );
-
-        return null;
+        window.studentTrendChartInstance.destroy();
+        window.studentTrendChartInstance = null;
     }
 
-    // ==========================================
-    // DESTRUIR GRÁFICO ANTERIOR
-    // ==========================================
-    if (
-        dashboardCharts.studentTrend
-    ) {
-        dashboardCharts
-            .studentTrend
-            .destroy();
+    // ----------------------------------------------------------
+    // 10. CREAR EL GRÁFICO
+    // ----------------------------------------------------------
 
-        delete dashboardCharts
-            .studentTrend;
-    }
+    window.studentTrendChartInstance = new Chart(ctx, {
+        type: 'line',
 
-    const existingChart =
-        Chart.getChart(
-            canvas
-        );
+        data: {
+            labels: labels,
 
-    if (existingChart) {
-        existingChart.destroy();
-    }
+            datasets: [
+                {
+                    label: 'Asistencia',
+                    data: attendanceData,
 
-    // ==========================================
-    // ETIQUETAS
-    // ==========================================
-    const labels =
-        trendData.map(
-            punto =>
-                formatSessionLabel(
-                    punto.fecha
-                )
-        );
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.12)',
 
-    // ==========================================
-    // ASISTENCIA ACUMULADA
-    //
-    // SR no altera el porcentaje.
-    // buildStudentTrendData() ya conserva
-    // correctamente el valor acumulado.
-    // ==========================================
-    const asistenciaData =
-        trendData.map(
-            punto =>
-                punto.asistencia === null ||
-                punto.asistencia === undefined
-                    ? null
-                    : Number(
-                        punto.asistencia
-                    )
-        );
+                    pointBackgroundColor: '#2563eb',
+                    pointBorderColor: '#ffffff',
 
-    // ==========================================
-    // PARTICIPACIÓN ACUMULADA
-    // ==========================================
-    const participacionData =
-        trendData.map(
-            punto =>
-                punto.participacion === null ||
-                punto.participacion === undefined
-                    ? null
-                    : Number(
-                        punto.participacion
-                    )
-        );
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
 
-    // ==========================================
-    // CREAR GRÁFICO
-    // ==========================================
-    dashboardCharts.studentTrend =
-        new Chart(
-            canvas,
-            {
-                type: 'line',
+                    borderWidth: 3,
 
-                data: {
-                    labels,
+                    tension: 0.3,
 
-                    datasets: [
-                        {
-                            label:
-                                'Asistencia acumulada',
+                    spanGaps: true,
 
-                            data:
-                                asistenciaData,
-
-                            borderColor:
-                                '#2980b9',
-
-                            backgroundColor:
-                                'rgba(41, 128, 185, 0.10)',
-
-                            pointBackgroundColor:
-                                '#2980b9',
-
-                            pointBorderColor:
-                                '#ffffff',
-
-                            pointBorderWidth:
-                                2,
-
-                            pointRadius:
-                                5,
-
-                            pointHoverRadius:
-                                7,
-
-                            borderWidth:
-                                3,
-
-                            tension:
-                                0.25,
-
-                            spanGaps:
-                                true
-                        },
-
-                        {
-                            label:
-                                'Participación acumulada',
-
-                            data:
-                                participacionData,
-
-                            borderColor:
-                                '#27ae60',
-
-                            backgroundColor:
-                                'rgba(39, 174, 96, 0.10)',
-
-                            pointBackgroundColor:
-                                '#27ae60',
-
-                            pointBorderColor:
-                                '#ffffff',
-
-                            pointBorderWidth:
-                                2,
-
-                            pointRadius:
-                                5,
-
-                            pointHoverRadius:
-                                7,
-
-                            borderWidth:
-                                3,
-
-                            tension:
-                                0.25,
-
-                            spanGaps:
-                                true
-                        }
-                    ]
+                    fill: false
                 },
 
-                options: {
-                    responsive:
-                        true,
+                {
+                    label: 'Participación',
+                    data: participationData,
 
-                    maintainAspectRatio:
-                        false,
+                    borderColor: '#16a34a',
+                    backgroundColor: 'rgba(22, 163, 74, 0.12)',
 
-                    interaction: {
-                        mode:
-                            'index',
+                    pointBackgroundColor: '#16a34a',
+                    pointBorderColor: '#ffffff',
 
-                        intersect:
-                            false
-                    },
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
 
-                    plugins: {
-                        // ======================
-                        // LEYENDA
-                        // ======================
-                        legend: {
-                            position:
-                                'bottom'
-                        },
+                    borderWidth: 3,
 
-                        // ======================
-                        // TOOLTIP
-                        // ======================
-                        tooltip: {
-                            callbacks: {
-                                title(
-                                    tooltipItems
-                                ) {
-                                    const index =
-                                        tooltipItems[
-                                            0
-                                        ].dataIndex;
+                    tension: 0.3,
 
-                                    const punto =
-                                        trendData[
-                                            index
-                                        ];
+                    spanGaps: true,
 
-                                    return (
-                                        formatSessionLabel(
-                                            punto.fecha
-                                        )
-                                    );
-                                },
+                    fill: false
+                }
+            ]
+        },
 
-                                label(
-                                    context
-                                ) {
-                                    if (
-                                        context.raw ===
-                                        null
-                                    ) {
-                                        return (
-                                            context
-                                                .dataset
-                                                .label +
-                                            ': N/A'
-                                        );
-                                    }
+        options: {
+            responsive: true,
 
-                                    return (
-                                        context
-                                            .dataset
-                                            .label +
-                                        ': ' +
-                                        Number(
-                                            context.raw
-                                        )
-                                        .toFixed(1) +
-                                        '%'
-                                    );
-                                },
+            maintainAspectRatio: false,
 
-                                afterBody(
-                                    tooltipItems
-                                ) {
-                                    const index =
-                                        tooltipItems[
-                                            0
-                                        ].dataIndex;
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
 
-                                    const punto =
-                                        trendData[
-                                            index
-                                        ];
+            plugins: {
+                legend: {
+                    display: true,
 
-                                    let estado =
-                                        'Sin registrar';
+                    position: 'top',
 
-                                    if (
-                                        punto.estado ===
-                                        'P'
-                                    ) {
-                                        estado =
-                                            'Presente';
-                                    }
-                                    else if (
-                                        punto.estado ===
-                                        'A'
-                                    ) {
-                                        estado =
-                                            'Ausente';
-                                    }
-                                    else if (
-                                        punto.estado ===
-                                        'E'
-                                    ) {
-                                        estado =
-                                            'Excusa';
-                                    }
-                                    else if (
-                                        punto.estado ===
-                                        'SR'
-                                    ) {
-                                        estado =
-                                            'Sin registrar';
-                                    }
+                    labels: {
+                        usePointStyle: true,
+                        padding: 16
+                    }
+                },
 
-                                    return [
-                                        '',
-                                        `Estado: ${estado}`,
-                                        `Participó: ${
-                                            punto.participo
-                                                ? 'Sí'
-                                                : 'No'
-                                        }`,
-                                        `Responsable: ${
-                                            punto.responsable ||
-                                            'Sin asignar'
-                                        }`
-                                    ];
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.raw;
+
+                            if (value === null || value === undefined) {
+                                return `${context.dataset.label}: Sin registrar`;
+                            }
+
+                            if (context.dataset.label === 'Asistencia') {
+                                let statusText = '';
+
+                                if (value === 100) {
+                                    statusText = 'Presente';
+                                } else if (value === 50) {
+                                    statusText = 'Excusa';
+                                } else if (value === 0) {
+                                    statusText = 'Ausente';
                                 }
+
+                                return statusText
+                                    ? `Asistencia: ${statusText}`
+                                    : `Asistencia: ${value}%`;
                             }
-                        }
-                    },
 
-                    scales: {
-                        // ======================
-                        // EJE Y
-                        // ======================
-                        y: {
-                            beginAtZero:
-                                true,
-
-                            min:
-                                0,
-
-                            max:
-                                100,
-
-                            ticks: {
-                                callback(
-                                    value
-                                ) {
-                                    return (
-                                        value + '%'
-                                    );
-                                }
-                            },
-
-                            title: {
-                                display:
-                                    true,
-
-                                text:
-                                    'Porcentaje acumulado'
+                            if (context.dataset.label === 'Participación') {
+                                return value === 100
+                                    ? 'Participación: Sí'
+                                    : 'Participación: No';
                             }
-                        },
 
-                        // ======================
-                        // EJE X
-                        // ======================
-                        x: {
-                            ticks: {
-                                autoSkip:
-                                    false,
-
-                                maxRotation:
-                                    45,
-
-                                minRotation:
-                                    0
-                            }
+                            return `${context.dataset.label}: ${value}`;
                         }
                     }
                 }
+            },
+
+            scales: {
+                y: {
+                    beginAtZero: true,
+
+                    min: 0,
+                    max: 100,
+
+                    ticks: {
+                        stepSize: 25,
+
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    },
+
+                    title: {
+                        display: true,
+                        text: 'Nivel'
+                    }
+                },
+
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Sesiones'
+                    },
+
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 0
+                    }
+                }
             }
-        );
+        }
+    });
 
-    // ==========================================
-    // DIAGNÓSTICO
-    // ==========================================
+    // ----------------------------------------------------------
+    // 11. CONFIRMACIÓN
+    // ----------------------------------------------------------
+
     console.log(
-        '✅ Gráfico de tendencia del estudiante generado:',
+        '✅ Gráfico de tendencia del estudiante generado',
         {
-            puntos:
-                trendData.length,
-
-            sesionesRegistradas:
-                trendData.filter(
-                    punto =>
-                        punto.estado !== 'SR'
-                ).length,
-
-            sinRegistrar:
-                trendData.filter(
-                    punto =>
-                        punto.estado === 'SR'
-                ).length,
-
-            ultimaAsistencia:
-                asistenciaData[
-                    asistenciaData.length - 1
-                ],
-
-            ultimaParticipacion:
-                participacionData[
-                    participacionData.length - 1
-                ]
+            sesiones: validData.length,
+            labels,
+            attendanceData,
+            participationData
         }
     );
-
-    return dashboardCharts
-        .studentTrend;
 }
 function generateTeacherReport() {
 
