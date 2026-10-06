@@ -17407,313 +17407,145 @@ function buildStudentTrendData(
 }
 
 function renderStudentTrendChart(
-    container,
-    studentId,
-    clase,
-    fechaInicio = '',
-    fechaFin = ''
+    trendData
 ) {
-
     // ==========================================
-    // VALIDACIONES
+    // VALIDAR DATOS
     // ==========================================
-
     if (
-        !container ||
-        !studentId ||
-        !clase
+        !Array.isArray(trendData) ||
+        trendData.length === 0
     ) {
-
-        console.warn(
-            '⚠️ Datos insuficientes para generar el gráfico de tendencia'
+        console.log(
+            'ℹ️ Sin sesiones realizadas para generar tendencia'
         );
 
-        return null;
-    }
+        if (
+            dashboardCharts.studentTrend
+        ) {
+            dashboardCharts
+                .studentTrend
+                .destroy();
 
-
-    // ==========================================
-    // CONSTRUIR DATOS
-    // ==========================================
-
-    const tendencia =
-        buildStudentTrendData(
-            studentId,
-            clase,
-            fechaInicio,
-            fechaFin
-        );
-
-
-    if (
-        !Array.isArray(tendencia)
-        ||
-        tendencia.length === 0
-    ) {
-
-        container.innerHTML = `
-
-            <div
-                style="
-                    padding:25px;
-                    text-align:center;
-                    color:#777;
-                "
-            >
-                No existen sesiones
-                para mostrar la tendencia.
-            </div>
-        `;
-
-        return null;
-    }
-
-
-    // ==========================================
-    // ÚLTIMA SESIÓN REGISTRADA
-    //
-    // Las sesiones futuras SR permanecen
-    // disponibles en buildStudentTrendData(),
-    // pero no extenderán artificialmente
-    // las líneas del gráfico.
-    // ==========================================
-
-    let ultimoIndiceRegistrado = -1;
-
-
-    tendencia.forEach(
-        (
-            punto,
-            index
-        ) => {
-
-            if (
-                punto.status === 'P'
-                ||
-                punto.status === 'A'
-                ||
-                punto.status === 'E'
-            ) {
-
-                ultimoIndiceRegistrado =
-                    index;
-            }
+            delete dashboardCharts
+                .studentTrend;
         }
-    );
-
-
-    // ==========================================
-    // SIN SESIONES REGISTRADAS
-    // ==========================================
-
-    if (
-        ultimoIndiceRegistrado === -1
-    ) {
-
-        container.innerHTML = `
-
-            <div
-                style="
-                    padding:25px;
-                    text-align:center;
-                    color:#777;
-                    background:#f8f9fa;
-                    border-radius:8px;
-                "
-            >
-                ⚪ Todavía no existen
-                sesiones registradas para
-                este estudiante.
-            </div>
-        `;
 
         return null;
     }
-
-
-    // ==========================================
-    // DATOS VISIBLES
-    //
-    // Incluimos desde la primera sesión
-    // hasta la última sesión registrada.
-    // ==========================================
-
-    const datosGrafico =
-        tendencia.slice(
-            0,
-            ultimoIndiceRegistrado + 1
-        );
-
-
-    // ==========================================
-    // ID ÚNICO DEL CANVAS
-    // ==========================================
-
-    const chartId =
-        `studentTrendChart_${studentId}_${clase.id}`;
-
-
-    // ==========================================
-    // CREAR ESTRUCTURA
-    // ==========================================
-
-    container.innerHTML = `
-
-        <div
-            style="
-                margin-top:25px;
-                margin-bottom:25px;
-            "
-        >
-
-            <div
-                style="
-                    margin-bottom:15px;
-                "
-            >
-
-                <h4
-                    style="
-                        margin:0 0 5px;
-                        color:#2c3e50;
-                    "
-                >
-                    📈 Evolución del estudiante
-                </h4>
-
-                <p
-                    style="
-                        margin:0;
-                        color:#777;
-                        font-size:12px;
-                    "
-                >
-                    Evolución acumulada de
-                    asistencia y participación
-                    hasta la última sesión
-                    registrada.
-                </p>
-
-            </div>
-
-
-            <div
-                style="
-                    position:relative;
-                    width:100%;
-                    height:340px;
-                "
-            >
-
-                <canvas
-                    id="${chartId}"
-                >
-                </canvas>
-
-            </div>
-
-        </div>
-    `;
-
 
     // ==========================================
     // CANVAS
+    //
+    // El canvas ya es creado por
+    // generateStudentReport().
     // ==========================================
-
     const canvas =
         document.getElementById(
-            chartId
+            'studentTrendChart'
         );
 
-
     if (!canvas) {
-
         console.error(
-            `❌ No se encontró ${chartId}`
+            '❌ No se encontró #studentTrendChart'
         );
 
         return null;
     }
 
+    // ==========================================
+    // CHART.JS
+    // ==========================================
+    if (
+        typeof Chart === 'undefined'
+    ) {
+        console.error(
+            '❌ Chart.js no está disponible'
+        );
+
+        return null;
+    }
 
     // ==========================================
     // DESTRUIR GRÁFICO ANTERIOR
     // ==========================================
+    if (
+        dashboardCharts.studentTrend
+    ) {
+        dashboardCharts
+            .studentTrend
+            .destroy();
+
+        delete dashboardCharts
+            .studentTrend;
+    }
 
     const existingChart =
         Chart.getChart(
             canvas
         );
 
-
     if (existingChart) {
-
         existingChart.destroy();
     }
-
 
     // ==========================================
     // ETIQUETAS
     // ==========================================
-
     const labels =
-        datosGrafico.map(
+        trendData.map(
             punto =>
-                punto.etiqueta
+                formatSessionLabel(
+                    punto.fecha
+                )
         );
 
-
     // ==========================================
-    // ASISTENCIA
+    // ASISTENCIA ACUMULADA
+    //
+    // SR no altera el porcentaje.
+    // buildStudentTrendData() ya conserva
+    // correctamente el valor acumulado.
     // ==========================================
-
     const asistenciaData =
-        datosGrafico.map(
+        trendData.map(
             punto =>
-                punto.asistencia
+                punto.asistencia === null ||
+                punto.asistencia === undefined
+                    ? null
+                    : Number(
+                        punto.asistencia
+                    )
         );
 
-
     // ==========================================
-    // PARTICIPACIÓN
+    // PARTICIPACIÓN ACUMULADA
     // ==========================================
-
     const participacionData =
-        datosGrafico.map(
+        trendData.map(
             punto =>
-                punto.participacion
+                punto.participacion === null ||
+                punto.participacion === undefined
+                    ? null
+                    : Number(
+                        punto.participacion
+                    )
         );
-
 
     // ==========================================
     // CREAR GRÁFICO
     // ==========================================
-
-    const chart =
+    dashboardCharts.studentTrend =
         new Chart(
             canvas,
             {
-
-                type:
-                    'line',
-
-
-                // ==================================
-                // DATOS
-                // ==================================
+                type: 'line',
 
                 data: {
-
                     labels,
 
                     datasets: [
-
-                        // ==========================
-                        // ASISTENCIA
-                        // ==========================
-
                         {
-
                             label:
                                 'Asistencia acumulada',
 
@@ -17747,20 +17579,11 @@ function renderStudentTrendChart(
                             tension:
                                 0.25,
 
-                            fill:
-                                false,
-
                             spanGaps:
-                                false
+                                true
                         },
 
-
-                        // ==========================
-                        // PARTICIPACIÓN
-                        // ==========================
-
                         {
-
                             label:
                                 'Participación acumulada',
 
@@ -17768,13 +17591,13 @@ function renderStudentTrendChart(
                                 participacionData,
 
                             borderColor:
-                                '#e67e22',
+                                '#27ae60',
 
                             backgroundColor:
-                                'rgba(230, 126, 34, 0.10)',
+                                'rgba(39, 174, 96, 0.10)',
 
                             pointBackgroundColor:
-                                '#e67e22',
+                                '#27ae60',
 
                             pointBorderColor:
                                 '#ffffff',
@@ -17794,38 +17617,20 @@ function renderStudentTrendChart(
                             tension:
                                 0.25,
 
-                            fill:
-                                false,
-
                             spanGaps:
-                                false
+                                true
                         }
                     ]
                 },
 
-
-                // ==================================
-                // OPCIONES
-                // ==================================
-
                 options: {
-
                     responsive:
                         true,
 
                     maintainAspectRatio:
                         false,
 
-
-                    // ==============================
-                    // INTERACCIÓN
-                    //
-                    // Al pasar el mouse sobre una
-                    // fecha veremos ambas líneas.
-                    // ==============================
-
                     interaction: {
-
                         mode:
                             'index',
 
@@ -17833,15 +17638,136 @@ function renderStudentTrendChart(
                             false
                     },
 
+                    plugins: {
+                        // ======================
+                        // LEYENDA
+                        // ======================
+                        legend: {
+                            position:
+                                'bottom'
+                        },
 
-                    // ==============================
-                    // ESCALAS
-                    // ==============================
+                        // ======================
+                        // TOOLTIP
+                        // ======================
+                        tooltip: {
+                            callbacks: {
+                                title(
+                                    tooltipItems
+                                ) {
+                                    const index =
+                                        tooltipItems[
+                                            0
+                                        ].dataIndex;
+
+                                    const punto =
+                                        trendData[
+                                            index
+                                        ];
+
+                                    return (
+                                        formatSessionLabel(
+                                            punto.fecha
+                                        )
+                                    );
+                                },
+
+                                label(
+                                    context
+                                ) {
+                                    if (
+                                        context.raw ===
+                                        null
+                                    ) {
+                                        return (
+                                            context
+                                                .dataset
+                                                .label +
+                                            ': N/A'
+                                        );
+                                    }
+
+                                    return (
+                                        context
+                                            .dataset
+                                            .label +
+                                        ': ' +
+                                        Number(
+                                            context.raw
+                                        )
+                                        .toFixed(1) +
+                                        '%'
+                                    );
+                                },
+
+                                afterBody(
+                                    tooltipItems
+                                ) {
+                                    const index =
+                                        tooltipItems[
+                                            0
+                                        ].dataIndex;
+
+                                    const punto =
+                                        trendData[
+                                            index
+                                        ];
+
+                                    let estado =
+                                        'Sin registrar';
+
+                                    if (
+                                        punto.estado ===
+                                        'P'
+                                    ) {
+                                        estado =
+                                            'Presente';
+                                    }
+                                    else if (
+                                        punto.estado ===
+                                        'A'
+                                    ) {
+                                        estado =
+                                            'Ausente';
+                                    }
+                                    else if (
+                                        punto.estado ===
+                                        'E'
+                                    ) {
+                                        estado =
+                                            'Excusa';
+                                    }
+                                    else if (
+                                        punto.estado ===
+                                        'SR'
+                                    ) {
+                                        estado =
+                                            'Sin registrar';
+                                    }
+
+                                    return [
+                                        '',
+                                        `Estado: ${estado}`,
+                                        `Participó: ${
+                                            punto.participo
+                                                ? 'Sí'
+                                                : 'No'
+                                        }`,
+                                        `Responsable: ${
+                                            punto.responsable ||
+                                            'Sin asignar'
+                                        }`
+                                    ];
+                                }
+                            }
+                        }
+                    },
 
                     scales: {
-
+                        // ======================
+                        // EJE Y
+                        // ======================
                         y: {
-
                             beginAtZero:
                                 true,
 
@@ -17852,33 +17778,29 @@ function renderStudentTrendChart(
                                 100,
 
                             ticks: {
-
                                 callback(
                                     value
                                 ) {
-
                                     return (
-                                        value +
-                                        '%'
+                                        value + '%'
                                     );
                                 }
                             },
 
                             title: {
-
                                 display:
                                     true,
 
                                 text:
-                                    'Porcentaje'
+                                    'Porcentaje acumulado'
                             }
                         },
 
-
+                        // ======================
+                        // EJE X
+                        // ======================
                         x: {
-
                             ticks: {
-
                                 autoSkip:
                                     false,
 
@@ -17887,200 +17809,6 @@ function renderStudentTrendChart(
 
                                 minRotation:
                                     0
-                            },
-
-                            title: {
-
-                                display:
-                                    true,
-
-                                text:
-                                    'Sesiones'
-                            }
-                        }
-                    },
-
-
-                    // ==============================
-                    // PLUGINS
-                    // ==============================
-
-                    plugins: {
-
-
-                        // ==========================
-                        // LEYENDA
-                        // ==========================
-
-                        legend: {
-
-                            display:
-                                true,
-
-                            position:
-                                'top',
-
-                            labels: {
-
-                                usePointStyle:
-                                    true,
-
-                                boxWidth:
-                                    10,
-
-                                padding:
-                                    15
-                            }
-                        },
-
-
-                        // ==========================
-                        // TOOLTIP
-                        // ==========================
-
-                        tooltip: {
-
-                            callbacks: {
-
-
-                                // ==================
-                                // FECHA
-                                // ==================
-
-                                title(
-                                    tooltipItems
-                                ) {
-
-                                    const index =
-                                        tooltipItems[
-                                            0
-                                        ].dataIndex;
-
-
-                                    const punto =
-                                        datosGrafico[
-                                            index
-                                        ];
-
-
-                                    return (
-                                        punto.fecha
-                                    );
-                                },
-
-
-                                // ==================
-                                // VALORES DE LAS
-                                // DOS LÍNEAS
-                                // ==================
-
-                                label(
-                                    context
-                                ) {
-
-                                    const value =
-                                        context.raw;
-
-
-                                    if (
-                                        value === null
-                                        ||
-                                        value === undefined
-                                    ) {
-
-                                        return (
-                                            `${context.dataset.label}: N/A`
-                                        );
-                                    }
-
-
-                                    return (
-                                        `${context.dataset.label}: ${value}%`
-                                    );
-                                },
-
-
-                                // ==================
-                                // INFORMACIÓN DE
-                                // LA SESIÓN
-                                // ==================
-
-                                afterBody(
-                                    tooltipItems
-                                ) {
-
-                                    if (
-                                        !tooltipItems.length
-                                    ) {
-
-                                        return [];
-                                    }
-
-
-                                    const index =
-                                        tooltipItems[
-                                            0
-                                        ].dataIndex;
-
-
-                                    const punto =
-                                        datosGrafico[
-                                            index
-                                        ];
-
-
-                                    // ==================
-                                    // PARTICIPACIÓN
-                                    // ==================
-
-                                    let participacionSesion =
-                                        'No aplica';
-
-
-                                    if (
-                                        punto.status ===
-                                        'P'
-                                    ) {
-
-                                        participacionSesion =
-                                            punto.participo
-                                                ? 'Sí'
-                                                : 'No';
-                                    }
-
-
-                                    return [
-
-                                        '',
-
-                                        `Estado: ${punto.estado}`,
-
-                                        `Participó: ${participacionSesion}`,
-
-                                        `Responsable: ${
-                                            punto.responsable ||
-                                            'Sin asignar'
-                                        }`,
-
-                                        '',
-
-                                        `Presentes acumulados: ${
-                                            punto.presentes
-                                        }`,
-
-                                        `Ausentes acumulados: ${
-                                            punto.ausentes
-                                        }`,
-
-                                        `Excusas acumuladas: ${
-                                            punto.excusas
-                                        }`,
-
-                                        `Participaciones acumuladas: ${
-                                            punto.participaciones
-                                        }`
-                                    ];
-                                }
                             }
                         }
                     }
@@ -18088,115 +17816,41 @@ function renderStudentTrendChart(
             }
         );
 
-
-    // ==========================================
-    // GUARDAR REFERENCIA
-    // ==========================================
-
-    if (
-        typeof dashboardCharts !==
-        'undefined'
-    ) {
-
-        if (
-            !dashboardCharts
-                .studentTrends
-        ) {
-
-            dashboardCharts
-                .studentTrends = {};
-        }
-
-
-        // ======================================
-        // DESTRUIR REFERENCIA ANTERIOR
-        //
-        // Esto protege también contra una
-        // regeneración del mismo reporte.
-        // ======================================
-
-        const previousChart =
-            dashboardCharts
-                .studentTrends[
-                    chartId
-                ];
-
-
-        if (
-            previousChart
-            &&
-            previousChart !== chart
-        ) {
-
-            try {
-
-                previousChart.destroy();
-
-            }
-            catch (error) {
-
-                console.warn(
-                    '⚠️ No se pudo destruir el gráfico anterior:',
-                    error
-                );
-            }
-        }
-
-
-        dashboardCharts
-            .studentTrends[
-                chartId
-            ] =
-                chart;
-    }
-
-
     // ==========================================
     // DIAGNÓSTICO
     // ==========================================
-
     console.log(
-        '✅ Gráfico de tendencia generado:',
+        '✅ Gráfico de tendencia del estudiante generado:',
         {
+            puntos:
+                trendData.length,
 
-            estudiante:
-                studentId,
+            sesionesRegistradas:
+                trendData.filter(
+                    punto =>
+                        punto.estado !== 'SR'
+                ).length,
 
-            classId:
-                clase.id,
+            sinRegistrar:
+                trendData.filter(
+                    punto =>
+                        punto.estado === 'SR'
+                ).length,
 
-            subgrupo:
-                clase.materia,
+            ultimaAsistencia:
+                asistenciaData[
+                    asistenciaData.length - 1
+                ],
 
-            sesionesTotales:
-                tendencia.length,
-
-            sesionesMostradas:
-                datosGrafico.length,
-
-            ultimaSesion:
-                datosGrafico[
-                    datosGrafico.length - 1
-                ]?.fecha,
-
-            asistenciaFinal:
-                datosGrafico[
-                    datosGrafico.length - 1
-                ]?.asistencia,
-
-            participacionFinal:
-                datosGrafico[
-                    datosGrafico.length - 1
-                ]?.participacion
+            ultimaParticipacion:
+                participacionData[
+                    participacionData.length - 1
+                ]
         }
     );
 
-
-    // ==========================================
-    // DEVOLVER INSTANCIA
-    // ==========================================
-
-    return chart;
+    return dashboardCharts
+        .studentTrend;
 }
 function generateTeacherReport() {
 
