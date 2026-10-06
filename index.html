@@ -11192,6 +11192,796 @@ function loadTeacherReportSubGroups() {
         }
     );
 }
+function generateTeacherReport() {
+    // ==========================================================
+    // REPORTE DE MAESTROS
+    // Motor académico normalizado
+    //
+    // Fuente de sesiones: classSessions
+    //
+    // Relación:
+    // classSessions.classId
+    //        ↓
+    // classes.id
+    //        ↓
+    // classes.grupo
+    // classes.materia
+    //
+    // Maestro responsable:
+    // session.responsable
+    //
+    // Sesiones suspendidas:
+    // - Permanecen en el historial
+    // - NO cuentan como sesiones realizadas
+    // ==========================================================
+
+    console.log('🚀 generateTeacherReport() EJECUTADA');
+
+    // ==========================================================
+    // 1. ELEMENTOS DEL FORMULARIO
+    // ==========================================================
+
+    const teacherElement =
+        document.getElementById('reportTeacherFilter');
+
+    const groupElement =
+        document.getElementById('teacherReportGroup');
+
+    const subGroupElement =
+        document.getElementById('teacherReportSubGroup');
+
+    const startDateElement =
+        document.getElementById('teacherStartDate');
+
+    const endDateElement =
+        document.getElementById('teacherEndDate');
+
+    const summaryContainer =
+        document.getElementById('reportSummaryContainer');
+
+    const resultsContainer =
+        document.getElementById('reportResultsContainer');
+
+    console.log(
+        '🔎 Elementos reporte maestro:',
+        {
+            teacherElement,
+            groupElement,
+            subGroupElement,
+            startDateElement,
+            endDateElement,
+            summaryContainer,
+            resultsContainer
+        }
+    );
+
+    // ==========================================================
+    // 2. VALIDAR ELEMENTOS
+    // ==========================================================
+
+    if (
+        !teacherElement ||
+        !groupElement ||
+        !subGroupElement ||
+        !startDateElement ||
+        !endDateElement
+    ) {
+        console.error(
+            '❌ Faltan elementos del formulario del reporte de maestros.'
+        );
+
+        return;
+    }
+
+    if (!summaryContainer || !resultsContainer) {
+        console.error(
+            '❌ No se encontraron los contenedores del reporte.'
+        );
+
+        return;
+    }
+
+    // ==========================================================
+    // 3. OBTENER FILTROS
+    // ==========================================================
+
+    const selectedTeacher =
+        String(teacherElement.value || '').trim();
+
+    const selectedGroup =
+        String(groupElement.value || '').trim();
+
+    const selectedSubGroup =
+        String(subGroupElement.value || '').trim();
+
+    const startDate =
+        String(startDateElement.value || '').trim();
+
+    const endDate =
+        String(endDateElement.value || '').trim();
+
+    console.log(
+        '🔎 Filtros reporte maestro:',
+        {
+            maestro: selectedTeacher,
+            grupo: selectedGroup,
+            subgrupo: selectedSubGroup,
+            fechaInicio: startDate,
+            fechaFin: endDate
+        }
+    );
+
+    // ==========================================================
+    // 4. VALIDAR MAESTRO
+    // ==========================================================
+
+    if (!selectedTeacher) {
+        mostrarNotificacion(
+            'Seleccione un maestro para generar el reporte.',
+            'warning'
+        );
+
+        return;
+    }
+
+    // ==========================================================
+    // 5. VALIDAR RANGO DE FECHAS
+    // ==========================================================
+
+    if (
+        startDate &&
+        endDate &&
+        startDate > endDate
+    ) {
+        mostrarNotificacion(
+            'La fecha de inicio no puede ser posterior a la fecha final.',
+            'warning'
+        );
+
+        return;
+    }
+
+    // ==========================================================
+    // 6. VALIDAR FUENTES DE DATOS
+    // ==========================================================
+
+    if (!Array.isArray(classes)) {
+        console.error(
+            '❌ classes no está disponible.'
+        );
+
+        mostrarNotificacion(
+            'No se pudieron cargar las clases.',
+            'error'
+        );
+
+        return;
+    }
+
+    if (!Array.isArray(classSessions)) {
+        console.error(
+            '❌ classSessions no está disponible.'
+        );
+
+        mostrarNotificacion(
+            'No se pudieron cargar las sesiones.',
+            'error'
+        );
+
+        return;
+    }
+
+    // ==========================================================
+    // 7. MAPA DE CLASES
+    // ==========================================================
+
+    const classMap = new Map();
+
+    classes.forEach(clase => {
+        if (!clase || !clase.id) {
+            return;
+        }
+
+        classMap.set(
+            String(clase.id),
+            clase
+        );
+    });
+
+    // ==========================================================
+    // 8. NORMALIZAR FECHAS
+    // ==========================================================
+    // classSessions usa actualmente DD/MM/YYYY.
+    // Los input[type="date"] utilizan YYYY-MM-DD.
+    // ==========================================================
+
+    function normalizeTeacherReportDate(value) {
+        if (!value) {
+            return '';
+        }
+
+        const dateString =
+            String(value).trim();
+
+        // YYYY-MM-DD
+        if (
+            /^\d{4}-\d{2}-\d{2}$/.test(dateString)
+        ) {
+            return dateString;
+        }
+
+        // DD/MM/YYYY
+        const match =
+            dateString.match(
+                /^(\d{2})\/(\d{2})\/(\d{4})$/
+            );
+
+        if (match) {
+            const [, day, month, year] =
+                match;
+
+            return `${year}-${month}-${day}`;
+        }
+
+        return '';
+    }
+
+    // ==========================================================
+    // 9. CONSTRUIR SESIONES NORMALIZADAS
+    // ==========================================================
+
+    const normalizedSessions =
+        classSessions
+            .map(session => {
+                if (!session) {
+                    return null;
+                }
+
+                const clase =
+                    classMap.get(
+                        String(
+                            session.classId || ''
+                        )
+                    );
+
+                if (!clase) {
+                    console.warn(
+                        '⚠️ Sesión sin clase asociada:',
+                        session
+                    );
+
+                    return null;
+                }
+
+                return {
+                    ...session,
+
+                    _clase: clase,
+
+                    _grupo:
+                        String(
+                            clase.grupo || ''
+                        ).trim(),
+
+                    _subgrupo:
+                        String(
+                            clase.materia || ''
+                        ).trim(),
+
+                    _fechaNormalizada:
+                        normalizeTeacherReportDate(
+                            session.fecha
+                        )
+                };
+            })
+            .filter(Boolean);
+
+    // ==========================================================
+    // 10. FILTRAR SESIONES DEL MAESTRO
+    // ==========================================================
+
+    const teacherSessions =
+        normalizedSessions.filter(session => {
+            // --------------------------------------------------
+            // MAESTRO
+            // --------------------------------------------------
+
+            const responsable =
+                String(
+                    session.responsable || ''
+                ).trim();
+
+            if (responsable !== selectedTeacher) {
+                return false;
+            }
+
+            // --------------------------------------------------
+            // GRUPO
+            // --------------------------------------------------
+
+            if (
+                selectedGroup &&
+                session._grupo !== selectedGroup
+            ) {
+                return false;
+            }
+
+            // --------------------------------------------------
+            // SUBGRUPO
+            // --------------------------------------------------
+
+            if (
+                selectedSubGroup &&
+                session._subgrupo !== selectedSubGroup
+            ) {
+                return false;
+            }
+
+            // --------------------------------------------------
+            // FECHA INICIO
+            // --------------------------------------------------
+
+            if (startDate) {
+                if (!session._fechaNormalizada) {
+                    return false;
+                }
+
+                if (
+                    session._fechaNormalizada <
+                    startDate
+                ) {
+                    return false;
+                }
+            }
+
+            // --------------------------------------------------
+            // FECHA FIN
+            // --------------------------------------------------
+
+            if (endDate) {
+                if (!session._fechaNormalizada) {
+                    return false;
+                }
+
+                if (
+                    session._fechaNormalizada >
+                    endDate
+                ) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+    // ==========================================================
+    // 11. ORDENAR SESIONES
+    // ==========================================================
+
+    teacherSessions.sort(
+        (a, b) =>
+            String(
+                a._fechaNormalizada
+            ).localeCompare(
+                String(
+                    b._fechaNormalizada
+                )
+            )
+    );
+
+    console.log(
+        '📚 Sesiones encontradas para el maestro:',
+        teacherSessions
+    );
+
+    // ==========================================================
+    // 12. CLASIFICAR SESIONES
+    // ==========================================================
+
+    const realizedSessions =
+        teacherSessions.filter(session => {
+            return String(
+                session.estado || ''
+            )
+                .trim()
+                .toLowerCase() ===
+                'realizada';
+        });
+
+    const suspendedSessions =
+        teacherSessions.filter(session => {
+            return String(
+                session.estado || ''
+            )
+                .trim()
+                .toLowerCase() ===
+                'suspendida';
+        });
+
+    // ==========================================================
+    // 13. MÉTRICAS
+    // ==========================================================
+
+    const totalSessions =
+        teacherSessions.length;
+
+    const totalRealized =
+        realizedSessions.length;
+
+    const totalSuspended =
+        suspendedSessions.length;
+
+    // ==========================================================
+    // 14. SUBGRUPOS REALMENTE IMPARTIDOS
+    // ==========================================================
+    // Solo las sesiones realizadas cuentan como actividad
+    // académica impartida.
+    // ==========================================================
+
+    const realizedSubGroups =
+        new Set(
+            realizedSessions.map(session => {
+                return (
+                    `${session._grupo}||` +
+                    `${session._subgrupo}`
+                );
+            })
+        );
+
+    const totalSubGroups =
+        realizedSubGroups.size;
+
+    // ==========================================================
+    // 15. GRUPOS REALMENTE IMPARTIDOS
+    // ==========================================================
+
+    const realizedGroups =
+        new Set(
+            realizedSessions
+                .map(session =>
+                    String(
+                        session._grupo || ''
+                    ).trim()
+                )
+                .filter(Boolean)
+        );
+
+    const totalGroups =
+        realizedGroups.size;
+
+    // ==========================================================
+    // 16. CONSTRUIR RESUMEN
+    // ==========================================================
+
+    summaryContainer.innerHTML = `
+        <h3>
+            👨‍🏫 Resumen del Maestro
+        </h3>
+
+        <div class="stats-grid">
+
+            <div class="stat-card">
+                <div class="stat-number">
+                    ${totalSessions}
+                </div>
+
+                <div class="stat-label">
+                    Sesiones registradas
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-number">
+                    ${totalRealized}
+                </div>
+
+                <div class="stat-label">
+                    Sesiones realizadas
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-number">
+                    ${totalSuspended}
+                </div>
+
+                <div class="stat-label">
+                    Sesiones suspendidas
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-number">
+                    ${totalSubGroups}
+                </div>
+
+                <div class="stat-label">
+                    Subgrupos impartidos
+                </div>
+            </div>
+
+        </div>
+
+        <div style="
+            margin-top: 16px;
+            line-height: 1.7;
+            color: #4b5563;
+        ">
+
+            <strong>Maestro:</strong>
+            ${escapeHtmlTeacherReport(
+                selectedTeacher
+            )}
+
+            ${
+                selectedGroup
+                    ? `
+                        &nbsp; | &nbsp;
+
+                        <strong>Grupo:</strong>
+
+                        ${escapeHtmlTeacherReport(
+                            selectedGroup
+                        )}
+                    `
+                    : ''
+            }
+
+            ${
+                selectedSubGroup
+                    ? `
+                        &nbsp; | &nbsp;
+
+                        <strong>Subgrupo:</strong>
+
+                        ${escapeHtmlTeacherReport(
+                            selectedSubGroup
+                        )}
+                    `
+                    : ''
+            }
+
+            ${
+                startDate
+                    ? `
+                        <br>
+
+                        <strong>Desde:</strong>
+
+                        ${escapeHtmlTeacherReport(
+                            startDate
+                        )}
+                    `
+                    : ''
+            }
+
+            ${
+                endDate
+                    ? `
+                        &nbsp; | &nbsp;
+
+                        <strong>Hasta:</strong>
+
+                        ${escapeHtmlTeacherReport(
+                            endDate
+                        )}
+                    `
+                    : ''
+            }
+
+        </div>
+    `;
+
+    // ==========================================================
+    // 17. SIN RESULTADOS
+    // ==========================================================
+
+    if (totalSessions === 0) {
+        resultsContainer.innerHTML = `
+            <div style="
+                padding: 25px;
+                text-align: center;
+                color: #6b7280;
+            ">
+                No se encontraron sesiones para los filtros
+                seleccionados.
+            </div>
+        `;
+
+        console.log(
+            'ℹ️ No existen sesiones para el reporte del maestro.'
+        );
+
+        console.log(
+            '✅ Reporte de maestro generado:',
+            {
+                maestro: selectedTeacher,
+                grupo: selectedGroup,
+                subgrupo: selectedSubGroup,
+                sesiones: 0,
+                realizadas: 0,
+                suspendidas: 0,
+                gruposImpartidos: 0,
+                subgruposImpartidos: 0
+            }
+        );
+
+        return;
+    }
+
+    // ==========================================================
+    // 18. CONSTRUIR HISTORIAL
+    // ==========================================================
+
+    const rows =
+        teacherSessions
+            .map(session => {
+                const estado =
+                    String(
+                        session.estado || ''
+                    ).trim();
+
+                const normalizedStatus =
+                    estado.toLowerCase();
+
+                const isSuspended =
+                    normalizedStatus ===
+                    'suspendida';
+
+                const statusColor =
+                    isSuspended
+                        ? '#d97706'
+                        : '#16a34a';
+
+                const nota =
+                    String(
+                        session.nota || ''
+                    ).trim();
+
+                const suspensionDetail =
+                    String(
+                        session.detalleSuspension ||
+                        session.motivoSuspension ||
+                        ''
+                    ).trim();
+
+                let details = '';
+
+                if (isSuspended) {
+                    details =
+                        suspensionDetail ||
+                        'Sesión suspendida';
+                } else {
+                    details =
+                        nota ||
+                        'Sesión realizada';
+                }
+
+                return `
+                    <tr>
+
+                        <td>
+                            ${escapeHtmlTeacherReport(
+                                session.fecha || ''
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeHtmlTeacherReport(
+                                session._grupo || ''
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeHtmlTeacherReport(
+                                session._subgrupo || ''
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeHtmlTeacherReport(
+                                session.responsable || ''
+                            )}
+                        </td>
+
+                        <td>
+                            <span style="
+                                color: ${statusColor};
+                                font-weight: 600;
+                            ">
+                                ${escapeHtmlTeacherReport(
+                                    estado || 'Sin estado'
+                                )}
+                            </span>
+                        </td>
+
+                        <td>
+                            ${escapeHtmlTeacherReport(
+                                details
+                            )}
+                        </td>
+
+                    </tr>
+                `;
+            })
+            .join('');
+
+    // ==========================================================
+    // 19. MOSTRAR HISTORIAL
+    // ==========================================================
+
+    resultsContainer.innerHTML = `
+        <h3>
+            📋 Historial de Sesiones
+        </h3>
+
+        <div style="
+            overflow-x: auto;
+            width: 100%;
+        ">
+
+            <table style="
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 15px;
+            ">
+
+                <thead>
+
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Grupo</th>
+                        <th>Subgrupo</th>
+                        <th>Maestro</th>
+                        <th>Estado</th>
+                        <th>Bitácora / Detalle</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+                    ${rows}
+                </tbody>
+
+            </table>
+
+        </div>
+    `;
+
+    // ==========================================================
+    // 20. CONFIRMACIÓN
+    // ==========================================================
+
+    console.log(
+        '✅ Reporte de maestro generado:',
+        {
+            maestro: selectedTeacher,
+            grupo: selectedGroup,
+            subgrupo: selectedSubGroup,
+            sesiones: totalSessions,
+            realizadas: totalRealized,
+            suspendidas: totalSuspended,
+            gruposImpartidos: totalGroups,
+            subgruposImpartidos: totalSubGroups
+        }
+    );
+}
+
+
+// ==========================================================
+// UTILIDAD PARA INSERTAR TEXTO SEGURO EN EL HTML DEL REPORTE
+// ==========================================================
+
+function escapeHtmlTeacherReport(value) {
+    return String(
+        value ?? ''
+    )
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
 function updateReportFilters() {
 
     const summaryContainer =
