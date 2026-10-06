@@ -15183,10 +15183,22 @@ function loadStudentReportStudents() {
 function generateAllStudentsReport(
     group,
     subGroup,
-    startDate,
-    endDate
+    startDate = '',
+    endDate = ''
 ) {
+    console.log(
+        '🚀 generateAllStudentsReport() EJECUTADA',
+        {
+            group,
+            subGroup,
+            startDate,
+            endDate
+        }
+    );
 
+    // ==========================================
+    // CONTENEDORES
+    // ==========================================
     const summaryContainer =
         document.getElementById(
             'reportSummaryContainer'
@@ -15201,20 +15213,57 @@ function generateAllStudentsReport(
         !summaryContainer ||
         !resultsContainer
     ) {
+        console.error(
+            '❌ No se encontraron los contenedores del reporte'
+        );
+
+        mostrarNotificacion(
+            'No se encontraron los contenedores del reporte',
+            'error'
+        );
+
         return;
     }
 
+    // ==========================================
+    // VALIDACIONES
+    // ==========================================
+    if (!group) {
+        mostrarNotificacion(
+            'Seleccione un grupo',
+            'warning'
+        );
+        return;
+    }
+
+    if (!subGroup) {
+        mostrarNotificacion(
+            'Seleccione un subgrupo',
+            'warning'
+        );
+        return;
+    }
+
+    if (
+        startDate &&
+        endDate &&
+        startDate > endDate
+    ) {
+        mostrarNotificacion(
+            'La fecha inicial no puede ser mayor que la fecha final',
+            'warning'
+        );
+        return;
+    }
 
     // ==========================================
     // ESTUDIANTES ACTIVOS DEL SUBGRUPO
     // ==========================================
-
     const subGroupStudents =
         students
             .filter(
                 student =>
-                    student.estado === 'Activo'
-                    &&
+                    student.estado === 'Activo' &&
                     isStudentEnrolledIn(
                         student,
                         group,
@@ -15223,59 +15272,73 @@ function generateAllStudentsReport(
             )
             .sort(
                 (a, b) =>
-                    `${a.nombre} ${a.apellido}`
+                    `${a.nombre || ''} ${a.apellido || ''}`
                         .localeCompare(
-                            `${b.nombre} ${b.apellido}`,
+                            `${b.nombre || ''} ${b.apellido || ''}`,
                             'es'
                         )
             );
 
-
-    if (
-        subGroupStudents.length === 0
-    ) {
-
+    if (!subGroupStudents.length) {
         mostrarNotificacion(
             'No hay estudiantes activos en el subgrupo seleccionado',
             'warning'
         );
-
         return;
     }
-
 
     // ==========================================
     // CLASES DEL SUBGRUPO
     // ==========================================
-
     const selectedClasses =
         classes.filter(
             clase =>
-                clase.grupo === group
-                &&
+                clase.grupo === group &&
                 clase.materia === subGroup
         );
 
-
-    if (
-        selectedClasses.length === 0
-    ) {
-
+    if (!selectedClasses.length) {
         mostrarNotificacion(
             'No se encontró el subgrupo seleccionado',
             'warning'
         );
-
         return;
     }
 
+    // ==========================================
+    // SESIONES ACADÉMICAS
+    //
+    // classSessions es la única fuente
+    // histórica de sesiones.
+    // ==========================================
+    const sessions =
+        getAcademicReportSessions({
+            classIds:
+                selectedClasses.map(
+                    clase => clase.id
+                ),
+            startDate,
+            endDate,
+            states: [
+                'Realizada',
+                'Suspendida'
+            ]
+        });
+
+    const sessionSummary =
+        getAcademicSessionSummary(
+            sessions
+        );
+
+    const completedSessions =
+        sessionSummary.sesionesRealizadas;
+
+    const suspendedSessions =
+        sessionSummary.sesionesSuspendidas;
 
     // ==========================================
     // TOTALES GENERALES
     // ==========================================
-
-    let sesionesEvaluadas = 0;
-
     let presentesGeneral = 0;
     let ausentesGeneral = 0;
     let excusasGeneral = 0;
@@ -15283,564 +15346,443 @@ function generateAllStudentsReport(
     let participacionesGeneral = 0;
 
     let estudiantesAlerta = 0;
-    let estudiantesSinAusencias = 0;
     let estudiantesBajaParticipacion = 0;
 
     const studentResults = [];
 
-
     // ==========================================
     // CALCULAR CADA ESTUDIANTE
+    //
+    // Utiliza exactamente el mismo motor
+    // académico que el reporte individual.
     // ==========================================
-
     subGroupStudents.forEach(
         student => {
 
-            let sesiones = 0;
+            const stats =
+                buildAcademicStudentStats(
+                    student,
+                    completedSessions
+                );
 
-            let presentes = 0;
-            let ausentes = 0;
-            let excusas = 0;
-            let sinRegistrar = 0;
-            let participaciones = 0;
+            const attendanceAlert =
+                getStudentAttendanceAlert(
+                    student,
+                    completedSessions
+                );
 
+            const participationAlert =
+                getStudentParticipationAlert(
+                    student,
+                    completedSessions
+                );
 
             // ==================================
-            // ALERTAS ACUMULADAS
+            // ACUMULAR TOTALES
+            // ==================================
+            presentesGeneral +=
+                stats.presentes;
+
+            ausentesGeneral +=
+                stats.ausentes;
+
+            excusasGeneral +=
+                stats.excusas;
+
+            sinRegistrarGeneral +=
+                stats.sinRegistrar;
+
+            participacionesGeneral +=
+                stats.participaciones;
+
+            // ==================================
+            // ALERTAS
             //
-            // Si existiera más de una clase
-            // coincidente, conservamos el
-            // nivel más importante.
-            // ==================================
-
-            let attendanceAlert = null;
-
-            let participationAlert = null;
-
-
-            selectedClasses.forEach(
-                clase => {
-
-                    // ==========================
-                    // ALERTA DE ASISTENCIA
-                    // ==========================
-
-                    const classAttendanceAlert =
-                        getStudentAttendanceAlert(
-                            student.id,
-                            clase,
-                            startDate,
-                            endDate
-                        );
-
-
-                    if (
-                        !attendanceAlert
-                        ||
-                        classAttendanceAlert
-                            .maxConsecutivas >
-                        attendanceAlert
-                            .maxConsecutivas
-                    ) {
-
-                        attendanceAlert =
-                            classAttendanceAlert;
-                    }
-
-
-                    // ==========================
-                    // ALERTA DE PARTICIPACIÓN
-                    // ==========================
-
-                    const classParticipationAlert =
-                        getStudentParticipationAlert(
-                            student.id,
-                            clase,
-                            startDate,
-                            endDate
-                        );
-
-
-                    participationAlert =
-                        classParticipationAlert;
-
-
-                    // ==========================
-                    // SESIONES
-                    // ==========================
-
-                    const fechas =
-                        generateClassDates(
-                            clase
-                        );
-
-
-                    fechas.forEach(
-                        fecha => {
-
-                            // ==================
-                            // CONVERTIR FECHA
-                            // ==================
-
-                            const [
-                                dia,
-                                mes,
-                                anio
-                            ] =
-                                fecha.split('/');
-
-                            const sessionDate =
-                                new Date(
-                                    Number(anio),
-                                    Number(mes) - 1,
-                                    Number(dia)
-                                );
-
-
-                            // ==================
-                            // FECHA INICIO
-                            // ==================
-
-                            if (startDate) {
-
-                                const [
-                                    year,
-                                    month,
-                                    day
-                                ] =
-                                    startDate.split('-');
-
-                                const start =
-                                    new Date(
-                                        Number(year),
-                                        Number(month) - 1,
-                                        Number(day)
-                                    );
-
-                                if (
-                                    sessionDate < start
-                                ) {
-                                    return;
-                                }
-                            }
-
-
-                            // ==================
-                            // FECHA FIN
-                            // ==================
-
-                            if (endDate) {
-
-                                const [
-                                    year,
-                                    month,
-                                    day
-                                ] =
-                                    endDate.split('-');
-
-                                const end =
-                                    new Date(
-                                        Number(year),
-                                        Number(month) - 1,
-                                        Number(day)
-                                    );
-
-                                if (
-                                    sessionDate > end
-                                ) {
-                                    return;
-                                }
-                            }
-
-
-                            sesiones++;
-
-
-                            // ==================
-                            // ASISTENCIA
-                            // ==================
-
-                            const att =
-                                getStudentAttendance(
-                                    student.id,
-                                    clase.id,
-                                    fecha
-                                );
-
-
-                            if (
-                                !att ||
-                                !att.status
-                            ) {
-
-                                sinRegistrar++;
-
-                                return;
-                            }
-
-
-                            if (
-                                att.status === 'P'
-                            ) {
-
-                                presentes++;
-                            }
-
-                            else if (
-                                att.status === 'A'
-                            ) {
-
-                                ausentes++;
-                            }
-
-                            else if (
-                                att.status === 'E'
-                            ) {
-
-                                excusas++;
-                            }
-
-
-                            // ==================
-                            // PARTICIPACIÓN
-                            // ==================
-
-                            if (
-                                att.status === 'P'
-                                &&
-                                att.part === true
-                            ) {
-
-                                participaciones++;
-                            }
-                        }
-                    );
-                }
-            );
-
-
-            // ==================================
-            // ASISTENCIA DEL ESTUDIANTE
-            // ==========================================
-
-            const totalRegistrados =
-                presentes +
-                ausentes +
-                excusas;
-
-
-            const porcentaje =
-                totalRegistrados > 0
-                    ? Number(
-                        (
-                            presentes *
-                            100 /
-                            totalRegistrados
-                        ).toFixed(1)
-                    )
-                    : 0;
-
-
-            // ==================================
-            // PARTICIPACIÓN
+            // Asistencia:
+            // únicamente type === 'alerta'
             //
-            // PART / P
-            // ==========================================
-
-            const porcentajeParticipacion =
-                presentes > 0
-                    ? Number(
-                        (
-                            participaciones *
-                            100 /
-                            presentes
-                        ).toFixed(1)
-                    )
-                    : null;
-
-
+            // Participación:
+            // únicamente type === 'baja'
             // ==================================
-            // VALORES POR DEFECTO
-            // ==========================================
-
-            if (!attendanceAlert) {
-
-                attendanceAlert = {
-
-                    tipo:
-                        'normal',
-
-                    label:
-                        'Seguimiento normal',
-
-                    ausencias:
-                        ausentes,
-
-                    maxConsecutivas:
-                        0,
-
-                    color:
-                        '#666',
-
-                    background:
-                        'transparent'
-                };
-            }
-
-
-            if (!participationAlert) {
-
-                participationAlert = {
-
-                    tipo:
-                        'sin-datos',
-
-                    label:
-                        'Participación N/A',
-
-                    presentes:
-                        presentes,
-
-                    participaciones:
-                        participaciones,
-
-                    porcentaje:
-                        porcentajeParticipacion,
-
-                    color:
-                        '#777',
-
-                    background:
-                        '#f5f5f5'
-                };
-            }
-
-
-            // ==================================
-            // CONTADORES DE ALERTAS
-            // ==========================================
-
             if (
-                attendanceAlert.tipo ===
+                attendanceAlert?.type ===
                 'alerta'
             ) {
-
                 estudiantesAlerta++;
             }
 
-
             if (
-                attendanceAlert.tipo ===
-                'sin-ausencias'
-            ) {
-
-                estudiantesSinAusencias++;
-            }
-
-
-            if (
-                participationAlert.tipo ===
+                participationAlert?.type ===
                 'baja'
             ) {
-
                 estudiantesBajaParticipacion++;
             }
 
-
             // ==================================
-            // RESULTADO DEL ESTUDIANTE
-            // ==========================================
+            // NOMBRE DEL ESTUDIANTE
+            // ==================================
+            const studentName =
+                [
+                    student.nombre,
+                    student.apellido
+                ]
+                .filter(Boolean)
+                .join(' ') ||
+                student.name ||
+                'Sin nombre';
 
             studentResults.push({
-
                 student,
-
-                sesiones,
-
-                presentes,
-
-                ausentes,
-
-                excusas,
-
-                sinRegistrar,
-
-                participaciones,
-
-                porcentaje,
-
-                porcentajeParticipacion,
-
+                studentName,
+                stats,
                 attendanceAlert,
-
                 participationAlert
             });
-
-
-            // ==================================
-            // TOTALES
-            // ==========================================
-
-            presentesGeneral +=
-                presentes;
-
-            ausentesGeneral +=
-                ausentes;
-
-            excusasGeneral +=
-                excusas;
-
-            sinRegistrarGeneral +=
-                sinRegistrar;
-
-            participacionesGeneral +=
-                participaciones;
         }
     );
 
-
     // ==========================================
-    // SESIONES DEL PERÍODO
+    // TOTALES GENERALES REGISTRADOS
     // ==========================================
-
-    sesionesEvaluadas =
-        studentResults[0]
-            ?.sesiones || 0;
-
-
-    // ==========================================
-    // ASISTENCIA GENERAL
-    // ==========================================
-
     const totalGeneralRegistrado =
         presentesGeneral +
         ausentesGeneral +
         excusasGeneral;
 
-
-    const promedioGeneral =
+    // ==========================================
+    // ASISTENCIA GENERAL
+    //
+    // P / (P + A + E)
+    // ==========================================
+    const asistenciaGeneral =
         totalGeneralRegistrado > 0
-            ? (
-                presentesGeneral *
-                100 /
-                totalGeneralRegistrado
-            ).toFixed(1)
-            : 0;
-
+            ? Number(
+                (
+                    presentesGeneral *
+                    100 /
+                    totalGeneralRegistrado
+                ).toFixed(1)
+            )
+            : null;
 
     // ==========================================
     // PARTICIPACIÓN GENERAL
+    //
+    // Participaciones / Presentes
     // ==========================================
-
     const participacionGeneral =
         presentesGeneral > 0
-            ? (
-                participacionesGeneral *
-                100 /
-                presentesGeneral
-            ).toFixed(1)
-            : 'N/A';
-
+            ? Number(
+                (
+                    participacionesGeneral *
+                    100 /
+                    presentesGeneral
+                ).toFixed(1)
+            )
+            : null;
 
     // ==========================================
-    // RESUMEN
+    // SESIONES
     // ==========================================
+    const totalSessions =
+        sessions.length;
 
+    const completionRate =
+        totalSessions > 0
+            ? Number(
+                (
+                    completedSessions.length *
+                    100 /
+                    totalSessions
+                ).toFixed(1)
+            )
+            : 0;
+
+    // ==========================================
+    // RESUMEN GENERAL
+    // ==========================================
     summaryContainer.style.display =
         'block';
 
-
     summaryContainer.innerHTML = `
-
-        <div
-            style="
-                display:flex;
-                flex-wrap:wrap;
-                gap:20px;
-                justify-content:space-around;
-            "
-        >
+        <div class="session-report-summary">
 
             <div>
-                👥 Estudiantes
-                <strong>
-                    ${subGroupStudents.length}
-                </strong>
+                👥
+                <strong>Estudiantes</strong>
+                <br>
+                ${subGroupStudents.length}
             </div>
 
             <div>
-                📅 Sesiones
-                <strong>
-                    ${sesionesEvaluadas}
-                </strong>
+                📅
+                <strong>Sesiones</strong>
+                <br>
+                ${totalSessions}
             </div>
 
             <div>
-                ✅ Presentes
-                <strong>
-                    ${presentesGeneral}
-                </strong>
+                ✅
+                <strong>Realizadas</strong>
+                <br>
+                ${completedSessions.length}
             </div>
 
             <div>
-                ❌ Ausencias
-                <strong>
-                    ${ausentesGeneral}
-                </strong>
+                ⛔
+                <strong>Suspendidas</strong>
+                <br>
+                ${suspendedSessions.length}
             </div>
 
             <div>
-                📝 Excusas
-                <strong>
-                    ${excusasGeneral}
-                </strong>
+                📈
+                <strong>Tasa de realización</strong>
+                <br>
+                ${completionRate.toFixed(1)}%
             </div>
 
             <div>
-                ⚪ Sin registrar
-                <strong>
-                    ${sinRegistrarGeneral}
-                </strong>
+                ✅
+                <strong>Presentes</strong>
+                <br>
+                ${presentesGeneral}
             </div>
 
             <div>
-                ⭐ Participaciones
-                <strong>
-                    ${participacionesGeneral}
-                </strong>
+                ❌
+                <strong>Ausencias</strong>
+                <br>
+                ${ausentesGeneral}
             </div>
 
             <div>
-                📊 Asistencia
-                <strong>
-                    ${promedioGeneral}%
-                </strong>
+                📝
+                <strong>Excusas</strong>
+                <br>
+                ${excusasGeneral}
             </div>
 
             <div>
-                ⭐ Participación
-                <strong>
-                    ${
-                        participacionGeneral ===
-                        'N/A'
-                            ? 'N/A'
-                            : participacionGeneral + '%'
-                    }
-                </strong>
+                ⚪
+                <strong>Sin registrar</strong>
+                <br>
+                ${sinRegistrarGeneral}
+            </div>
+
+            <div>
+                📊
+                <strong>Asistencia</strong>
+                <br>
+                ${
+                    asistenciaGeneral === null
+                        ? 'N/A'
+                        : asistenciaGeneral.toFixed(1) + '%'
+                }
+            </div>
+
+            <div>
+                ⭐
+                <strong>Participación</strong>
+                <br>
+                ${
+                    participacionGeneral === null
+                        ? 'N/A'
+                        : participacionGeneral.toFixed(1) + '%'
+                }
             </div>
 
         </div>
+    `;
 
+    // ==========================================
+    // FILAS DE ESTUDIANTES
+    // ==========================================
+    let rows = '';
 
-        <hr
+    studentResults.forEach(
+        result => {
+
+            const {
+                studentName,
+                stats,
+                attendanceAlert,
+                participationAlert
+            } = result;
+
+            // ==================================
+            // ASISTENCIA INDIVIDUAL
+            // ==================================
+            const attendanceValue =
+                stats.registrados > 0
+                    ? stats.asistencia.toFixed(1) + '%'
+                    : 'N/A';
+
+            // ==================================
+            // PARTICIPACIÓN INDIVIDUAL
+            // ==================================
+            const participationValue =
+                stats.participacion === null
+                    ? 'N/A'
+                    : stats.participacion.toFixed(1) + '%';
+
+            // ==================================
+            // ALERTA DE ASISTENCIA
+            // ==================================
+            const attendanceAlertText =
+                attendanceAlert?.text ||
+                'Seguimiento normal';
+
+            const attendanceColor =
+                attendanceAlert?.color ||
+                '#6c757d';
+
+            const attendanceBackground =
+                attendanceAlert?.background ||
+                '#f8f9fa';
+
+            // ==================================
+            // ALERTA DE PARTICIPACIÓN
+            // ==================================
+            const participationAlertText =
+                participationAlert?.text ||
+                'Participación N/A';
+
+            const participationColor =
+                participationAlert?.color ||
+                '#6c757d';
+
+            const participationBackground =
+                participationAlert?.background ||
+                '#f8f9fa';
+
+            // ==================================
+            // FILA
+            // ==================================
+            rows += `
+                <tr>
+
+                    <td>
+                        <strong>
+                            ${escapeHtml(
+                                studentName
+                            )}
+                        </strong>
+                    </td>
+
+                    <td>
+                        ${stats.presentes}
+                    </td>
+
+                    <td>
+                        ${stats.ausentes}
+                    </td>
+
+                    <td>
+                        ${stats.excusas}
+                    </td>
+
+                    <td>
+                        ${stats.sinRegistrar}
+                    </td>
+
+                    <td>
+                        <strong>
+                            ${attendanceValue}
+                        </strong>
+                    </td>
+
+                    <td>
+                        ${stats.participaciones}
+                    </td>
+
+                    <td>
+                        <strong>
+                            ${participationValue}
+                        </strong>
+                    </td>
+
+                    <td>
+                        <div
+                            style="
+                                display:inline-block;
+                                padding:6px 8px;
+                                border-radius:6px;
+                                color:${attendanceColor};
+                                background:${attendanceBackground};
+                                font-size:12px;
+                                font-weight:600;
+                            "
+                        >
+                            ${escapeHtml(
+                                attendanceAlertText
+                            )}
+                        </div>
+                    </td>
+
+                    <td>
+                        <div
+                            style="
+                                display:inline-block;
+                                padding:6px 8px;
+                                border-radius:6px;
+                                color:${participationColor};
+                                background:${participationBackground};
+                                font-size:12px;
+                                font-weight:600;
+                            "
+                        >
+                            ${escapeHtml(
+                                participationAlertText
+                            )}
+                        </div>
+                    </td>
+
+                </tr>
+            `;
+        }
+    );
+
+    // ==========================================
+    // RESULTADOS
+    // ==========================================
+    resultsContainer.style.display =
+        'block';
+
+    resultsContainer.innerHTML = `
+        <h3>
+            👥 Reporte de Todos los Estudiantes
+        </h3>
+
+        <p
             style="
-                margin:15px 0;
+                margin:8px 0 5px;
+                color:#666;
             "
         >
+            <strong>
+                👥 ${escapeHtml(group)}
+            </strong>
 
+            |
+
+            <strong>
+                📚 ${escapeHtml(subGroup)}
+            </strong>
+        </p>
+
+        <p class="report-session-note">
+            Las estadísticas académicas utilizan
+            únicamente sesiones realizadas.
+            Las sesiones suspendidas se conservan
+            en el historial institucional, pero
+            no generan asistencia pendiente,
+            estudiantes sin registrar,
+            participación ni alertas.
+        </p>
 
         <!-- ==================================
-             RESUMEN DE ALERTAS
+             INDICADORES DE ALERTAS
         =================================== -->
 
         <div
@@ -15848,412 +15790,47 @@ function generateAllStudentsReport(
                 display:flex;
                 flex-wrap:wrap;
                 gap:12px;
+                margin:15px 0 20px;
             "
         >
 
             <div
                 style="
-                    padding:8px 12px;
-                    border-radius:6px;
+                    padding:10px 14px;
                     background:#fdecea;
+                    border-radius:8px;
                     color:#c0392b;
-                    font-weight:bold;
-                    font-size:12px;
                 "
             >
-                🔴 ${estudiantesAlerta}
-                con 3+ faltas consecutivas
+                ⚠️ Estudiantes con alerta
+                de asistencia:
+
+                <strong>
+                    ${estudiantesAlerta}
+                </strong>
             </div>
 
             <div
                 style="
-                    padding:8px 12px;
-                    border-radius:6px;
-                    background:#eafaf1;
-                    color:#1e8449;
-                    font-weight:bold;
-                    font-size:12px;
+                    padding:10px 14px;
+                    background:#fef9e7;
+                    border-radius:8px;
+                    color:#b9770e;
                 "
             >
-                🟢 ${estudiantesSinAusencias}
-                sin ausencias
-            </div>
+                ⭐ Estudiantes con baja
+                participación:
 
-            <div
-                style="
-                    padding:8px 12px;
-                    border-radius:6px;
-                    background:#fdf2e9;
-                    color:#d35400;
-                    font-weight:bold;
-                    font-size:12px;
-                "
-            >
-                🟠 ${estudiantesBajaParticipacion}
-                con participación baja
+                <strong>
+                    ${estudiantesBajaParticipacion}
+                </strong>
             </div>
 
         </div>
-    `;
-
-
-    // ==========================================
-    // FILAS
-    // ==========================================
-
-    const rows =
-        studentResults
-            .map(
-                result => {
-
-                    const attendanceAlert =
-                        result
-                            .attendanceAlert;
-
-                    const participationAlert =
-                        result
-                            .participationAlert;
-
-
-                    // ==========================
-                    // COLOR DE FILA
-                    //
-                    // La asistencia tiene
-                    // prioridad en el color
-                    // completo de la fila.
-                    // ==========================
-
-                    let rowBackground =
-                        '';
-
-
-                    if (
-                        attendanceAlert.tipo ===
-                        'alerta'
-                    ) {
-
-                        rowBackground =
-                            '#fdecea';
-                    }
-
-                    else if (
-                        attendanceAlert.tipo ===
-                        'sin-ausencias'
-                    ) {
-
-                        rowBackground =
-                            '#eafaf1';
-                    }
-
-
-                    // ==========================
-                    // INDICADOR ASISTENCIA
-                    // ==========================
-
-                    let attendanceHtml =
-                        `
-                            <span
-                                style="
-                                    color:#666;
-                                    font-weight:bold;
-                                "
-                            >
-                                Seguimiento normal
-                            </span>
-                        `;
-
-
-                    if (
-                        attendanceAlert.tipo ===
-                        'alerta'
-                    ) {
-
-                        attendanceHtml = `
-                            <span
-                                style="
-                                    display:inline-block;
-                                    padding:5px 8px;
-                                    border-radius:5px;
-                                    background:#f8d7da;
-                                    color:#721c24;
-                                    font-weight:bold;
-                                    white-space:nowrap;
-                                "
-                            >
-                                🔴
-                                ${
-                                    attendanceAlert
-                                        .maxConsecutivas
-                                }
-                                faltas consecutivas
-                            </span>
-                        `;
-                    }
-
-                    else if (
-                        attendanceAlert.tipo ===
-                        'sin-ausencias'
-                    ) {
-
-                        attendanceHtml = `
-                            <span
-                                style="
-                                    display:inline-block;
-                                    padding:5px 8px;
-                                    border-radius:5px;
-                                    background:#d4edda;
-                                    color:#155724;
-                                    font-weight:bold;
-                                    white-space:nowrap;
-                                "
-                            >
-                                🟢 Sin ausencias
-                            </span>
-                        `;
-                    }
-
-
-                    // ==========================
-                    // INDICADOR PARTICIPACIÓN
-                    // ==========================
-
-                    let participationIcon =
-                        '⚪';
-
-
-                    if (
-                        participationAlert.tipo ===
-                        'alta'
-                    ) {
-
-                        participationIcon =
-                            '🟢';
-                    }
-
-                    else if (
-                        participationAlert.tipo ===
-                        'media'
-                    ) {
-
-                        participationIcon =
-                            '🟡';
-                    }
-
-                    else if (
-                        participationAlert.tipo ===
-                        'baja'
-                    ) {
-
-                        participationIcon =
-                            '🟠';
-                    }
-
-
-                    const participationValue =
-                        participationAlert
-                            .porcentaje ===
-                        null
-                            ? 'N/A'
-                            : `${
-                                participationAlert
-                                    .porcentaje
-                            }%`;
-
-
-                    const participationHtml = `
-                        <span
-                            style="
-                                display:inline-block;
-                                padding:5px 8px;
-                                border-radius:5px;
-                                background:${
-                                    participationAlert
-                                        .background
-                                };
-                                color:${
-                                    participationAlert
-                                        .color
-                                };
-                                font-weight:bold;
-                                white-space:nowrap;
-                            "
-                        >
-                            ${participationIcon}
-                            ${participationValue}
-                            <br>
-                            <span
-                                style="
-                                    font-size:10px;
-                                "
-                            >
-                                ${
-                                    participationAlert
-                                        .label
-                                }
-                            </span>
-                        </span>
-                    `;
-
-
-                    return `
-                        <tr
-                            style="
-                                ${
-                                    rowBackground
-                                        ? `background:${rowBackground};`
-                                        : ''
-                                }
-                            "
-                        >
-
-                            <td
-                                class="text-left"
-                            >
-                                <strong>
-                                    ${result.student.nombre}
-                                    ${result.student.apellido}
-                                </strong>
-
-                                ${
-                                    attendanceAlert.tipo ===
-                                        'sin-ausencias'
-                                    &&
-                                    participationAlert.tipo ===
-                                        'baja'
-                                        ? `
-                                            <div
-                                                style="
-                                                    margin-top:5px;
-                                                    color:#d35400;
-                                                    font-size:11px;
-                                                    font-weight:bold;
-                                                "
-                                            >
-                                                🟠 Asiste,
-                                                pero participa poco
-                                            </div>
-                                        `
-                                        : ''
-                                }
-
-                            </td>
-
-                            <td>
-                                ${result.sesiones}
-                            </td>
-
-                            <td>
-                                ${result.presentes}
-                            </td>
-
-                            <td>
-                                ${result.ausentes}
-                            </td>
-
-                            <td>
-                                ${result.excusas}
-                            </td>
-
-                            <td>
-                                ${result.sinRegistrar}
-                            </td>
-
-                            <td>
-                                ${result.participaciones}
-                            </td>
-
-                            <td>
-                                ${result.porcentaje}%
-                            </td>
-
-                            <td>
-                                ${attendanceHtml}
-                            </td>
-
-                            <td>
-                                ${participationHtml}
-                            </td>
-
-                        </tr>
-                    `;
-                }
-            )
-            .join('');
-
-
-    // ==========================================
-    // RESULTADO
-    // ==========================================
-
-    resultsContainer.style.display =
-        'block';
-
-
-    resultsContainer.innerHTML = `
-
-        <h3>
-            👥 Reporte de Todos los Estudiantes
-        </h3>
-
-        <p
-            style="
-                margin:8px 0 15px;
-                color:#666;
-            "
-        >
-            👥 ${group}
-            |
-            📚 ${subGroup}
-        </p>
-
 
         <!-- ==================================
-             LEYENDA
+             TABLA
         =================================== -->
-
-        <div
-            style="
-                display:flex;
-                flex-wrap:wrap;
-                gap:10px;
-                padding:12px;
-                margin-bottom:15px;
-                background:#f8f9fa;
-                border-radius:8px;
-                font-size:12px;
-            "
-        >
-
-            <strong>
-                Leyenda:
-            </strong>
-
-            <span>
-                🔴 3 o más faltas
-                consecutivas
-            </span>
-
-            <span>
-                🟢 Sin ausencias
-            </span>
-
-            <span>
-                🟠 Participación baja
-                (&lt; 40%)
-            </span>
-
-            <span>
-                🟡 Participación media
-                (40% - 79.9%)
-            </span>
-
-            <span>
-                🟢 Participación alta
-                (≥ 80%)
-            </span>
-
-        </div>
-
 
         <div class="table-container">
 
@@ -16268,19 +15845,15 @@ function generateAllStudentsReport(
                         </th>
 
                         <th>
-                            Sesiones
+                            P
                         </th>
 
                         <th>
-                            Presentes
+                            A
                         </th>
 
                         <th>
-                            Ausentes
-                        </th>
-
-                        <th>
-                            Excusas
+                            E
                         </th>
 
                         <th>
@@ -16288,11 +15861,15 @@ function generateAllStudentsReport(
                         </th>
 
                         <th>
-                            Particip.
+                            Asistencia
                         </th>
 
                         <th>
-                            Asistencia
+                            Participaciones
+                        </th>
+
+                        <th>
+                            Participación
                         </th>
 
                         <th>
@@ -16300,7 +15877,7 @@ function generateAllStudentsReport(
                         </th>
 
                         <th>
-                            Participación
+                            Alerta participación
                         </th>
 
                     </tr>
@@ -16308,7 +15885,23 @@ function generateAllStudentsReport(
                 </thead>
 
                 <tbody>
-                    ${rows}
+                    ${
+                        rows ||
+                        `
+                            <tr>
+                                <td
+                                    colspan="10"
+                                    style="
+                                        text-align:center;
+                                        color:#777;
+                                    "
+                                >
+                                    No existen estudiantes
+                                    para mostrar.
+                                </td>
+                            </tr>
+                        `
+                    }
                 </tbody>
 
             </table>
@@ -16316,45 +15909,55 @@ function generateAllStudentsReport(
         </div>
     `;
 
-
     // ==========================================
-    // DIAGNÓSTICO
+    // DIAGNÓSTICO FINAL
     // ==========================================
-
     console.log(
-        '✅ Alertas de estudiantes:',
-        studentResults.map(
-            result => ({
-                estudiante:
-                    `${result.student.nombre} ${result.student.apellido}`,
+        '✅ Reporte de todos los estudiantes normalizado:',
+        {
+            grupo:
+                group,
 
-                asistencia:
-                    result.porcentaje,
+            subgrupo:
+                subGroup,
 
-                ausencias:
-                    result.ausentes,
+            estudiantes:
+                subGroupStudents.length,
 
-                maxConsecutivas:
-                    result
-                        .attendanceAlert
-                        .maxConsecutivas,
+            sesionesTotales:
+                totalSessions,
 
-                alertaAsistencia:
-                    result
-                        .attendanceAlert
-                        .tipo,
+            realizadas:
+                completedSessions.length,
 
-                participacion:
-                    result
-                        .participationAlert
-                        .porcentaje,
+            suspendidas:
+                suspendedSessions.length,
 
-                alertaParticipacion:
-                    result
-                        .participationAlert
-                        .tipo
-            })
-        )
+            presentes:
+                presentesGeneral,
+
+            ausentes:
+                ausentesGeneral,
+
+            excusas:
+                excusasGeneral,
+
+            sinRegistrar:
+                sinRegistrarGeneral,
+
+            participaciones:
+                participacionesGeneral,
+
+            asistenciaGeneral,
+
+            participacionGeneral,
+
+            alertasAsistencia:
+                estudiantesAlerta,
+
+            bajaParticipacion:
+                estudiantesBajaParticipacion
+        }
     );
 }
 function generateStudentReport() {
