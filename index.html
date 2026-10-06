@@ -17007,34 +17007,45 @@ function buildStudentTrendData(
     );
 
     return trend;
-}
-function renderStudentTrendChart(trendData) {
+}function renderStudentTrendChart(trendData) {
     // ==========================================================
     // GRÁFICO DE TENDENCIA INDIVIDUAL DEL ESTUDIANTE
     // Fuente de datos: buildStudentTrendData()
-    // Recibe directamente trendData
+    //
+    // IMPORTANTE:
+    // #studentTrendChart ya es un elemento <canvas>.
+    // Chart.js se renderiza directamente sobre ese canvas.
     // ==========================================================
 
     console.log('📈 renderStudentTrendChart() ejecutada', trendData);
 
     // ----------------------------------------------------------
-    // 1. LOCALIZAR EL CONTENEDOR DEL GRÁFICO
+    // 1. LOCALIZAR EL CANVAS REAL
     // ----------------------------------------------------------
 
-    const container =
-        document.getElementById('studentTrendChart') ||
-        document.getElementById('studentTrendChartContainer') ||
-        document.getElementById('studentTrendContainer');
+    const canvas = document.getElementById('studentTrendChart');
 
-    if (!container) {
+    if (!canvas) {
         console.warn(
-            '⚠️ No se encontró el contenedor del gráfico de tendencia del estudiante.'
+            '⚠️ No se encontró el canvas #studentTrendChart.'
         );
         return;
     }
 
     // ----------------------------------------------------------
-    // 2. VALIDAR LOS DATOS RECIBIDOS
+    // 2. VALIDAR QUE REALMENTE SEA UN CANVAS
+    // ----------------------------------------------------------
+
+    if (canvas.tagName !== 'CANVAS') {
+        console.error(
+            '❌ #studentTrendChart existe, pero no es un elemento CANVAS.',
+            canvas
+        );
+        return;
+    }
+
+    // ----------------------------------------------------------
+    // 3. VALIDAR LOS DATOS RECIBIDOS
     // ----------------------------------------------------------
 
     if (!Array.isArray(trendData) || trendData.length === 0) {
@@ -17043,65 +17054,57 @@ function renderStudentTrendChart(trendData) {
             trendData
         );
 
-        container.innerHTML = `
-            <div style="
-                padding: 20px;
-                text-align: center;
-                color: #6b7280;
-            ">
-                Datos insuficientes para generar el gráfico de tendencia.
-            </div>
-        `;
+        // Ocultamos el canvas si no existen datos.
+        canvas.style.display = 'none';
 
         return;
     }
 
     // ----------------------------------------------------------
-    // 3. NORMALIZAR LOS DATOS
+    // 4. FILTRAR DATOS VÁLIDOS
     // ----------------------------------------------------------
-    // Cada elemento generado por buildStudentTrendData()
-    // puede contener fecha, asistencia y participación.
-    //
-    // Se mantienen únicamente sesiones académicas válidas.
-    // Las sesiones suspendidas deben haber sido excluidas
-    // previamente por buildStudentTrendData().
+    // buildStudentTrendData() ya debe excluir sesiones suspendidas.
+    // Este filtro queda también como protección adicional.
     // ----------------------------------------------------------
 
     const validData = trendData.filter(item => {
         if (!item) return false;
 
-        const status =
-            item.status ??
-            item.estado ??
-            item.attendance ??
-            item.asistencia ??
-            null;
+        const sessionStatus =
+            item.sessionStatus ??
+            item.estadoSesion ??
+            item.sessionState ??
+            '';
 
-        return status !== 'SUSPENDIDA' &&
-               status !== 'Suspendida' &&
-               status !== 'suspendida';
+        return String(sessionStatus)
+            .trim()
+            .toUpperCase() !== 'SUSPENDIDA';
     });
 
     if (validData.length === 0) {
-        container.innerHTML = `
-            <div style="
-                padding: 20px;
-                text-align: center;
-                color: #6b7280;
-            ">
-                Datos insuficientes para generar el gráfico de tendencia.
-            </div>
-        `;
-
         console.warn(
-            '⚠️ No existen sesiones realizadas válidas para el gráfico.'
+            '⚠️ No existen sesiones realizadas para generar la tendencia.'
         );
+
+        canvas.style.display = 'none';
 
         return;
     }
 
     // ----------------------------------------------------------
-    // 4. CONSTRUIR ETIQUETAS
+    // 5. MOSTRAR EL CANVAS
+    // ----------------------------------------------------------
+
+    canvas.style.display = 'block';
+
+    // Dejamos que Chart.js controle el ancho.
+    canvas.style.width = '100%';
+
+    // Altura visual estable para el reporte.
+    canvas.style.height = '320px';
+
+    // ----------------------------------------------------------
+    // 6. CONSTRUIR ETIQUETAS DE FECHA
     // ----------------------------------------------------------
 
     const labels = validData.map(item => {
@@ -17115,26 +17118,28 @@ function renderStudentTrendChart(trendData) {
             return '';
         }
 
-        // Evita desplazamientos de fecha por zona horaria
-        const parts = String(rawDate).split('-');
+        const dateString = String(rawDate);
+
+        // YYYY-MM-DD → DD/MM/YYYY
+        const parts = dateString.split('-');
 
         if (parts.length === 3) {
             return `${parts[2]}/${parts[1]}/${parts[0]}`;
         }
 
-        return String(rawDate);
+        return dateString;
     });
 
     // ----------------------------------------------------------
-    // 5. DATOS DE ASISTENCIA
+    // 7. DATOS DE ASISTENCIA
     // ----------------------------------------------------------
-    // Escala:
+    //
     // Presente = 100
     // Excusa   = 50
     // Ausente  = 0
     //
-    // Si buildStudentTrendData() ya entrega un valor numérico,
-    // ese valor también es aceptado.
+    // También aceptamos valores numéricos preparados previamente
+    // por buildStudentTrendData().
     // ----------------------------------------------------------
 
     const attendanceData = validData.map(item => {
@@ -17186,7 +17191,7 @@ function renderStudentTrendChart(trendData) {
     });
 
     // ----------------------------------------------------------
-    // 6. DATOS DE PARTICIPACIÓN
+    // 8. DATOS DE PARTICIPACIÓN
     // ----------------------------------------------------------
 
     const participationData = validData.map(item => {
@@ -17228,59 +17233,20 @@ function renderStudentTrendChart(trendData) {
     });
 
     // ----------------------------------------------------------
-    // 7. VALIDAR CHART.JS
+    // 9. VALIDAR CHART.JS
     // ----------------------------------------------------------
 
     if (typeof Chart === 'undefined') {
         console.error(
             '❌ Chart.js no está disponible.'
         );
-
-        container.innerHTML = `
-            <div style="
-                padding: 20px;
-                text-align: center;
-                color: #dc2626;
-            ">
-                No se pudo cargar el gráfico de tendencia.
-            </div>
-        `;
-
         return;
     }
 
     // ----------------------------------------------------------
-    // 8. PREPARAR EL CANVAS
+    // 10. DESTRUIR CUALQUIER GRÁFICO EXISTENTE
     // ----------------------------------------------------------
-
-    container.innerHTML = `
-        <div style="
-            position: relative;
-            width: 100%;
-            height: 340px;
-        ">
-            <canvas id="studentTrendChartCanvas"></canvas>
-        </div>
-    `;
-
-    const canvas = document.getElementById(
-        'studentTrendChartCanvas'
-    );
-
-    if (!canvas) {
-        console.error(
-            '❌ No se pudo crear el canvas del gráfico.'
-        );
-        return;
-    }
-
-    const ctx = canvas.getContext('2d');
-
-    // ----------------------------------------------------------
-    // 9. DESTRUIR GRÁFICO ANTERIOR
-    // ----------------------------------------------------------
-    // Evita:
-    // "Canvas is already in use"
+    // Primero intentamos destruir nuestra referencia global.
     // ----------------------------------------------------------
 
     if (
@@ -17292,7 +17258,38 @@ function renderStudentTrendChart(trendData) {
     }
 
     // ----------------------------------------------------------
-    // 10. CREAR EL GRÁFICO
+    // 11. PROTECCIÓN ADICIONAL PARA CHART.JS
+    // ----------------------------------------------------------
+    // Si Chart.js mantiene internamente una instancia asociada
+    // al canvas, también la destruimos.
+    // ----------------------------------------------------------
+
+    if (typeof Chart.getChart === 'function') {
+        const existingChart = Chart.getChart(canvas);
+
+        if (
+            existingChart &&
+            typeof existingChart.destroy === 'function'
+        ) {
+            existingChart.destroy();
+        }
+    }
+
+    // ----------------------------------------------------------
+    // 12. OBTENER EL CONTEXTO
+    // ----------------------------------------------------------
+
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+        console.error(
+            '❌ No se pudo obtener el contexto 2D de #studentTrendChart.'
+        );
+        return;
+    }
+
+    // ----------------------------------------------------------
+    // 13. CREAR EL GRÁFICO
     // ----------------------------------------------------------
 
     window.studentTrendChartInstance = new Chart(ctx, {
@@ -17304,6 +17301,7 @@ function renderStudentTrendChart(trendData) {
             datasets: [
                 {
                     label: 'Asistencia',
+
                     data: attendanceData,
 
                     borderColor: '#2563eb',
@@ -17326,6 +17324,7 @@ function renderStudentTrendChart(trendData) {
 
                 {
                     label: 'Participación',
+
                     data: participationData,
 
                     borderColor: '#16a34a',
@@ -17375,11 +17374,19 @@ function renderStudentTrendChart(trendData) {
                         label: function(context) {
                             const value = context.raw;
 
-                            if (value === null || value === undefined) {
-                                return `${context.dataset.label}: Sin registrar`;
+                            if (
+                                value === null ||
+                                value === undefined
+                            ) {
+                                return (
+                                    `${context.dataset.label}: ` +
+                                    'Sin registrar'
+                                );
                             }
 
-                            if (context.dataset.label === 'Asistencia') {
+                            if (
+                                context.dataset.label === 'Asistencia'
+                            ) {
                                 let statusText = '';
 
                                 if (value === 100) {
@@ -17395,13 +17402,17 @@ function renderStudentTrendChart(trendData) {
                                     : `Asistencia: ${value}%`;
                             }
 
-                            if (context.dataset.label === 'Participación') {
+                            if (
+                                context.dataset.label === 'Participación'
+                            ) {
                                 return value === 100
                                     ? 'Participación: Sí'
                                     : 'Participación: No';
                             }
 
-                            return `${context.dataset.label}: ${value}`;
+                            return (
+                                `${context.dataset.label}: ${value}`
+                            );
                         }
                     }
                 }
@@ -17444,7 +17455,7 @@ function renderStudentTrendChart(trendData) {
     });
 
     // ----------------------------------------------------------
-    // 11. CONFIRMACIÓN
+    // 14. CONFIRMACIÓN
     // ----------------------------------------------------------
 
     console.log(
@@ -17453,1029 +17464,11 @@ function renderStudentTrendChart(trendData) {
             sesiones: validData.length,
             labels,
             attendanceData,
-            participationData
+            participationData,
+            canvasWidth: canvas.width,
+            canvasHeight: canvas.height
         }
     );
-}
-function generateTeacherReport() {
-
-    // ==========================================
-    // FILTROS
-    // ==========================================
-
-    const teacher =
-        document.getElementById(
-            'reportTeacherFilter'
-        )?.value;
-
-
-    const group =
-        document.getElementById(
-            'teacherReportGroup'
-        )?.value;
-
-
-    const subGroup =
-        document.getElementById(
-            'teacherReportSubGroup'
-        )?.value;
-
-
-    const startDate =
-        document.getElementById(
-            'teacherStartDate'
-        )?.value;
-
-
-    const endDate =
-        document.getElementById(
-            'teacherEndDate'
-        )?.value;
-
-
-    const summaryContainer =
-        document.getElementById(
-            'reportSummaryContainer'
-        );
-
-
-    const resultsContainer =
-        document.getElementById(
-            'reportResultsContainer'
-        );
-
-
-    // ==========================================
-    // VALIDACIONES
-    // ==========================================
-
-    if (!teacher) {
-
-        mostrarNotificacion(
-            'Seleccione un maestro',
-            'warning'
-        );
-
-        return;
-    }
-
-
-    if (
-        startDate &&
-        endDate &&
-        startDate > endDate
-    ) {
-
-        mostrarNotificacion(
-            'La fecha inicial no puede ser mayor que la fecha final',
-            'warning'
-        );
-
-        return;
-    }
-
-
-    // ==========================================
-    // CONTADORES GENERALES
-    // ==========================================
-
-    let sesiones = 0;
-
-    let presentes = 0;
-
-    let ausentes = 0;
-
-    let excusas = 0;
-
-    let participaciones = 0;
-
-    let sinRegistrar = 0;
-
-
-    const chartLabels =
-        [];
-
-    const chartData =
-        [];
-
-
-    let rows =
-        '';
-
-
-    // ==========================================
-    // RECORRER CLASES
-    // ==========================================
-
-    classes.forEach(
-        clase => {
-
-            // ==================================
-            // FILTRO DE GRUPO
-            // ==================================
-
-            if (
-                group &&
-                clase.grupo !== group
-            ) {
-
-                return;
-            }
-
-
-            // ==================================
-            // FILTRO DE SUBGRUPO
-            // ==================================
-
-            if (
-                subGroup &&
-                clase.materia !== subGroup
-            ) {
-
-                return;
-            }
-
-
-            // ==================================
-            // FECHAS DEL SUBGRUPO
-            // ==================================
-
-            const fechas =
-                generateClassDates(
-                    clase
-                );
-
-
-            fechas.forEach(
-                fecha => {
-
-                    // ==========================
-                    // MAESTRO RESPONSABLE
-                    // ==========================
-
-                    const responsable =
-                        sessionTeachers[
-                            clase.id
-                        ]?.[
-                            fecha
-                        ];
-
-
-                    // ==========================
-                    // SOLO SESIONES IMPARTIDAS
-                    // POR EL MAESTRO ELEGIDO
-                    // ==========================
-
-                    if (
-                        responsable !== teacher
-                    ) {
-
-                        return;
-                    }
-
-
-                    // ==========================
-                    // CONVERTIR FECHA
-                    // DD/MM/YYYY
-                    // ==========================
-
-                    const [
-                        dia,
-                        mes,
-                        anio
-                    ] =
-                        fecha.split('/');
-
-
-                    const sessionDate =
-                        new Date(
-                            Number(anio),
-                            Number(mes) - 1,
-                            Number(dia)
-                        );
-
-
-                    // ==========================
-                    // FILTRO FECHA INICIO
-                    // ==========================
-
-                    if (startDate) {
-
-                        const [
-                            startYear,
-                            startMonth,
-                            startDay
-                        ] =
-                            startDate.split('-');
-
-
-                        const start =
-                            new Date(
-                                Number(startYear),
-                                Number(startMonth) - 1,
-                                Number(startDay)
-                            );
-
-
-                        if (
-                            sessionDate < start
-                        ) {
-
-                            return;
-                        }
-                    }
-
-
-                    // ==========================
-                    // FILTRO FECHA FIN
-                    // ==========================
-
-                    if (endDate) {
-
-                        const [
-                            endYear,
-                            endMonth,
-                            endDay
-                        ] =
-                            endDate.split('-');
-
-
-                        const end =
-                            new Date(
-                                Number(endYear),
-                                Number(endMonth) - 1,
-                                Number(endDay)
-                            );
-
-
-                        if (
-                            sessionDate > end
-                        ) {
-
-                            return;
-                        }
-                    }
-
-
-                    // ==========================
-                    // SESIÓN VÁLIDA
-                    // ==========================
-
-                    sesiones++;
-
-
-                    // ==========================
-                    // ESTUDIANTES DEL SUBGRUPO
-                    //
-                    // NUEVO MODELO DE
-                    // MÚLTIPLES INSCRIPCIONES
-                    // ==========================
-
-                    const groupStudents =
-                        students.filter(
-                            student =>
-                                student.estado ===
-                                    'Activo'
-                                &&
-                                isStudentEnrolledIn(
-                                    student,
-                                    clase.grupo,
-                                    clase.materia
-                                )
-                        );
-
-
-                    // ==========================
-                    // CONTADORES DE LA SESIÓN
-                    // ==========================
-
-                    let p =
-                        0;
-
-                    let a =
-                        0;
-
-                    let e =
-                        0;
-
-                    let part =
-                        0;
-
-                    let sinRegistrarSesion =
-                        0;
-
-
-                    // ==========================
-                    // ASISTENCIA
-                    //
-                    // NUEVO MODELO:
-                    //
-                    // studentId
-                    // + classId
-                    // + fecha
-                    // ==========================
-
-                    groupStudents.forEach(
-                        student => {
-
-                            const att =
-                                getStudentAttendance(
-                                    student.id,
-                                    clase.id,
-                                    fecha
-                                );
-
-
-                            // ==================
-                            // SIN REGISTRAR
-                            // ==================
-
-                            if (
-                                !att ||
-                                !att.status
-                            ) {
-
-                                sinRegistrarSesion++;
-
-                                return;
-                            }
-
-
-                            // ==================
-                            // PRESENTE
-                            // ==================
-
-                            if (
-                                att.status === 'P'
-                            ) {
-
-                                p++;
-                            }
-
-
-                            // ==================
-                            // AUSENTE
-                            // ==================
-
-                            else if (
-                                att.status === 'A'
-                            ) {
-
-                                a++;
-                            }
-
-
-                            // ==================
-                            // EXCUSA
-                            // ==================
-
-                            else if (
-                                att.status === 'E'
-                            ) {
-
-                                e++;
-                            }
-
-
-                            // ==================
-                            // PARTICIPACIÓN
-                            //
-                            // SOLO PRESENTE
-                            // ==================
-
-                            if (
-                                att.status === 'P'
-                                &&
-                                att.part === true
-                            ) {
-
-                                part++;
-                            }
-                        }
-                    );
-
-
-                    // ==========================
-                    // ACUMULADORES GENERALES
-                    // ==========================
-
-                    presentes +=
-                        p;
-
-
-                    ausentes +=
-                        a;
-
-
-                    excusas +=
-                        e;
-
-
-                    participaciones +=
-                        part;
-
-
-                    sinRegistrar +=
-                        sinRegistrarSesion;
-
-
-                    // ==========================
-                    // ASISTENCIA DE LA SESIÓN
-                    // ==========================
-
-                    const totalRegistrados =
-                        p +
-                        a +
-                        e;
-
-
-                    const porcentaje =
-                        totalRegistrados > 0
-
-                            ? (
-                                p *
-                                100 /
-                                totalRegistrados
-                            ).toFixed(1)
-
-                            : 0;
-
-
-                    // ==========================
-                    // GRÁFICO
-                    //
-                    // Añadimos subgrupo para
-                    // evitar etiquetas ambiguas
-                    // cuando mostramos todos.
-                    // ==========================
-
-                    chartLabels.push(
-                        `${formatSessionLabel(
-                            fecha
-                        )} | ${clase.materia}`
-                    );
-
-
-                    chartData.push(
-                        parseFloat(
-                            porcentaje
-                        )
-                    );
-
-
-                    // ==========================
-                    // FILA DE TABLA
-                    // ==========================
-
-                    rows += `
-                        <tr>
-
-                            <td>
-                                ${fecha}
-                            </td>
-
-                            <td>
-                                ${clase.materia}
-                            </td>
-
-                            <td>
-                                ${clase.grupo}
-                            </td>
-
-                            <td>
-                                ${p}
-                            </td>
-
-                            <td>
-                                ${a}
-                            </td>
-
-                            <td>
-                                ${e}
-                            </td>
-
-                            <td>
-                                ${sinRegistrarSesion}
-                            </td>
-
-                            <td>
-                                ${part}
-                            </td>
-
-                            <td>
-                                ${porcentaje}%
-                            </td>
-
-                        </tr>
-                    `;
-                }
-            );
-        }
-    );
-
-
-    // ==========================================
-    // PROMEDIO GENERAL
-    // ==========================================
-
-    const totalGeneral =
-        presentes +
-        ausentes +
-        excusas;
-
-
-    const promedio =
-        totalGeneral > 0
-
-            ? (
-                presentes *
-                100 /
-                totalGeneral
-            ).toFixed(1)
-
-            : 0;
-
-
-    // ==========================================
-    // RESUMEN
-    // ==========================================
-
-    summaryContainer.style.display =
-        'block';
-
-
-    summaryContainer.innerHTML = `
-        <div
-            style="
-                display:flex;
-                flex-wrap:wrap;
-                gap:20px;
-                justify-content:space-around;
-            ">
-
-            <div>
-                📚 Clases
-
-                <strong>
-                    ${sesiones}
-                </strong>
-            </div>
-
-
-            <div>
-                ✅ Presentes
-
-                <strong>
-                    ${presentes}
-                </strong>
-            </div>
-
-
-            <div>
-                ❌ Ausencias
-
-                <strong>
-                    ${ausentes}
-                </strong>
-            </div>
-
-
-            <div>
-                📝 Excusas
-
-                <strong>
-                    ${excusas}
-                </strong>
-            </div>
-
-
-            <div>
-                ⚪ Sin registrar
-
-                <strong>
-                    ${sinRegistrar}
-                </strong>
-            </div>
-
-
-            <div>
-                ⭐ Participación
-
-                <strong>
-                    ${participaciones}
-                </strong>
-            </div>
-
-
-            <div>
-                📊 Asist/Promedio
-
-                <strong>
-                    ${promedio}%
-                </strong>
-            </div>
-
-        </div>
-    `;
-
-
-    // ==========================================
-    // RESULTADOS
-    // ==========================================
-
-    resultsContainer.style.display =
-        'block';
-
-
-    // ==========================================
-    // SIN SESIONES
-    // ==========================================
-
-    if (
-        sesiones === 0
-    ) {
-
-        resultsContainer.innerHTML = `
-            <h3>
-                👨‍🏫 Reporte de ${teacher}
-            </h3>
-
-
-            <p
-                style="
-                    margin:10px 0;
-                    color:#667;
-                    font-size:13px;
-                ">
-
-                👥 ${
-                    group ||
-                    'Todos los grupos'
-                }
-
-                |
-
-                📚 ${
-                    subGroup ||
-                    'Todos los subgrupos'
-                }
-
-            </p>
-
-
-            <p
-                style="
-                    padding:20px;
-                    text-align:center;
-                    color:#666;
-                ">
-
-                No existen sesiones para
-                los filtros seleccionados.
-
-            </p>
-        `;
-
-        return;
-    }
-
-
-    // ==========================================
-    // TABLA Y GRÁFICO
-    // ==========================================
-
-    resultsContainer.innerHTML = `
-        <h3>
-            👨‍🏫 Reporte de ${teacher}
-        </h3>
-
-
-        <p
-            style="
-                margin:10px 0;
-                color:#666;
-                font-size:13px;
-            ">
-
-            👥 ${
-                group ||
-                'Todos los grupos'
-            }
-
-            |
-
-            📚 ${
-                subGroup ||
-                'Todos los subgrupos'
-            }
-
-        </p>
-
-
-        <p
-            style="
-                margin:5px 0 15px;
-                color:#777;
-                font-size:12px;
-            ">
-
-            Resultados por sesión dentro
-            de los filtros seleccionados
-
-        </p>
-
-
-        <div
-            class="chart-container"
-            style="
-                height:300px;
-            ">
-
-            <canvas
-                id="teacherAttendanceChart">
-            </canvas>
-
-        </div>
-
-
-        <div class="table-container">
-
-            <table>
-
-                <thead>
-
-                    <tr>
-
-                        <th>
-                            Fecha
-                        </th>
-
-                        <th>
-                            Subgrupo
-                        </th>
-
-                        <th>
-                            Grupo
-                        </th>
-
-                        <th>
-                            Presentes
-                        </th>
-
-                        <th>
-                            Ausentes
-                        </th>
-
-                        <th>
-                            Excusas
-                        </th>
-
-                        <th>
-                            Sin registrar
-                        </th>
-
-                        <th>
-                            Particip.
-                        </th>
-
-                        <th>
-                            %
-                        </th>
-
-                    </tr>
-
-                </thead>
-
-
-                <tbody>
-                    ${rows}
-                </tbody>
-
-            </table>
-
-        </div>
-    `;
-
-
-    // ==========================================
-    // GRÁFICO
-    // ==========================================
-
-    const ctx =
-        document.getElementById(
-            'teacherAttendanceChart'
-        );
-
-
-    if (!ctx) {
-        return;
-    }
-
-
-    // ==========================================
-    // DESTRUIR GRÁFICO ANTERIOR
-    // ==========================================
-
-    if (
-        dashboardCharts
-            .teacherAttendance
-    ) {
-
-        dashboardCharts
-            .teacherAttendance
-            .destroy();
-    }
-
-
-    // ==========================================
-    // CREAR GRÁFICO
-    // ==========================================
-
-    dashboardCharts.teacherAttendance =
-        new Chart(
-            ctx,
-            {
-                type:
-                    'bar',
-
-
-                data: {
-
-                    labels:
-                        chartLabels,
-
-
-                    datasets: [
-                        {
-                            label:
-                                'Asistencia %',
-
-                            data:
-                                chartData,
-
-                            backgroundColor:
-                                chartData.map(
-                                    value => {
-
-                                        if (
-                                            value >= 90
-                                        ) {
-
-                                            return '#27ae60';
-                                        }
-
-
-                                        if (
-                                            value >= 70
-                                        ) {
-
-                                            return '#f39c12';
-                                        }
-
-
-                                        return '#e74c3c';
-                                    }
-                                )
-                        }
-                    ]
-                },
-
-
-                options: {
-
-                    responsive:
-                        true,
-
-                    maintainAspectRatio:
-                        false,
-
-                    plugins: {
-
-                        legend: {
-
-                            position:
-                                'bottom'
-                        }
-                    },
-
-                    scales: {
-
-                        y: {
-
-                            beginAtZero:
-                                true,
-
-                            max:
-                                100,
-
-                            title: {
-
-                                display:
-                                    true,
-
-                                text:
-                                    '% Asistencia'
-                            }
-                        }
-                    }
-                },
-
-
-                plugins: [
-                    {
-                        id:
-                            'teacherAttendanceLabels',
-
-
-                        afterDatasetsDraw(
-                            chart
-                        ) {
-
-                            const {
-                                ctx
-                            } =
-                                chart;
-
-
-                            chart.data
-                                .datasets
-                                .forEach(
-                                    (
-                                        dataset,
-                                        datasetIndex
-                                    ) => {
-
-                                        const meta =
-                                            chart
-                                                .getDatasetMeta(
-                                                    datasetIndex
-                                                );
-
-
-                                        meta.data
-                                            .forEach(
-                                                (
-                                                    bar,
-                                                    index
-                                                ) => {
-
-                                                    const value =
-                                                        dataset
-                                                            .data[
-                                                                index
-                                                            ];
-
-
-                                                    ctx.save();
-
-
-                                                    ctx.fillStyle =
-                                                        value >= 70 &&
-                                                        value < 90
-
-                                                            ? '#2c3e50'
-
-                                                            : '#ffffff';
-
-
-                                                    ctx.font =
-                                                        'bold 12px Arial';
-
-
-                                                    ctx.textAlign =
-                                                        'center';
-
-
-                                                    ctx.textBaseline =
-                                                        'middle';
-
-
-                                                    ctx.fillText(
-                                                        value + '%',
-
-                                                        bar.x,
-
-                                                        bar.y +
-                                                        (
-                                                            (
-                                                                bar.base -
-                                                                bar.y
-                                                            ) /
-                                                            2
-                                                        )
-                                                    );
-
-
-                                                    ctx.restore();
-                                                }
-                                            );
-                                    }
-                                );
-                        }
-                    }
-                ]
-            }
-        );
 }
 function loadReportTeachers() {
 
