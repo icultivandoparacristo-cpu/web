@@ -11659,123 +11659,216 @@ function generateTeacherReport() {
     // ==========================================================
 
     summaryContainer.innerHTML = `
-        <h3>
-            👨‍🏫 Resumen del Maestro
-        </h3>
+    <h3 style="
+        margin: 0 0 18px 0;
+        color: #24384c;
+    ">
+        👨‍🏫 Resumen del Maestro
+    </h3>
 
-        <div class="stats-grid">
+    <div style="
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        width: 100%;
+    ">
 
-            <div class="stat-card">
-                <div class="stat-number">
-                    ${totalSessions}
-                </div>
-
-                <div class="stat-label">
-                    Sesiones registradas
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-number">
-                    ${totalRealized}
-                </div>
-
-                <div class="stat-label">
-                    Sesiones realizadas
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-number">
-                    ${totalSuspended}
-                </div>
-
-                <div class="stat-label">
-                    Sesiones suspendidas
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-number">
-                    ${totalSubGroups}
-                </div>
-
-                <div class="stat-label">
-                    Subgrupos impartidos
-                </div>
-            </div>
-
-        </div>
-
+        <!-- SESIONES REGISTRADAS -->
         <div style="
-            margin-top: 16px;
-            line-height: 1.7;
-            color: #4b5563;
+            background: #f8fafc;
+            border: 1px solid #dbe3ea;
+            border-left: 5px solid #2563eb;
+            border-radius: 10px;
+            padding: 18px;
+            text-align: center;
+            box-sizing: border-box;
         ">
+            <div style="
+                font-size: 30px;
+                font-weight: 700;
+                color: #2563eb;
+                line-height: 1.2;
+                margin-bottom: 6px;
+            ">
+                ${totalSessions}
+            </div>
 
-            <strong>Maestro:</strong>
-            ${escapeHtmlTeacherReport(
-                selectedTeacher
-            )}
-
-            ${
-                selectedGroup
-                    ? `
-                        &nbsp; | &nbsp;
-
-                        <strong>Grupo:</strong>
-
-                        ${escapeHtmlTeacherReport(
-                            selectedGroup
-                        )}
-                    `
-                    : ''
-            }
-
-            ${
-                selectedSubGroup
-                    ? `
-                        &nbsp; | &nbsp;
-
-                        <strong>Subgrupo:</strong>
-
-                        ${escapeHtmlTeacherReport(
-                            selectedSubGroup
-                        )}
-                    `
-                    : ''
-            }
-
-            ${
-                startDate
-                    ? `
-                        <br>
-
-                        <strong>Desde:</strong>
-
-                        ${escapeHtmlTeacherReport(
-                            startDate
-                        )}
-                    `
-                    : ''
-            }
-
-            ${
-                endDate
-                    ? `
-                        &nbsp; | &nbsp;
-
-                        <strong>Hasta:</strong>
-
-                        ${escapeHtmlTeacherReport(
-                            endDate
-                        )}
-                    `
-                    : ''
-            }
-
+            <div style="
+                font-size: 14px;
+                font-weight: 600;
+                color: #475569;
+            ">
+                Sesiones registradas
+            </div>
         </div>
-    `;
+
+
+        <!-- SESIONES REALIZADAS -->
+        <div style="
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-left: 5px solid #16a34a;
+            border-radius: 10px;
+            padding: 18px;
+            text-align: center;
+            box-sizing: border-box;
+        ">
+            <div style="
+                font-size: 30px;
+                font-weight: 700;
+                color: #16a34a;
+                line-height: 1.2;
+                margin-bottom: 6px;
+            ">
+                ${totalRealized}
+            </div>
+
+            <div style="
+                font-size: 14px;
+                font-weight: 600;
+                color: #475569;
+            ">
+                Sesiones realizadas
+            </div>
+        </div>
+
+
+        <!-- SESIONES SUSPENDIDAS -->
+        <div style="
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-left: 5px solid #d97706;
+            border-radius: 10px;
+            padding: 18px;
+            text-align: center;
+            box-sizing: border-box;
+        ">
+            <div style="
+                font-size: 30px;
+                font-weight: 700;
+                color: #d97706;
+                line-height: 1.2;
+                margin-bottom: 6px;
+            ">
+                ${totalSuspended}
+            </div>
+
+            <div style="
+                font-size: 14px;
+                font-weight: 600;
+                color: #475569;
+            ">
+                Sesiones suspendidas
+            </div>
+        </div>
+
+
+        <!-- SUBGRUPOS IMPARTIDOS -->
+        <div style="
+            background: #faf5ff;
+            border: 1px solid #e9d5ff;
+            border-left: 5px solid #7c3aed;
+            border-radius: 10px;
+            padding: 18px;
+            text-align: center;
+            box-sizing: border-box;
+        ">
+            <div style="
+                font-size: 30px;
+                font-weight: 700;
+                color: #7c3aed;
+                line-height: 1.2;
+                margin-bottom: 6px;
+            ">
+                ${totalSubGroups}
+            </div>
+
+            <div style="
+                font-size: 14px;
+                font-weight: 600;
+                color: #475569;
+            ">
+                Subgrupos impartidos
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- INFORMACIÓN DE LOS FILTROS -->
+    <div style="
+        margin-top: 20px;
+        padding: 14px 16px;
+        background: #f8fafc;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        line-height: 1.8;
+        color: #475569;
+    ">
+
+        <strong>Maestro:</strong>
+        ${escapeHtmlTeacherReport(
+            selectedTeacher
+        )}
+
+        ${
+            selectedGroup
+                ? `
+                    &nbsp; | &nbsp;
+
+                    <strong>Grupo:</strong>
+
+                    ${escapeHtmlTeacherReport(
+                        selectedGroup
+                    )}
+                `
+                : ''
+        }
+
+        ${
+            selectedSubGroup
+                ? `
+                    &nbsp; | &nbsp;
+
+                    <strong>Subgrupo:</strong>
+
+                    ${escapeHtmlTeacherReport(
+                        selectedSubGroup
+                    )}
+                `
+                : ''
+        }
+
+        ${
+            startDate
+                ? `
+                    &nbsp; | &nbsp;
+
+                    <strong>Desde:</strong>
+
+                    ${escapeHtmlTeacherReport(
+                        startDate
+                    )}
+                `
+                : ''
+        }
+
+        ${
+            endDate
+                ? `
+                    &nbsp; | &nbsp;
+
+                    <strong>Hasta:</strong>
+
+                    ${escapeHtmlTeacherReport(
+                        endDate
+                    )}
+                `
+                : ''
+        }
+
+    </div>
+`;
 
     // ==========================================================
     // 17. SIN RESULTADOS
