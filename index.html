@@ -11000,6 +11000,198 @@ function formatSessionLabel(fecha) {
 
 }
 
+function loadTeacherReportSubGroups() {
+    // ==========================================================
+    // CARGAR SUBGRUPOS DEL REPORTE DE MAESTROS
+    // Fuente normalizada: classes
+    //
+    // Estructura actual de Cultivo System:
+    //   clase.grupo   -> Grupo
+    //   clase.materia -> Subgrupo
+    //   clase.maestros -> Maestros asignados
+    // ==========================================================
+
+    console.log('👨‍🏫 loadTeacherReportSubGroups() EJECUTADA');
+
+    // ----------------------------------------------------------
+    // 1. LOCALIZAR LOS SELECTORES
+    // ----------------------------------------------------------
+
+    const groupSelect =
+        document.getElementById('teacherReportGroup');
+
+    const subGroupSelect =
+        document.getElementById('teacherReportSubGroup');
+
+    if (!groupSelect) {
+        console.error(
+            '❌ No se encontró #teacherReportGroup'
+        );
+        return;
+    }
+
+    if (!subGroupSelect) {
+        console.error(
+            '❌ No se encontró #teacherReportSubGroup'
+        );
+        return;
+    }
+
+    // ----------------------------------------------------------
+    // 2. OBTENER GRUPO SELECCIONADO
+    // ----------------------------------------------------------
+
+    const selectedGroup = String(
+        groupSelect.value || ''
+    ).trim();
+
+    console.log(
+        '🔎 Grupo seleccionado para reporte de maestros:',
+        selectedGroup || 'Todos'
+    );
+
+    // ----------------------------------------------------------
+    // 3. REINICIAR SELECTOR DE SUBGRUPOS
+    // ----------------------------------------------------------
+
+    subGroupSelect.innerHTML = `
+        <option value="">
+            Todos los subgrupos
+        </option>
+    `;
+
+    // ----------------------------------------------------------
+    // 4. VALIDAR CLASSES
+    // ----------------------------------------------------------
+
+    if (!Array.isArray(classes)) {
+        console.error(
+            '❌ classes no está disponible o no es un arreglo.',
+            classes
+        );
+
+        subGroupSelect.disabled = true;
+
+        return;
+    }
+
+    // ----------------------------------------------------------
+    // 5. SI SE SELECCIONÓ "TODOS LOS GRUPOS"
+    // ----------------------------------------------------------
+    // En este caso dejamos disponible la opción:
+    // "Todos los subgrupos".
+    // ----------------------------------------------------------
+
+    if (!selectedGroup) {
+        subGroupSelect.disabled = true;
+
+        console.log(
+            'ℹ️ Reporte de maestros configurado para todos los grupos.'
+        );
+
+        return;
+    }
+
+    // ----------------------------------------------------------
+    // 6. LOCALIZAR CLASES DEL GRUPO
+    // ----------------------------------------------------------
+
+    const groupClasses = classes.filter(clase => {
+
+        if (!clase) {
+            return false;
+        }
+
+        const classGroup = String(
+            clase.grupo || ''
+        ).trim();
+
+        return classGroup === selectedGroup;
+    });
+
+    console.log(
+        '📚 Clases encontradas para el grupo:',
+        groupClasses
+    );
+
+    // ----------------------------------------------------------
+    // 7. OBTENER SUBGRUPOS
+    // ----------------------------------------------------------
+    // IMPORTANTE:
+    // En la estructura actual, materia representa el subgrupo.
+    // ----------------------------------------------------------
+
+    const subGroups = [
+        ...new Set(
+            groupClasses
+                .map(clase =>
+                    String(
+                        clase.materia || ''
+                    ).trim()
+                )
+                .filter(Boolean)
+        )
+    ].sort((a, b) =>
+        a.localeCompare(
+            b,
+            'es',
+            {
+                sensitivity: 'base',
+                numeric: true
+            }
+        )
+    );
+
+    console.log(
+        '📘 Subgrupos encontrados:',
+        subGroups
+    );
+
+    // ----------------------------------------------------------
+    // 8. SI NO EXISTEN SUBGRUPOS
+    // ----------------------------------------------------------
+
+    if (subGroups.length === 0) {
+
+        subGroupSelect.disabled = true;
+
+        console.warn(
+            `⚠️ No se encontraron subgrupos para "${selectedGroup}".`
+        );
+
+        return;
+    }
+
+    // ----------------------------------------------------------
+    // 9. CREAR OPCIONES
+    // ----------------------------------------------------------
+
+    subGroups.forEach(subGroupName => {
+
+        const option =
+            document.createElement('option');
+
+        option.value = subGroupName;
+        option.textContent = subGroupName;
+
+        subGroupSelect.appendChild(option);
+    });
+
+    // ----------------------------------------------------------
+    // 10. HABILITAR SELECTOR
+    // ----------------------------------------------------------
+
+    subGroupSelect.disabled = false;
+
+    console.log(
+        '✅ Subgrupos del reporte de maestros cargados:',
+        {
+            grupo: selectedGroup,
+            cantidad: subGroups.length,
+            subgrupos: subGroups
+        }
+    );
+}
 function updateReportFilters() {
 
     const summaryContainer =
