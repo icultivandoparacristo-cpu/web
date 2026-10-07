@@ -23883,6 +23883,141 @@ function renderStudentTable() {
         }
     );
 }
+// ==========================================
+// ESTUDIANTES - CAMBIAR ESTADO
+// Activo <-> Inactivo
+// ==========================================
+
+async function toggleStudentStatus(studentId) {
+    try {
+        const student = students.find(
+            item =>
+                String(item.id) ===
+                String(studentId)
+        );
+
+        if (!student) {
+            mostrarNotificacion(
+                '❌ No se encontró el estudiante',
+                'error'
+            );
+            return;
+        }
+
+        const currentStatus =
+            student.estado === 'Inactivo'
+                ? 'Inactivo'
+                : 'Activo';
+
+        const newStatus =
+            currentStatus === 'Activo'
+                ? 'Inactivo'
+                : 'Activo';
+
+        const actionText =
+            newStatus === 'Inactivo'
+                ? 'inactivar'
+                : 'activar';
+
+        const studentName = [
+            student.nombre,
+            student.apellido
+        ]
+            .filter(Boolean)
+            .join(' ');
+
+        const confirmed = confirm(
+            `¿Desea ${actionText} a ${studentName}?`
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        // ======================================
+        // FIRESTORE
+        // ======================================
+
+        const api =
+            window.firestoreStudents;
+
+        if (
+            !window.db ||
+            !api ||
+            !api.doc ||
+            !api.setDoc
+        ) {
+            mostrarNotificacion(
+                '❌ Firestore no está disponible',
+                'error'
+            );
+            return;
+        }
+
+        const studentRef =
+            api.doc(
+                window.db,
+                'students',
+                String(student.id)
+            );
+
+        await api.setDoc(
+            studentRef,
+            {
+                estado: newStatus,
+                updatedAt:
+                    new Date().toISOString(),
+                updatedBy:
+                    currentUser?.email ||
+                    currentUser?.username ||
+                    'sistema'
+            },
+            {
+                merge: true
+            }
+        );
+
+        // ======================================
+        // ACTUALIZAR MEMORIA LOCAL
+        // ======================================
+
+        student.estado = newStatus;
+
+        // ======================================
+        // REFRESCAR TABLA
+        // ======================================
+
+        renderStudents();
+
+        mostrarNotificacion(
+            newStatus === 'Activo'
+                ? '✅ Estudiante activado correctamente'
+                : '✅ Estudiante inactivado correctamente',
+            'success'
+        );
+
+        console.log(
+            '✅ Estado del estudiante actualizado:',
+            {
+                id: student.id,
+                estudiante: studentName,
+                estadoAnterior: currentStatus,
+                estadoNuevo: newStatus
+            }
+        );
+    }
+    catch (error) {
+        console.error(
+            '❌ Error cambiando estado del estudiante:',
+            error
+        );
+
+        mostrarNotificacion(
+            '❌ No se pudo cambiar el estado del estudiante',
+            'error'
+        );
+    }
+}
 
  function editStudent(id) {
 
