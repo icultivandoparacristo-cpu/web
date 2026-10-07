@@ -4595,9 +4595,54 @@ button.auth-submit:hover {
             <input type="text" id="apellido" required placeholder="Ej. Pérez">
           </div>
           <div>
-            <label>Cumpleaños (DD/MM):</label>
-            <input type="text" id="fechaNacimiento" placeholder="DD/MM" pattern="^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[02])$" required>
-          </div>
+    <label>Cumpleaños:</label>
+
+    <div
+        style="
+            display:grid;
+            grid-template-columns:1fr 90px;
+            gap:8px;
+        "
+    >
+        <select
+            id="birthMonth"
+            required
+            onchange="updateBirthDayOptions()"
+        >
+            <option value="">
+                Mes
+            </option>
+
+            <option value="01">Enero</option>
+            <option value="02">Febrero</option>
+            <option value="03">Marzo</option>
+            <option value="04">Abril</option>
+            <option value="05">Mayo</option>
+            <option value="06">Junio</option>
+            <option value="07">Julio</option>
+            <option value="08">Agosto</option>
+            <option value="09">Septiembre</option>
+            <option value="10">Octubre</option>
+            <option value="11">Noviembre</option>
+            <option value="12">Diciembre</option>
+        </select>
+
+        <select
+            id="birthDay"
+            required
+            disabled
+        >
+            <option value="">
+                Día
+            </option>
+        </select>
+    </div>
+
+    <input
+        type="hidden"
+        id="fechaNacimiento"
+    >
+</div>
           <div>
             <label>Grupo de Estudio:</label>
             <select id="grupo" onchange="loadStudentSubGroups()">
@@ -6109,13 +6154,293 @@ console.log('✅ Firebase + Authentication conectados');
   let dashboardCharts = {};
   let slideIndex = 0;
   let slideInterval;
+
 // ==========================================
 // ESTUDIANTES - INSCRIPCIONES TEMPORALES
 // ==========================================
 
 let studentEnrollmentDraft = [];
 
+// ==========================================
+// ESTUDIANTES - CUMPLEAÑOS MES / DÍA
+// ==========================================
 
+function getDaysInBirthMonth(month) {
+    const monthNumber =
+        parseInt(
+            month,
+            10
+        );
+
+    if (
+        !monthNumber ||
+        monthNumber < 1 ||
+        monthNumber > 12
+    ) {
+        return 0;
+    }
+
+    // Como el cumpleaños no guarda año,
+    // permitimos el 29 de febrero.
+    const daysByMonth = {
+        1: 31,
+        2: 29,
+        3: 31,
+        4: 30,
+        5: 31,
+        6: 30,
+        7: 31,
+        8: 31,
+        9: 30,
+        10: 31,
+        11: 30,
+        12: 31
+    };
+
+    return (
+        daysByMonth[
+            monthNumber
+        ] || 0
+    );
+}
+
+
+// ==========================================
+// ACTUALIZAR DÍAS SEGÚN EL MES
+// ==========================================
+
+function updateBirthDayOptions(
+    selectedDay = ''
+) {
+    const monthSelect =
+        document.getElementById(
+            'birthMonth'
+        );
+
+    const daySelect =
+        document.getElementById(
+            'birthDay'
+        );
+
+    const hiddenInput =
+        document.getElementById(
+            'fechaNacimiento'
+        );
+
+    if (
+        !monthSelect ||
+        !daySelect
+    ) {
+        return;
+    }
+
+    const month =
+        monthSelect.value;
+
+    daySelect.innerHTML = `
+        <option value="">
+            Día
+        </option>
+    `;
+
+    if (!month) {
+        daySelect.disabled = true;
+
+        if (hiddenInput) {
+            hiddenInput.value = '';
+        }
+
+        return;
+    }
+
+    const totalDays =
+        getDaysInBirthMonth(
+            month
+        );
+
+    for (
+        let day = 1;
+        day <= totalDays;
+        day++
+    ) {
+        const value =
+            String(day)
+                .padStart(
+                    2,
+                    '0'
+                );
+
+        const option =
+            document.createElement(
+                'option'
+            );
+
+        option.value =
+            value;
+
+        option.textContent =
+            day;
+
+        daySelect.appendChild(
+            option
+        );
+    }
+
+    daySelect.disabled =
+        false;
+
+    if (
+        selectedDay &&
+        parseInt(
+            selectedDay,
+            10
+        ) <= totalDays
+    ) {
+        daySelect.value =
+            String(
+                selectedDay
+            ).padStart(
+                2,
+                '0'
+            );
+    }
+
+    syncStudentBirthDate();
+}
+
+
+// ==========================================
+// SINCRONIZAR DD/MM
+// ==========================================
+
+function syncStudentBirthDate() {
+    const month =
+        document.getElementById(
+            'birthMonth'
+        )?.value || '';
+
+    const day =
+        document.getElementById(
+            'birthDay'
+        )?.value || '';
+
+    const hiddenInput =
+        document.getElementById(
+            'fechaNacimiento'
+        );
+
+    if (!hiddenInput) {
+        return '';
+    }
+
+    if (
+        !month ||
+        !day
+    ) {
+        hiddenInput.value = '';
+        return '';
+    }
+
+    const birthDate =
+        `${day}/${month}`;
+
+    hiddenInput.value =
+        birthDate;
+
+    return birthDate;
+}
+
+
+// ==========================================
+// CARGAR CUMPLEAÑOS AL EDITAR
+// ==========================================
+
+function loadStudentBirthDate(
+    fechaNacimiento
+) {
+    const monthSelect =
+        document.getElementById(
+            'birthMonth'
+        );
+
+    const daySelect =
+        document.getElementById(
+            'birthDay'
+        );
+
+    const hiddenInput =
+        document.getElementById(
+            'fechaNacimiento'
+        );
+
+    if (
+        !monthSelect ||
+        !daySelect
+    ) {
+        return;
+    }
+
+    const value =
+        String(
+            fechaNacimiento || ''
+        ).trim();
+
+    const match =
+        value.match(
+            /^(\d{2})\/(\d{2})$/
+        );
+
+    if (!match) {
+        monthSelect.value = '';
+
+        daySelect.innerHTML = `
+            <option value="">
+                Día
+            </option>
+        `;
+
+        daySelect.disabled =
+            true;
+
+        if (hiddenInput) {
+            hiddenInput.value = '';
+        }
+
+        return;
+    }
+
+    const day =
+        match[1];
+
+    const month =
+        match[2];
+
+    monthSelect.value =
+        month;
+
+    updateBirthDayOptions(
+        day
+    );
+
+    if (hiddenInput) {
+        hiddenInput.value =
+            `${day}/${month}`;
+    }
+}
+
+
+// ==========================================
+// CAMBIO MANUAL DEL DÍA
+// ==========================================
+
+document
+    .getElementById(
+        'birthDay'
+    )
+    ?.addEventListener(
+        'change',
+        syncStudentBirthDate
+    );
 // ==========================================
 // ESTUDIANTES - MÚLTIPLES INSCRIPCIONES
 // ==========================================
@@ -6268,6 +6593,9 @@ function normalizeStudentEnrollments(
         ...unique.values()
     ];
 }
+
+
+
 function migrateStudentEnrollments() {
 
     let migrated =
@@ -23052,7 +23380,7 @@ studentForm.addEventListener('submit', async (e) => {
         id: id ? String(id) : `student_${Date.now()}`,
         nombre: document.getElementById('nombre').value.trim(),
         apellido: document.getElementById('apellido').value.trim(),
-        fechaNacimiento: document.getElementById('fechaNacimiento').value.trim(),
+        fechaNacimiento: syncStudentBirthDate(),
         grupo: primaryEnrollment.grupo,
         subgrupo: primaryEnrollment.subgrupo,
         inscripciones: normalizeStudentEnrollments(enrollments),
@@ -23601,10 +23929,9 @@ function renderStudentTable() {
         student.apellido || '';
 
 
-    document.getElementById(
-        'fechaNacimiento'
-    ).value =
-        student.fechaNacimiento || '';
+    loadStudentBirthDate(
+    student.fechaNacimiento
+    );
 
 
     document.getElementById(
@@ -23764,7 +24091,21 @@ function renderStudentTable() {
 function resetStudentForm() {
 
     studentForm.reset();
+const birthDaySelect =
+    document.getElementById(
+        'birthDay'
+    );
 
+    if (birthDaySelect) {
+        birthDaySelect.innerHTML = `
+            <option value="">
+                Día
+            </option>
+        `;
+
+        birthDaySelect.disabled =
+            true;
+    }
 
     document.getElementById(
         'studentId'
