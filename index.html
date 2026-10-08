@@ -6324,22 +6324,35 @@ async function applyFirebaseAuthState(firebaseUser) {
         // ======================================
         // ACTUALIZAR INFORMACION VISUAL
         // ======================================
-        if (
-            typeof updateUserInfo ===
-            'function'
-        ) {
-            updateUserInfo();
-        }
+       const userInfo =
+    document.getElementById(
+        'userInfo'
+    );
+
+if (
+    userInfo &&
+    currentUser
+) {
+
+    userInfo.innerHTML = `
+        👤
+        <strong>
+            ${currentUser.username}
+        </strong>
+        |
+        ${currentUser.role}
+    `;
+}
 
 
         // ======================================
         // APLICAR PERMISOS EXISTENTES
         // ======================================
-        if (
-            typeof applyRolePermissions ===
+      if (
+            typeof updateMenuByRole ===
             'function'
         ) {
-            applyRolePermissions();
+            updateMenuByRole();
         }
 
 
@@ -6447,9 +6460,9 @@ const userSnapshot =
         // ======================================
         const profile =
             userSnapshot.data();
-console.log(
-    'PERFIL RAW:',
-    JSON.stringify(profile, null, 2)
+            console.log(
+    'PERFIL COMPLETO:',
+    profile
 );
 
         console.log(
@@ -6688,12 +6701,23 @@ console.log(
         // ======================================
         // ACTUALIZAR INFORMACION DEL USUARIO
         // ======================================
-        if (
-            typeof updateUserInfo ===
-            'function'
-        ) {
-            updateUserInfo();
-        }
+        const userInfo =
+    document.getElementById(
+        'userInfo'
+    );
+
+if (
+    userInfo &&
+    currentUser
+) {
+
+    userInfo.innerHTML = `
+        👤 <strong>
+            ${currentUser.username}
+        </strong>
+        | ${currentUser.role}
+    `;
+}
 
 
         // ======================================
@@ -23303,47 +23327,205 @@ function updateTeacher(
     
   function updateMenuByRole() {
 
-    const menuFinanzas =
-        document.getElementById('menu-finanzas');
-
-    const menuUsuarios =
-        document.getElementById('menu-usuarios');
-
-   if (menuFinanzas) {
-
-    menuFinanzas.style.display =
-        canViewFinance()
-            ? 'flex'
-            : 'none';
+    if (!currentUser) {
+        return;
     }
 
-    if (!isSuperAdmin()) {
-        menuUsuarios.style.display = 'none';
-    } else {
-        menuUsuarios.style.display = 'flex';
-    }if (isBirthdayUser()) {
+    const role =
+        String(
+            currentUser.role || ''
+        ).toLowerCase();
 
-    document.getElementById(
-        'menu-estudiantes'
-    ).style.display = 'none';
+    // =====================================
+    // MENUS
+    // =====================================
 
-    document.getElementById(
-        'menu-asistencia'
-    ).style.display = 'none';
+    const menuUsuarios =
+        document.getElementById(
+            'menu-usuarios'
+        );
 
-    document.getElementById(
-        'menu-finanzas'
-    ).style.display = 'none';
+    const menuGrupos =
+        document.getElementById(
+            'menu-grupos'
+        );
 
-    document.getElementById(
-        'menu-reportes'
-    ).style.display = 'none';
+    const menuSubgrupos =
+        document.getElementById(
+            'menu-subgrupos'
+        );
 
-    document.getElementById(
-        'menu-cumpleanos'
-    ).style.display = 'flex';
+    const menuEstudiantes =
+        document.getElementById(
+            'menu-estudiantes'
+        );
 
-}
+    const menuAsistencia =
+        document.getElementById(
+            'menu-asistencia'
+        );
+
+    const menuFinanzas =
+        document.getElementById(
+            'menu-finanzas'
+        );
+
+    const menuReportes =
+        document.getElementById(
+            'menu-reportes'
+        );
+
+    const menuCumpleanos =
+        document.getElementById(
+            'menu-cumpleanos'
+        );
+
+    // =====================================
+    // OCULTAR TODO PRIMERO
+    // =====================================
+
+    [
+        menuUsuarios,
+        menuGrupos,
+        menuSubgrupos,
+        menuEstudiantes,
+        menuAsistencia,
+        menuFinanzas,
+        menuReportes,
+        menuCumpleanos
+    ].forEach(item => {
+
+        if (item) {
+            item.style.display = 'none';
+        }
+
+    });
+
+    // =====================================
+    // SUPERADMIN
+    // =====================================
+
+    if (
+        role === 'superadmin'
+    ) {
+
+        [
+            menuUsuarios,
+            menuGrupos,
+            menuSubgrupos,
+            menuEstudiantes,
+            menuAsistencia,
+            menuFinanzas,
+            menuReportes,
+            menuCumpleanos
+        ].forEach(item => {
+
+            if (item) {
+                item.style.display = 'flex';
+            }
+
+        });
+
+        return;
+    }
+
+    // =====================================
+    // MAESTRO
+    // =====================================
+
+    if (
+        role === 'maestro'
+    ) {
+
+        if (menuAsistencia) {
+            menuAsistencia.style.display =
+                'flex';
+        }
+
+        if (menuReportes) {
+            menuReportes.style.display =
+                'flex';
+        }
+
+        return;
+    }
+
+    // =====================================
+    // CUMPLEAÑOS
+    // =====================================
+
+    if (
+        role === 'cumpleanos'
+    ) {
+
+        if (menuCumpleanos) {
+            menuCumpleanos.style.display =
+                'flex';
+        }
+
+        return;
+    }
+
+    // =====================================
+    // REGISTRADOR
+    // =====================================
+
+    if (
+        role === 'registrador'
+    ) {
+
+        if (menuEstudiantes) {
+            menuEstudiantes.style.display =
+                'flex';
+        }
+
+        if (menuAsistencia) {
+            menuAsistencia.style.display =
+                'flex';
+        }
+
+        if (menuReportes) {
+            menuReportes.style.display =
+                'flex';
+        }
+
+        return;
+    }
+
+    // =====================================
+    // ADMIN FINANZAS
+    // =====================================
+
+    if (
+        role === 'admin'
+    ) {
+
+        if (menuFinanzas) {
+            menuFinanzas.style.display =
+                'flex';
+        }
+
+        return;
+    }
+
+    // =====================================
+    // AUDITOR
+    // =====================================
+
+    if (
+        role === 'auditor'
+    ) {
+
+        if (menuReportes) {
+            menuReportes.style.display =
+                'flex';
+        }
+
+        if (menuFinanzas) {
+            menuFinanzas.style.display =
+                'flex';
+        }
+    }
 }
     
 
