@@ -6067,6 +6067,7 @@ await setPersistence(auth, browserLocalPersistence);
 
 window.db = db;
 window.firestoreGroups = { collection, getDocs, doc, setDoc, deleteDoc };
+window.firestoreUsers = {doc,getDoc,collection,getDocs,setDoc,deleteDoc};
 window.firestoreStudents = { collection, getDocs, doc, setDoc, deleteDoc };
 window.firestoreClasses = { collection, getDocs, doc, setDoc, deleteDoc };
 window.firestoreClassSessions = { collection, getDocs, doc, setDoc, deleteDoc };
@@ -6354,43 +6355,31 @@ async function applyFirebaseAuthState(firebaseUser) {
     // ==========================================
     try {
 
-        // ======================================
-        // OBTENER API FIRESTORE
-        // ======================================
-        const api =
-            window.firestoreGroups ||
-            window.firestoreStudents ||
-            window.firestoreClasses;
 
+// ======================================
+// FIRESTORE DIRECTO
+// ======================================
+if (
+    !window.db ||
+    !window.firestoreUsers
+) {
 
-        if (
-            !window.db ||
-            !api ||
-            typeof api.doc !== 'function' ||
-            typeof api.getDoc !== 'function'
-        ) {
+    throw new Error(
+        'Firestore Users aún no está disponible.'
+    );
+}
 
-            throw new Error(
-                'Firestore no está disponible para validar el perfil del usuario.'
-            );
-        }
+const userRef =
+    window.firestoreUsers.doc(
+        window.db,
+        'users',
+        firebaseUid
+    );
 
-
-        // ======================================
-        // LEER PERFIL
-        // ======================================
-        const userRef =
-            api.doc(
-                window.db,
-                'users',
-                firebaseUid
-            );
-
-
-        const userSnapshot =
-            await api.getDoc(
-                userRef
-            );
+const userSnapshot =
+    await window.firestoreUsers.getDoc(
+        userRef
+    );
 
 
         // ======================================
