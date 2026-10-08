@@ -23793,18 +23793,372 @@ else {
    
 
 });
- //Grupos
-const groupForm=document.getElementById('groupForm');
-if(groupForm){
- groupForm.addEventListener('submit',async(e)=>{e.preventDefault();
-  const groupId=document.getElementById('groupId').value.trim(); const oldGroup=groupId?groups.find(g=>String(g.id)===String(groupId)):null;
-  const nombre=document.getElementById('groupName').value.trim(); const estado=document.getElementById('groupStatus').value;
-  if(!nombre){mostrarNotificacion('⚠️ Escriba el nombre del grupo','warning');return;}
-  if(groups.some(g=>String(g.nombre||'').trim().toLowerCase()===nombre.toLowerCase()&&String(g.id)!==String(groupId))){mostrarNotificacion('⚠️ Ya existe un grupo con ese nombre','warning');return;}
-  const groupData={id:groupId||`group_${Date.now()}`,nombre,estado};
-  try{await saveGroupToFirestore(groupData); if(oldGroup&&oldGroup.nombre!==nombre){classes=classes.map(c=>c.grupo===oldGroup.nombre?{...c,grupo:nombre}:c);saveAll();} await loadGroupsFromFirestore(); groupForm.reset();document.getElementById('groupId').value='';mostrarNotificacion(oldGroup?'✅ Grupo actualizado en Firestore':'✅ Grupo creado en Firestore','success');}
-  catch(error){console.error('❌ Error guardando grupo en Firestore:',error);mostrarNotificacion('❌ No se pudo guardar el grupo en Firestore','error');}
- });
+ // ==========================================
+// GRUPOS
+// Guardado + propagacion de cambio de nombre
+// ==========================================
+const groupForm =
+    document.getElementById('groupForm');
+
+if (groupForm) {
+
+    groupForm.addEventListener(
+        'submit',
+        async (e) => {
+
+            e.preventDefault();
+
+            // ======================================
+            // DATOS DEL FORMULARIO
+            // ======================================
+            const groupId =
+                document
+                    .getElementById('groupId')
+                    .value
+                    .trim();
+
+            const nombre =
+                document
+                    .getElementById('groupName')
+                    .value
+                    .trim();
+
+            const estado =
+                document
+                    .getElementById('groupStatus')
+                    .value;
+
+            // ======================================
+            // GRUPO ANTERIOR
+            // ======================================
+            const oldGroup =
+                groupId
+                    ? groups.find(
+                        group =>
+                            String(group.id) ===
+                            String(groupId)
+                    )
+                    : null;
+
+            const oldName =
+                String(
+                    oldGroup?.nombre || ''
+                ).trim();
+
+            // ======================================
+            // VALIDAR NOMBRE
+            // ======================================
+            if (!nombre) {
+
+                mostrarNotificacion(
+                    '⚠️ Escriba el nombre del grupo',
+                    'warning'
+                );
+
+                return;
+            }
+
+            // ======================================
+            // EVITAR NOMBRE DUPLICADO
+            // ======================================
+            const duplicate =
+                groups.some(group => {
+
+                    const currentName =
+                        String(
+                            group.nombre || ''
+                        )
+                            .trim()
+                            .toLowerCase();
+
+                    return (
+                        currentName ===
+                            nombre.toLowerCase()
+                        &&
+                        String(group.id) !==
+                            String(groupId)
+                    );
+                });
+
+            if (duplicate) {
+
+                mostrarNotificacion(
+                    '⚠️ Ya existe un grupo con ese nombre',
+                    'warning'
+                );
+
+                return;
+            }
+
+            // ======================================
+            // DATOS DEL GRUPO
+            // ======================================
+            const groupData = {
+                id:
+                    groupId ||
+                    `group_${Date.now()}`,
+
+                nombre:
+                    nombre,
+
+                estado:
+                    estado
+            };
+
+            try {
+
+                // ==================================
+                // 1. GUARDAR GRUPO
+                // ==================================
+                await saveGroupToFirestore(
+                    groupData
+                );
+
+                // ==================================
+                // 2. DETECTAR CAMBIO DE NOMBRE
+                // ==================================
+                const nameChanged =
+                    oldGroup &&
+                    oldName &&
+                    oldName !== nombre;
+
+                // ==================================
+                // 3. PROPAGAR CAMBIO
+                // ==================================
+                if (nameChanged) {
+
+                    console.log(
+                        '🔄 Renombrando grupo:',
+                        {
+                            anterior: oldName,
+                            nuevo: nombre
+                        }
+                    );
+
+                    // ==================================
+                    // CLASES / SUBGRUPOS
+                    // ==================================
+                    const affectedClasses =
+                        classes.filter(
+                            clase =>
+                                String(
+                                    clase.grupo || ''
+                                ).trim() === oldName
+                        );
+
+                    console.log(
+                        '📚 Subgrupos afectados:',
+                        affectedClasses.length
+                    );
+
+                    for (
+                        const clase
+                        of affectedClasses
+                    ) {
+
+                        const updatedClass = {
+                            ...clase,
+                            grupo: nombre
+                        };
+
+                        await saveClassToFirestore(
+                            updatedClass
+                        );
+                    }
+
+                    // ==================================
+                    // ESTUDIANTES
+                    // ==================================
+                    const affectedStudents =
+                        students.filter(
+                            student => {
+
+                                const enrollments =
+                                    getStudentEnrollments(
+                                        student
+                                    );
+
+                                return enrollments.some(
+                                    enrollment =>
+                                        String(
+                                            enrollment.grupo ||
+                                            ''
+                                        ).trim() ===
+                                        oldName
+                                );
+                            }
+                        );
+
+                    console.log(
+                        '👤 Estudiantes afectados:',
+                        affectedStudents.length
+                    );
+
+                    for (
+                        const student
+                        of affectedStudents
+                    ) {
+
+                        // ==============================
+                        // NUEVO MODELO
+                        // student.inscripciones[]
+                        // ==============================
+                        let updatedEnrollments =
+                            getStudentEnrollments(
+                                student
+                            )
+                            .map(
+                                enrollment => ({
+                                    grupo:
+                                        String(
+                                            enrollment.grupo ||
+                                            ''
+                                        ).trim() ===
+                                        oldName
+                                            ? nombre
+                                            : enrollment.grupo,
+
+                                    subgrupo:
+                                        enrollment.subgrupo
+                                })
+                            );
+
+                        updatedEnrollments =
+                            normalizeStudentEnrollments(
+                                updatedEnrollments
+                            );
+
+                        const updatedStudent = {
+                            ...student,
+
+                            inscripciones:
+                                updatedEnrollments
+                        };
+
+                        // ==============================
+                        // COMPATIBILIDAD LEGACY
+                        // ==============================
+                        if (
+                            String(
+                                student.grupo || ''
+                            ).trim() === oldName
+                        ) {
+                            updatedStudent.grupo =
+                                nombre;
+                        }
+
+                        await saveStudentToFirestore(
+                            updatedStudent
+                        );
+                    }
+
+                    console.log(
+                        '✅ Referencias del grupo actualizadas:',
+                        {
+                            anterior:
+                                oldName,
+
+                            nuevo:
+                                nombre,
+
+                            subgrupos:
+                                affectedClasses.length,
+
+                            estudiantes:
+                                affectedStudents.length
+                        }
+                    );
+                }
+
+                // ==================================
+                // 4. RECARGAR FUENTES FIRESTORE
+                //
+                // Importante:
+                // Primero grupos, luego clases,
+                // luego estudiantes.
+                // ==================================
+                await loadGroupsFromFirestore();
+
+                await loadClassesFromFirestore();
+
+                await loadStudentsFromFirestore();
+
+                // ==================================
+                // 5. ACTUALIZAR SELECTORES
+                // ==================================
+                if (
+                    typeof loadAttendanceClasses ===
+                    'function'
+                ) {
+                    loadAttendanceClasses();
+                }
+
+                if (
+                    typeof loadGroupOptions ===
+                    'function'
+                ) {
+                    loadGroupOptions();
+                }
+
+                if (
+                    typeof loadClassGroups ===
+                    'function'
+                ) {
+                    loadClassGroups();
+                }
+
+                if (
+                    typeof loadFinanceGroups ===
+                    'function'
+                ) {
+                    loadFinanceGroups();
+                }
+
+                // ==================================
+                // 6. LIMPIAR FORMULARIO
+                // ==================================
+                groupForm.reset();
+
+                document
+                    .getElementById('groupId')
+                    .value = '';
+
+                // ==================================
+                // 7. NOTIFICACION
+                // ==================================
+                if (nameChanged) {
+
+                    mostrarNotificacion(
+                        `✅ Grupo "${oldName}" actualizado a "${nombre}" y referencias sincronizadas`,
+                        'success'
+                    );
+
+                }
+                else {
+
+                    mostrarNotificacion(
+                        oldGroup
+                            ? '✅ Grupo actualizado en Firestore'
+                            : '✅ Grupo creado en Firestore',
+                        'success'
+                    );
+                }
+
+            }
+            catch (error) {
+
+                console.error(
+                    '❌ Error guardando o sincronizando grupo:',
+                    error
+                );
+
+                mostrarNotificacion(
+                    '❌ No se pudo completar la actualización del grupo',
+                    'error'
+                );
+            }
+        }
+    );
 }
 // CLASES
 
