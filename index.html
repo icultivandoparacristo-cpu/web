@@ -1137,39 +1137,91 @@ IDENTIDAD CULTIVO SYSTEM
 }
 
 /* ==========================================
-   AJUSTES MOVILES
+   AJUSTE MOVIL - PASE DE LISTA
 ========================================== */
-
 @media (max-width: 600px) {
+
+    /* Tabla */
+    #attendanceTable {
+        width: 100%;
+        table-layout: fixed;
+    }
 
     #attendanceTable th,
     #attendanceTable td {
-        padding: 8px 5px;
+        padding: 6px 4px;
     }
 
-    #attendanceTable .text-left {
-        min-width: 125px;
+    /* Columna estudiante */
+    #attendanceTable th:first-ch*ld,
+    #attendanceTable td:first-child {
+        width: 36%;
     }
 
+    /* Columna asistencia */
+    #attendanceTable th:last-chi*d,
+    #attendanceTable td:last-child {
+        width: 64%;
+    }
+
+    /* Nombre del estudiante */
+    #attendanceTable td:first-ch*ld {
+        font-size: 13px;
+      line-height: 1.18;
+        word-break: normal;
+        overflow-wrap: break-word;
+    }
+
+    /* Contenedor de los 4 botones */
     .attendance-touch-controls {
-        min-width: 220px;
-        max-width: 260px;
-        gap: 5px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+
+        gap: 4px;
+
+        margin: 0;
+        padding: 0;
     }
 
+    /* Botones */
     .attendance-touch-btn {
-        min-width: 48px;
-        min-height: 54px;
-        padding: 4px 3px !important;
-        border-radius: 9px;
+        min-width: 0;
+        width: 100% !important;
+
+        min-height: 46px;
+        height: 46px;
+
+        padding: 3px 2px !important;
+
+        border-width: 2px;
+        border-radius: 8px;
+
+        gap: 1px;
     }
 
+    /* Iconos */
     .attendance-touch-btn .att-icon {
-        font-size: 20px;
+        font-size: 17px;
+        line-height: 18px;
     }
 
+    /* P / A / E / Part. */
     .attendance-touch-btn .att-label {
         font-size: 9px;
+        line-height: 10px;
+        white-space: nowrap;
+    }
+
+    /* Celda que contiene los botones */
+    #attendanceTable .att-cell {
+        padding-left: 5px;
+        padding-right: 5px;
+
+        overflow: hidden;
     }
 }
 
