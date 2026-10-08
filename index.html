@@ -25957,66 +25957,174 @@ function migrateLegacyAttendance() {
     }
 
 }
+// ==========================================
+// ACTUALIZAR PARTICIPACION
+// Compatible con boton tactil
+// ==========================================
 async function updateAttPart(
     studentId,
     classId,
     fecha,
-    checked
+    newPart
 ) {
-
-    // ==========================================
-    // VALIDAR
-    // ==========================================
-
+    // ======================================
+    // VALIDACION BASICA
+    // ======================================
     if (
-        studentId === undefined ||
-        studentId === null ||
-        classId === undefined ||
-        classId === null ||
+        !studentId ||
+        !classId ||
         !fecha
     ) {
-        return;
-    }
-
-
-    // ==========================================
-    // NUEVO MOTOR
-    // ==========================================
-
-    const updated =
-        setStudentAttendanceParticipation(
-            studentId,
-            classId,
-            fecha,
-            checked
+        console.error(
+            '❌ Datos incompletos para participación:',
+            {
+                studentId,
+                classId,
+                fecha,
+                newPart
+            }
         );
-
-
-    if (!updated) {
-
-        mostrarNotificacion(
-            '⚠️ Solo un estudiante presente puede tener participación',
-            'warning'
-        );
-
-        renderAttendanceTable();
 
         return;
     }
 
+    try {
+        // ==================================
+        // OBTENER REGISTRO ACTUAL
+        // ==================================
+        const current =
+            getStudentAttendance(
+                studentId,
+                classId,
+                fecha
+            );
 
-    // ==========================================
-    // GUARDAR
-    // ==========================================
+        if (
+            !current ||
+            current.status !== 'P'
+        ) {
+            console.warn(
+                '⚠️ La participación solo puede registrarse cuando el estudiante está Presente.'
+            );
 
-    await persistAttendanceRecord(studentId, classId, fecha);
+            return;
+        }
 
+        // ==================================
+        // NORMALIZAR VALOR
+        // ==================================
+        const finalPart =
+            newPart === true;
 
-    // ==========================================
-    // ACTUALIZAR RESUMEN
-    // ==========================================
+        // ==================================
+        // ASEGURAR ESTRUCTURA LOCAL
+        // ==================================
+        if (!attendanceData[studentId]) {
+            attendanceData[studentId] = {};
+        }
 
-    renderDashboardSimplified();
+        if (
+            !attendanceData[
+                studentId
+            ][classId]
+        ) {
+            attendanceData[
+                studentId
+            ][classId] = {};
+        }
+
+        // ==================================
+        // ACTUALIZAR ESTADO LOCAL
+        //
+        // IMPORTANTE:
+        // Conservamos P y solo modificamos
+        // participación.
+        // ==================================
+        attendanceData[
+            studentId
+        ][classId][fecha] = {
+            status: 'P',
+            part: finalPart
+        };
+
+        // ==================================
+        // PERSISTIR EN FIRESTORE
+        // ==================================
+        if (
+            typeof persistAttendanceRecord ===
+            'function'
+        ) {
+            await persistAttendanceRecord(
+                studentId,
+                classId,
+                fecha
+            );
+        }
+
+        // ==================================
+        // COMPROBAR ESTADO FINAL
+        // ==================================
+        const saved =
+            getStudentAttendance(
+                studentId,
+                classId,
+                fecha
+            );
+
+        console.log(
+            '⭐ Participación actualizada:',
+            {
+                studentId,
+                classId,
+                fecha,
+                status: saved?.status,
+                part: saved?.part
+            }
+        );
+
+        // ==================================
+        // ACTUALIZAR VISUALMENTE LA TABLA
+        //
+        // Esto hace que renderAttendanceTable
+        // vuelva a evaluar:
+        //
+        // status === P && part === true
+        //
+        // y agregue o quite la clase active.
+        // ==================================
+        if (
+            typeof renderAttendanceTable ===
+            'function'
+        ) {
+            renderAttendanceTable();
+        }
+
+        // ==================================
+        // ACTUALIZAR TARJETAS
+        // ==================================
+        if (
+            typeof renderDashboardSimplified ===
+            'function'
+        ) {
+            renderDashboardSimplified();
+        }
+
+    } catch (error) {
+        console.error(
+            '❌ Error actualizando participación:',
+            error
+        );
+
+        if (
+            typeof mostrarNotificacion ===
+            'function'
+        ) {
+            mostrarNotificacion(
+                'No se pudo actualizar la participación.',
+                'error'
+            );
+        }
+    }
 }
 // ==========================================
 // ACTUALIZAR ESTADO DE ASISTENCIA
