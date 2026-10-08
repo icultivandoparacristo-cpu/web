@@ -23848,32 +23848,46 @@ function renderStudentTable() {
 
                 <td>
 
-                    <button
-                        class="btn-edit"
-                        onclick="
-                            editStudent(
-                                ${JSON.stringify(String(student.id))}
-                            )
-                        ">
-
-                        Editar
-
-                    </button>
+    <button
+        type="button"
+        class="btn-edit"
+        onclick='editStudent(${JSON.stringify(String(student.id))})'
+    >
+        Editar
+    </button>
 
 
-                    <button
-                        class="btn-delete"
-                        onclick="
-                            deleteStudent(
-                                ${JSON.stringify(String(student.id))}
-                            )
-                        ">
+    <button
+        type="button"
+        class="btn-status"
+        onclick='toggleStudentStatus(${JSON.stringify(String(student.id))})'
+        style="
+            background:
+                ${
+                    student.estado === 'Activo'
+                        ? '#e67e22'
+                        : '#27ae60'
+                };
+            color:white;
+        "
+    >
+        ${
+            student.estado === 'Activo'
+                ? '🔒 Inactivar'
+                : '🔓 Activar'
+        }
+    </button>
 
-                        Borrar
 
-                    </button>
+    <button
+        type="button"
+        class="btn-delete"
+        onclick='deleteStudent(${JSON.stringify(String(student.id))})'
+    >
+        Borrar
+    </button>
 
-                </td>
+</td>
             `;
 
 
@@ -23987,7 +24001,7 @@ async function toggleStudentStatus(studentId) {
         // REFRESCAR TABLA
         // ======================================
 
-        renderStudents();
+        renderStudentTable();
 
         mostrarNotificacion(
             newStatus === 'Activo'
