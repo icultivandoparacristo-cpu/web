@@ -25153,44 +25153,37 @@ async function toggleAttendanceParticipation(
                      PARTICIPACION
                 ========================== -->
                 <button
-                    type="button"
-                    class="
-                        attendance-touch-btn
-                        status-participation
-                        ${participated ? 'active' : ''}
-                    "
-                    onclick="
-                        updateAttPart(
-                            '${safeStudentId}',
-                            '${safeClassId}',
-                            '${safeDate}',
-                            ${participated ? 'false' : 'true'}
-                        )
-                    "
-                    ${
-                        status !== 'P'
-                            ? 'disabled'
-                            : ''
-                    }
-                    aria-pressed="${
-                        participated
-                            ? 'true'
-                            : 'false'
-                    }"
-                    title="${
-                        status === 'P'
-                            ? 'Participación'
-                            : 'Primero marque al estudiante como Presente'
-                    }"
-                >
-                    <span class="att-icon">
-                        ⭐
-                    </span>
+                        type="button"
+                        class="
+                            attendance-touch-btn
+                            status-participation
+                            ${participated ? 'active' : ''}
+                        "
+                        onclick="
+                            updateAttPart(
+                                '${safeStudentId}',
+                                '${safeClassId}',
+                                '${safeDate}',
+                                ${participated ? 'false' : 'true'},
+                                this
+                            )
+                        "
+                        ${status !== 'P' ? 'disabled' : ''}
+                        aria-pressed="${participated ? 'true' : 'false'}"
+                        title="${
+                            status === 'P'
+                                ? 'Participación'
+                                : 'Primero marque al estudiante como Presente'
+                        }"
+                    >
+                        <span class="att-icon">
+                            ⭐
+                        </span>
 
-                    <span class="att-label">
-                        Part.
-                    </span>
-                </button>
+                        <span class="att-label">
+                            Part.
+                        </span>
+                    </button>
 
             </div>
         `;
@@ -25961,14 +25954,19 @@ function migrateLegacyAttendance() {
 // ACTUALIZAR PARTICIPACION
 // Compatible con boton tactil
 // ==========================================
+// ==========================================
+// ACTUALIZAR PARTICIPACION
+// Boton tactil con actualizacion inmediata
+// ==========================================
 async function updateAttPart(
     studentId,
     classId,
     fecha,
-    newPart
+    newPart,
+    button = null
 ) {
     // ======================================
-    // VALIDACION BASICA
+    // VALIDACION
     // ======================================
     if (
         !studentId ||
@@ -25976,7 +25974,7 @@ async function updateAttPart(
         !fecha
     ) {
         console.error(
-            '❌ Datos incompletos para participación:',
+            'Datos incompletos para participacion:',
             {
                 studentId,
                 classId,
@@ -25990,7 +25988,7 @@ async function updateAttPart(
 
     try {
         // ==================================
-        // OBTENER REGISTRO ACTUAL
+        // REGISTRO ACTUAL
         // ==================================
         const current =
             getStudentAttendance(
@@ -25999,22 +25997,46 @@ async function updateAttPart(
                 fecha
             );
 
+        // ==================================
+        // SOLO PRESENTES
+        // ==================================
         if (
             !current ||
             current.status !== 'P'
         ) {
             console.warn(
-                '⚠️ La participación solo puede registrarse cuando el estudiante está Presente.'
+                'La participacion solo puede registrarse para estudiantes presentes.'
             );
 
             return;
         }
 
         // ==================================
-        // NORMALIZAR VALOR
+        // NORMALIZAR NUEVO VALOR
         // ==================================
         const finalPart =
             newPart === true;
+
+        // ==================================
+        // ACTUALIZACION VISUAL INMEDIATA
+        // ==================================
+        if (button) {
+
+            button.classList.toggle(
+                'active',
+                finalPart
+            );
+
+            button.setAttribute(
+                'aria-pressed',
+                finalPart
+                    ? 'true'
+                    : 'false'
+            );
+
+            // Evitar doble clic mientras guarda
+            button.disabled = true;
+        }
 
         // ==================================
         // ASEGURAR ESTRUCTURA LOCAL
@@ -26034,11 +26056,7 @@ async function updateAttPart(
         }
 
         // ==================================
-        // ACTUALIZAR ESTADO LOCAL
-        //
-        // IMPORTANTE:
-        // Conservamos P y solo modificamos
-        // participación.
+        // ACTUALIZAR MEMORIA
         // ==================================
         attendanceData[
             studentId
@@ -26062,7 +26080,7 @@ async function updateAttPart(
         }
 
         // ==================================
-        // COMPROBAR ESTADO FINAL
+        // COMPROBAR ESTADO GUARDADO
         // ==================================
         const saved =
             getStudentAttendance(
@@ -26072,7 +26090,7 @@ async function updateAttPart(
             );
 
         console.log(
-            '⭐ Participación actualizada:',
+            '⭐ Participacion actualizada:',
             {
                 studentId,
                 classId,
@@ -26083,24 +26101,31 @@ async function updateAttPart(
         );
 
         // ==================================
-        // ACTUALIZAR VISUALMENTE LA TABLA
-        //
-        // Esto hace que renderAttendanceTable
-        // vuelva a evaluar:
-        //
-        // status === P && part === true
-        //
-        // y agregue o quite la clase active.
+        // SINCRONIZAR BOTON CON ESTADO FINAL
         // ==================================
-        if (
-            typeof renderAttendanceTable ===
-            'function'
-        ) {
-            renderAttendanceTable();
+        if (button) {
+
+            const isActive =
+                saved?.status === 'P' &&
+                saved?.part === true;
+
+            button.classList.toggle(
+                'active',
+                isActive
+            );
+
+            button.setAttribute(
+                'aria-pressed',
+                isActive
+                    ? 'true'
+                    : 'false'
+            );
+
+            button.disabled = false;
         }
 
         // ==================================
-        // ACTUALIZAR TARJETAS
+        // ACTUALIZAR DASHBOARD
         // ==================================
         if (
             typeof renderDashboardSimplified ===
@@ -26110,10 +26135,42 @@ async function updateAttPart(
         }
 
     } catch (error) {
+
         console.error(
-            '❌ Error actualizando participación:',
+            'Error actualizando participacion:',
             error
         );
+
+        // ==================================
+        // SI FALLA, RESTAURAR EL BOTON
+        // ==================================
+        if (button) {
+
+            const current =
+                getStudentAttendance(
+                    studentId,
+                    classId,
+                    fecha
+                );
+
+            const isActive =
+                current?.status === 'P' &&
+                current?.part === true;
+
+            button.classList.toggle(
+                'active',
+                isActive
+            );
+
+            button.setAttribute(
+                'aria-pressed',
+                isActive
+                    ? 'true'
+                    : 'false'
+            );
+
+            button.disabled = false;
+        }
 
         if (
             typeof mostrarNotificacion ===
