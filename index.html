@@ -15323,16 +15323,16 @@ function buildGroupSubgroupReport(
             )
             : 0;
 
-    const participacion =
-        presentes > 0
-            ? Number(
-                (
-                    participaciones *
-                    100 /
-                    presentes
-                ).toFixed(1)
-            )
-            : null;
+   const participacion =
+    presentes > 0
+        ? Number(
+            (
+                participaciones *
+                100 /
+                presentes
+            ).toFixed(1)
+        )
+        : 0;
 
     const totalSesiones =
         sessions.length;
@@ -15511,7 +15511,23 @@ function renderGroupReportCard(
     ) {
         return;
     }
+// ==========================================
+// NORMALIZAR PORCENTAJES
+// Nunca mostrar null / undefined / NaN
+// ==========================================
+const asistencia =
+    Number.isFinite(
+        Number(report.asistencia)
+    )
+        ? Number(report.asistencia)
+        : 0;
 
+const participacion =
+    Number.isFinite(
+        Number(report.participacion)
+    )
+        ? Number(report.participacion)
+        : 0;
 
     // ==========================================
     // COLOR PARTICIPACIÓN
@@ -15520,19 +15536,19 @@ function renderGroupReportCard(
         '#e74c3c';
 
     if (
-        report.participacion >= 80
+         participacion >= 80
     ) {
         colorParticipacion =
             '#27ae60';
     }
     else if (
-        report.participacion >= 60
+       participacion >= 60
     ) {
         colorParticipacion =
             '#f1c40f';
     }
     else if (
-        report.participacion >= 40
+        participacion >= 40
     ) {
         colorParticipacion =
             '#e67e22';
@@ -15565,7 +15581,7 @@ function renderGroupReportCard(
                     <tr>
 
                         <td>
-                           ${student.estudiante || 'Sin nombre'}
+                            ${student.estudiante || 'Sin nombre'}
                         </td>
 
                         <td>
@@ -15589,11 +15605,27 @@ function renderGroupReportCard(
                         </td>
 
                         <td>
-                            ${student.asistencia}%
+                            ${
+                                Number.isFinite(
+                                    Number(student.asistencia)
+                                )
+                                    ? Number(
+                                        student.asistencia
+                                    ).toFixed(1)
+                                    : '0.0'
+                            }%
                         </td>
 
                         <td>
-                            ${student.participacion}%
+                            ${
+                                Number.isFinite(
+                                    Number(student.participacion)
+                                )
+                                    ? Number(
+                                        student.participacion
+                                    ).toFixed(1)
+                                    : '0.0'
+                            }%
                         </td>
 
                     </tr>
@@ -15699,7 +15731,7 @@ function renderGroupReportCard(
                         color:#2980b9;
                     "
                 >
-                    ${report.asistencia}%
+                    ${asistencia}%
                 </div>
 
                 <div
@@ -15745,7 +15777,7 @@ function renderGroupReportCard(
                         color:${colorParticipacion};
                     "
                 >
-                    ${report.participacion}%
+                    ${participacion}%
                 </div>
 
                 <div
