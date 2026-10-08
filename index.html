@@ -6762,15 +6762,72 @@ async function applyFirebaseAuthState(firebaseUser) {
 }
 
 onAuthStateChanged(auth, async (firebaseUser) => {
-    await applyFirebaseAuthState(firebaseUser);
-    if (firebaseUser) {
-        setTimeout(async () => {
-            if (window.loadGroupsFromFirestore) await window.loadGroupsFromFirestore();
-            if (window.loadClassesFromFirestore) await window.loadClassesFromFirestore();
-            if (window.loadStudentsFromFirestore) await window.loadStudentsFromFirestore();
-            if (window.loadClassSessionsFromFirestore) await window.loadClassSessionsFromFirestore();
-            if (window.loadAttendanceFromFirestore) await window.loadAttendanceFromFirestore();
-        }, 0);
+
+    await applyFirebaseAuthState(
+        firebaseUser
+    );
+
+    // ======================================
+    // SOLO CONTINUAR SI CULTIVO
+    // AUTORIZÓ AL USUARIO
+    // ======================================
+    if (
+        !firebaseUser ||
+        !currentUser ||
+        currentUser.activo !== true
+    ) {
+        console.warn(
+            '⛔ Usuario no autorizado. Se detiene la carga de datos.'
+        );
+
+        return;
+    }
+
+    try {
+
+        if (
+            window.loadGroupsFromFirestore
+        ) {
+            await window.loadGroupsFromFirestore();
+        }
+
+        if (
+            window.loadClassesFromFirestore
+        ) {
+            await window.loadClassesFromFirestore();
+        }
+
+        if (
+            window.loadStudentsFromFirestore
+        ) {
+            await window.loadStudentsFromFirestore();
+        }
+
+        if (
+            window.loadClassSessionsFromFirestore
+        ) {
+            await window.loadClassSessionsFromFirestore();
+        }
+
+        if (
+            window.loadAttendanceFromFirestore
+        ) {
+            await window.loadAttendanceFromFirestore();
+        }
+
+        console.log(
+            '✅ Datos cargados correctamente para:',
+            currentUser.username,
+            '(' + currentUser.role + ')'
+        );
+
+    }
+    catch (error) {
+
+        console.error(
+            '❌ Error cargando datos iniciales:',
+            error
+        );
     }
 });
 console.log('✅ Firebase + Authentication conectados');
