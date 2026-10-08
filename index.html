@@ -26020,7 +26020,7 @@ async function updateAttPart(
 }
 // ==========================================
 // ACTUALIZAR ESTADO DE ASISTENCIA
-// Compatible con botones tactiles P / A / E
+// Botones tactiles P / A / E
 // ==========================================
 async function updateAttStatus(
     studentId,
@@ -26029,11 +26029,15 @@ async function updateAttStatus(
     newStatus
 ) {
     // ======================================
-    // VALIDACION BASICA
+    // VALIDACION
     // ======================================
-    if (!studentId || !classId || !fecha) {
+    if (
+        !studentId ||
+        !classId ||
+        !fecha
+    ) {
         console.error(
-            'Datos incompletos al actualizar asistencia:',
+            '❌ Datos incompletos:',
             {
                 studentId,
                 classId,
@@ -26041,23 +26045,23 @@ async function updateAttStatus(
                 newStatus
             }
         );
-
         return;
     }
 
-    // ======================================
-    // VALIDAR ESTADO
-    // ======================================
-    if (!['P', 'A', 'E'].includes(newStatus)) {
+    if (
+        !['P', 'A', 'E'].includes(
+            newStatus
+        )
+    ) {
         console.error(
-            'Estado de asistencia no valido:',
+            '❌ Estado no valido:',
             newStatus
         );
-
         return;
     }
 
     try {
+
         // ==================================
         // REGISTRO ACTUAL
         // ==================================
@@ -26072,11 +26076,10 @@ async function updateAttStatus(
             };
 
         // ==================================
-        // SELECCION EXCLUSIVA P / A / E
+        // NUEVO ESTADO
         //
-        // Si toca nuevamente el estado
-        // seleccionado, vuelve a
-        // Sin registrar.
+        // Pulsar nuevamente el mismo boton
+        // deja al estudiante Sin registrar.
         // ==================================
         const finalStatus =
             current.status === newStatus
@@ -26084,54 +26087,109 @@ async function updateAttStatus(
                 : newStatus;
 
         // ==================================
-        // ACTUALIZAR ESTADO
+        // NUEVA PARTICIPACION
         //
-        // Se usa la funcion existente de
-        // Cultivo System para mantener la
-        // ruta actual de persistencia.
+        // Regla:
+        //
+        // P -> conserva participacion actual
+        // A -> false
+        // E -> false
+        // Sin registrar -> false
         // ==================================
-        await setStudentAttendanceStatus(
-            studentId,
-            classId,
-            fecha,
-            finalStatus
+        const finalPart =
+            finalStatus === 'P'
+                ? current.part === true
+                : false;
+
+        console.log(
+            '🔄 Cambio asistencia:',
+            {
+                antes: {
+                    status:
+                        current.status || '',
+                    part:
+                        current.part === true
+                },
+                despues: {
+                    status:
+                        finalStatus,
+                    part:
+                        finalPart
+                }
+            }
         );
 
         // ==================================
-        // PARTICIPACION
-        //
-        // Si deja de estar Presente,
-        // participacion debe quedar en false.
+        // ASEGURAR ESTRUCTURA LOCAL
         // ==================================
-        if (finalStatus !== 'P') {
-            const updated =
-                getStudentAttendance(
-                    studentId,
-                    classId,
-                    fecha
-                );
+        if (!attendanceData[studentId]) {
+            attendanceData[studentId] = {};
+        }
 
-            if (
-                updated &&
-                updated.part === true
-            ) {
-                await setStudentAttendancePart(
-                    studentId,
-                    classId,
-                    fecha,
-                    false
-                );
-            }
+        if (
+            !attendanceData[
+                studentId
+            ][classId]
+        ) {
+            attendanceData[
+                studentId
+            ][classId] = {};
         }
 
         // ==================================
-        // REFRESCAR PASE DE LISTA
+        // ACTUALIZAR STATUS + PART JUNTOS
         // ==================================
-        renderAttendanceTable();
+        attendanceData[
+            studentId
+        ][classId][fecha] = {
+            status: finalStatus,
+            part: finalPart
+        };
 
         // ==================================
-        // REFRESCAR DASHBOARD
+        // PERSISTIR REGISTRO COMPLETO
         // ==================================
+        if (
+            typeof persistAttendanceRecord ===
+            'function'
+        ) {
+            await persistAttendanceRecord(
+                studentId,
+                classId,
+                fecha
+            );
+        }
+        else {
+            console.warn(
+                '⚠️ persistAttendanceRecord no esta disponible'
+            );
+        }
+
+        // ==================================
+        // LEER RESULTADO FINAL
+        // ==================================
+        const saved =
+            getStudentAttendance(
+                studentId,
+                classId,
+                fecha
+            );
+
+        console.log(
+            '✅ Asistencia final:',
+            saved
+        );
+
+        // ==================================
+        // RENDERIZAR UNA SOLA VEZ
+        // ==================================
+        if (
+            typeof renderAttendanceTable ===
+            'function'
+        ) {
+            renderAttendanceTable();
+        }
+
         if (
             typeof renderDashboardSimplified ===
             'function'
@@ -26139,17 +26197,8 @@ async function updateAttStatus(
             renderDashboardSimplified();
         }
 
-        console.log(
-            '✅ Estado de asistencia actualizado:',
-            {
-                studentId,
-                classId,
-                fecha,
-                status: finalStatus
-            }
-        );
-
     } catch (error) {
+
         console.error(
             '❌ Error actualizando asistencia:',
             error
@@ -26166,7 +26215,6 @@ async function updateAttStatus(
         }
     }
 }
-
 // ==========================================
 // DASHBOARD SIMPLIFICADO DE ASISTENCIA
 // ==========================================
