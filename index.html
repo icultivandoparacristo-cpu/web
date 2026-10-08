@@ -6151,11 +6151,10 @@ async function applyFirebaseAuthState(firebaseUser) {
         );
 
     // ==========================================
-    // NO HAY USUARIO AUTENTICADO
+    // FUNCION AUXILIAR:
+    // MOSTRAR LOGIN Y OCULTAR APLICACION
     // ==========================================
-    if (!firebaseUser) {
-
-        window.clearCultivoFirebaseUser?.();
+    const showLogin = () => {
 
         if (appContainer) {
             appContainer.style.display = 'none';
@@ -6168,103 +6167,597 @@ async function applyFirebaseAuthState(firebaseUser) {
         if (loginView) {
             loginView.style.display = 'flex';
         }
+    };
+
+
+    // ==========================================
+    // FUNCION AUXILIAR:
+    // MOSTRAR APLICACION
+    // ==========================================
+    const showApp = () => {
+
+        if (loginView) {
+            loginView.style.display = 'none';
+        }
+
+        if (passwordChangeView) {
+            passwordChangeView.style.display = 'none';
+        }
+
+        if (appContainer) {
+            appContainer.style.display = 'block';
+        }
+    };
+
+
+    // ==========================================
+    // NO HAY USUARIO FIREBASE AUTENTICADO
+    // ==========================================
+    if (!firebaseUser) {
+
+        console.log(
+            'ℹ️ No hay usuario autenticado en Firebase.'
+        );
+
+        currentUser = null;
+
+        window.clearCultivoFirebaseUser?.();
+
+        showLogin();
 
         return;
     }
 
+
     // ==========================================
-    // NORMALIZAR CORREO
+    // DATOS FIREBASE
     // ==========================================
     const authenticatedEmail =
         String(
             firebaseUser.email || ''
         )
-        .trim()
-        .toLowerCase();
+            .trim()
+            .toLowerCase();
+
+    const firebaseUid =
+        String(
+            firebaseUser.uid || ''
+        ).trim();
 
     const authorizedEmail =
-        SUPERADMIN_EMAIL
-        .trim()
-        .toLowerCase();
+        String(
+            SUPERADMIN_EMAIL || ''
+        )
+            .trim()
+            .toLowerCase();
+
+
+    console.log(
+        '🔐 Usuario autenticado en Firebase:',
+        {
+            uid: firebaseUid,
+            email: authenticatedEmail
+        }
+    );
+
 
     // ==========================================
-    // VALIDAR SUPERADMIN AUTORIZADO
+    // VALIDACIONES BASICAS
     // ==========================================
     if (
-        !authenticatedEmail ||
-        authenticatedEmail !== authorizedEmail
+        !firebaseUid ||
+        !authenticatedEmail
     ) {
 
         console.warn(
-            '⛔ Acceso Firebase rechazado:',
-            authenticatedEmail || 'sin correo'
+            '⛔ Usuario Firebase sin UID o correo válido.'
         );
 
-        // No permitir que se vea la aplicación
+        currentUser = null;
+
         window.clearCultivoFirebaseUser?.();
 
-        if (appContainer) {
-            appContainer.style.display = 'none';
-        }
+        showLogin();
 
-        if (passwordChangeView) {
-            passwordChangeView.style.display = 'none';
-        }
-
-        if (loginView) {
-            loginView.style.display = 'flex';
-        }
-
-        // Cerrar inmediatamente la sesión Firebase
         try {
 
-            await signOut(auth);
+            if (
+                window.firebaseAuthApi &&
+                window.auth
+            ) {
+                await window.firebaseAuthApi.signOut(
+                    window.auth
+                );
+            }
 
-        } catch (error) {
+        }
+        catch (error) {
 
             console.error(
-                '❌ Error cerrando sesión no autorizada:',
+                'Error cerrando sesión Firebase:',
                 error
             );
         }
 
-        window.mostrarNotificacion?.(
-            '⛔ Esta cuenta no está autorizada para acceder a Cultivo System.',
-            'error'
+        return;
+    }
+
+
+    // ==========================================
+    // SUPERADMIN
+    //
+    // Mantiene el comportamiento seguro actual.
+    // El SuperAdmin NO depende de /users.
+    // ==========================================
+    if (
+        authenticatedEmail === authorizedEmail
+    ) {
+
+        currentUser =
+            toLocalSuperAdmin(
+                firebaseUser
+            );
+
+        window.setCultivoFirebaseUser?.(
+            firebaseUser
         );
+
+        console.log(
+            '✅ SuperAdmin Firebase autorizado:',
+            {
+                uid:
+                    firebaseUser.uid,
+
+                email:
+                    firebaseUser.email,
+
+                role:
+                    currentUser.role
+            }
+        );
+
+        showApp();
+
+
+        // ======================================
+        // ACTUALIZAR INFORMACION VISUAL
+        // ======================================
+        if (
+            typeof updateUserInfo ===
+            'function'
+        ) {
+            updateUserInfo();
+        }
+
+
+        // ======================================
+        // APLICAR PERMISOS EXISTENTES
+        // ======================================
+        if (
+            typeof applyRolePermissions ===
+            'function'
+        ) {
+            applyRolePermissions();
+        }
+
 
         return;
     }
 
-    // ==========================================
-    // SUPERADMIN AUTORIZADO
-    // ==========================================
-    console.log(
-        '✅ Superadmin Firebase autorizado:',
-        authenticatedEmail
-    );
 
-    window.applyCultivoFirebaseUser?.(
-        toLocalSuperAdmin(
+    // ==========================================
+    // USUARIO DIFERENTE DEL SUPERADMIN
+    //
+    // Buscar perfil en:
+    //
+    // /users/{firebaseUid}
+    // ==========================================
+    try {
+
+        // ======================================
+        // OBTENER API FIRESTORE
+        // ======================================
+        const api =
+            window.firestoreGroups ||
+            window.firestoreStudents ||
+            window.firestoreClasses;
+
+
+        if (
+            !window.db ||
+            !api ||
+            typeof api.doc !== 'function' ||
+            typeof api.getDoc !== 'function'
+        ) {
+
+            throw new Error(
+                'Firestore no está disponible para validar el perfil del usuario.'
+            );
+        }
+
+
+        // ======================================
+        // LEER PERFIL
+        // ======================================
+        const userRef =
+            api.doc(
+                window.db,
+                'users',
+                firebaseUid
+            );
+
+
+        const userSnapshot =
+            await api.getDoc(
+                userRef
+            );
+
+
+        // ======================================
+        // PERFIL NO EXISTE
+        // ======================================
+        if (!userSnapshot.exists()) {
+
+            console.warn(
+                '⛔ Usuario autenticado sin perfil en /users:',
+                {
+                    uid:
+                        firebaseUid,
+
+                    email:
+                        authenticatedEmail
+                }
+            );
+
+            currentUser = null;
+
+            window.clearCultivoFirebaseUser?.();
+
+            showLogin();
+
+
+            if (
+                typeof mostrarNotificacion ===
+                'function'
+            ) {
+                mostrarNotificacion(
+                    'Tu cuenta no está habilitada en Cultivo System.',
+                    'error'
+                );
+            }
+
+
+            try {
+
+                if (
+                    window.firebaseAuthApi &&
+                    window.auth
+                ) {
+                    await window.firebaseAuthApi.signOut(
+                        window.auth
+                    );
+                }
+
+            }
+            catch (signOutError) {
+
+                console.error(
+                    'Error cerrando sesión no autorizada:',
+                    signOutError
+                );
+            }
+
+
+            return;
+        }
+
+
+        // ======================================
+        // DATOS DEL PERFIL
+        // ======================================
+        const profile =
+            userSnapshot.data();
+
+
+        console.log(
+            '👤 Perfil Cultivo encontrado:',
+            {
+                uid:
+                    firebaseUid,
+
+                username:
+                    profile.username,
+
+                email:
+                    profile.email,
+
+                role:
+                    profile.role,
+
+                activo:
+                    profile.activo
+            }
+        );
+
+
+        // ======================================
+        // VALIDAR QUE ESTE ACTIVO
+        // ======================================
+        if (profile.activo !== true) {
+
+            console.warn(
+                '⛔ Usuario inactivo:',
+                authenticatedEmail
+            );
+
+            currentUser = null;
+
+            window.clearCultivoFirebaseUser?.();
+
+            showLogin();
+
+
+            if (
+                typeof mostrarNotificacion ===
+                'function'
+            ) {
+                mostrarNotificacion(
+                    'Tu usuario está inactivo.',
+                    'error'
+                );
+            }
+
+
+            try {
+
+                if (
+                    window.firebaseAuthApi &&
+                    window.auth
+                ) {
+                    await window.firebaseAuthApi.signOut(
+                        window.auth
+                    );
+                }
+
+            }
+            catch (signOutError) {
+
+                console.error(
+                    'Error cerrando usuario inactivo:',
+                    signOutError
+                );
+            }
+
+
+            return;
+        }
+
+
+        // ======================================
+        // VALIDAR UID DEL PERFIL
+        // ======================================
+        if (
+            profile.firebaseUid &&
+            String(profile.firebaseUid) !==
+                firebaseUid
+        ) {
+
+            console.error(
+                '⛔ El Firebase UID del perfil no coincide.'
+            );
+
+            currentUser = null;
+
+            window.clearCultivoFirebaseUser?.();
+
+            showLogin();
+
+            return;
+        }
+
+
+        // ======================================
+        // VALIDAR EMAIL DEL PERFIL
+        // ======================================
+        const profileEmail =
+            String(
+                profile.email || ''
+            )
+                .trim()
+                .toLowerCase();
+
+
+        if (
+            profileEmail &&
+            profileEmail !==
+                authenticatedEmail
+        ) {
+
+            console.error(
+                '⛔ El correo Firebase no coincide con el perfil de Cultivo System.'
+            );
+
+            currentUser = null;
+
+            window.clearCultivoFirebaseUser?.();
+
+            showLogin();
+
+            return;
+        }
+
+
+        // ======================================
+        // VALIDAR ROL
+        // ======================================
+        const allowedRoles = [
+            'maestro',
+            'registrador',
+            'admin',
+            'auditor',
+            'cumpleanos'
+        ];
+
+
+        const role =
+            String(
+                profile.role || ''
+            )
+                .trim()
+                .toLowerCase();
+
+
+        if (
+            !allowedRoles.includes(role)
+        ) {
+
+            console.error(
+                '⛔ Rol no autorizado:',
+                role
+            );
+
+            currentUser = null;
+
+            window.clearCultivoFirebaseUser?.();
+
+            showLogin();
+
+            return;
+        }
+
+
+        // ======================================
+        // CONSTRUIR currentUser
+        // ======================================
+        currentUser = {
+
+            id:
+                firebaseUid,
+
+            uid:
+                firebaseUid,
+
+            firebaseUid:
+                firebaseUid,
+
+            username:
+                String(
+                    profile.username ||
+                    authenticatedEmail
+                ),
+
+            email:
+                authenticatedEmail,
+
+            role:
+                role,
+
+            activo:
+                true,
+
+            authProvider:
+                'firebase'
+        };
+
+
+        // ======================================
+        // GUARDAR USUARIO FIREBASE ACTUAL
+        // ======================================
+        window.setCultivoFirebaseUser?.(
             firebaseUser
-        )
-    );
+        );
 
-    if (loginView) {
-        loginView.style.display = 'none';
+
+        console.log(
+            '✅ Usuario Cultivo autorizado:',
+            {
+                username:
+                    currentUser.username,
+
+                email:
+                    currentUser.email,
+
+                role:
+                    currentUser.role,
+
+                uid:
+                    currentUser.uid
+            }
+        );
+
+
+        // ======================================
+        // MOSTRAR APLICACION
+        // ======================================
+        showApp();
+
+
+        // ======================================
+        // ACTUALIZAR INFORMACION DEL USUARIO
+        // ======================================
+        if (
+            typeof updateUserInfo ===
+            'function'
+        ) {
+            updateUserInfo();
+        }
+
+
+        // ======================================
+        // APLICAR PERMISOS DE ROL EXISTENTES
+        // ======================================
+        if (
+            typeof applyRolePermissions ===
+            'function'
+        ) {
+            applyRolePermissions();
+        }
+
     }
+    catch (error) {
 
-    if (passwordChangeView) {
-        passwordChangeView.style.display = 'none';
-    }
+        console.error(
+            '❌ Error validando perfil de usuario:',
+            error
+        );
 
-    if (appContainer) {
-        appContainer.style.display = 'block';
-    }
+        currentUser = null;
 
-    if (userInfo) {
-        userInfo.textContent =
-            `👤 Usuario: ${authenticatedEmail} | 🔐 Rol: superadmin`;
+        window.clearCultivoFirebaseUser?.();
+
+        showLogin();
+
+
+        if (
+            typeof mostrarNotificacion ===
+            'function'
+        ) {
+            mostrarNotificacion(
+                'No se pudo validar tu perfil de usuario.',
+                'error'
+            );
+        }
+
+
+        try {
+
+            if (
+                window.firebaseAuthApi &&
+                window.auth
+            ) {
+                await window.firebaseAuthApi.signOut(
+                    window.auth
+                );
+            }
+
+        }
+        catch (signOutError) {
+
+            console.error(
+                'Error cerrando sesión:',
+                signOutError
+            );
+        }
     }
 }
 
