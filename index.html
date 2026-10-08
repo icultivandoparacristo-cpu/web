@@ -23859,28 +23859,6 @@ function renderStudentTable() {
 
     <button
         type="button"
-        class="btn-status"
-        onclick='toggleStudentStatus(${JSON.stringify(String(student.id))})'
-        style="
-            background:
-                ${
-                    student.estado === 'Activo'
-                        ? '#e67e22'
-                        : '#27ae60'
-                };
-            color:white;
-        "
-    >
-        ${
-            student.estado === 'Activo'
-                ? '🔒 Inactivar'
-                : '🔓 Activar'
-        }
-    </button>
-
-
-    <button
-        type="button"
         class="btn-delete"
         onclick='deleteStudent(${JSON.stringify(String(student.id))})'
     >
