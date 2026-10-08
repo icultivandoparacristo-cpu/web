@@ -25153,37 +25153,36 @@ async function toggleAttendanceParticipation(
                      PARTICIPACION
                 ========================== -->
                 <button
-                        type="button"
-                        class="
-                            attendance-touch-btn
-                            status-participation
-                            ${participated ? 'active' : ''}
-                        "
-                        onclick="
-                            updateAttPart(
-                                '${safeStudentId}',
-                                '${safeClassId}',
-                                '${safeDate}',
-                                ${participated ? 'false' : 'true'},
-                                this
-                            )
-                        "
-                        ${status !== 'P' ? 'disabled' : ''}
-                        aria-pressed="${participated ? 'true' : 'false'}"
-                        title="${
-                            status === 'P'
-                                ? 'Participación'
-                                : 'Primero marque al estudiante como Presente'
-                        }"
-                    >
-                        <span class="att-icon">
-                            ⭐
-                        </span>
+    type="button"
+    class="
+        attendance-touch-btn
+        status-participation
+        ${participated ? 'active' : ''}
+    "
+    onclick="
+        updateAttPart(
+            '${safeStudentId}',
+            '${safeClassId}',
+            '${safeDate}',
+            this
+        )
+    "
+    ${status !== 'P' ? 'disabled' : ''}
+    aria-pressed="${participated ? 'true' : 'false'}"
+    title="${
+        status === 'P'
+            ? 'Participación'
+            : 'Primero marque al estudiante como Presente'
+    }"
+>
+    <span class="att-icon">
+        ⭐
+    </span>
 
-                        <span class="att-label">
-                            Part.
-                        </span>
-                    </button>
+    <span class="att-label">
+        Part.
+    </span>
+</button>
 
             </div>
         `;
@@ -25958,28 +25957,27 @@ function migrateLegacyAttendance() {
 // ACTUALIZAR PARTICIPACION
 // Boton tactil con actualizacion inmediata
 // ==========================================
+// ==========================================
+// ACTUALIZAR PARTICIPACION
+// Alterna siempre desde el estado REAL actual
+// ==========================================
 async function updateAttPart(
     studentId,
     classId,
     fecha,
-    newPart,
     button = null
 ) {
-    // ======================================
-    // VALIDACION
-    // ======================================
     if (
         !studentId ||
         !classId ||
         !fecha
     ) {
         console.error(
-            'Datos incompletos para participacion:',
+            '❌ Datos incompletos para participación:',
             {
                 studentId,
                 classId,
-                fecha,
-                newPart
+                fecha
             }
         );
 
@@ -25987,9 +25985,10 @@ async function updateAttPart(
     }
 
     try {
-        // ==================================
-        // REGISTRO ACTUAL
-        // ==================================
+
+        // ======================================
+        // LEER ESTADO REAL ACTUAL
+        // ======================================
         const current =
             getStudentAttendance(
                 studentId,
@@ -25997,50 +25996,42 @@ async function updateAttPart(
                 fecha
             );
 
-        // ==================================
-        // SOLO PRESENTES
-        // ==================================
+        // ======================================
+        // SOLO PRESENTES PUEDEN PARTICIPAR
+        // ======================================
         if (
             !current ||
             current.status !== 'P'
         ) {
             console.warn(
-                'La participacion solo puede registrarse para estudiantes presentes.'
+                '⚠️ La participación solo puede registrarse para estudiantes presentes.'
             );
 
             return;
         }
 
-        // ==================================
-        // NORMALIZAR NUEVO VALOR
-        // ==================================
+        // ======================================
+        // ALTERNAR DESDE EL ESTADO REAL
+        //
+        // true  -> false
+        // false -> true
+        // ======================================
         const finalPart =
-            newPart === true;
+            current.part !== true;
 
-        // ==================================
-        // ACTUALIZACION VISUAL INMEDIATA
-        // ==================================
-        if (button) {
+        console.log(
+            '⭐ Cambio de participación:',
+            {
+                antes:
+                    current.part === true,
+                despues:
+                    finalPart
+            }
+        );
 
-            button.classList.toggle(
-                'active',
-                finalPart
-            );
-
-            button.setAttribute(
-                'aria-pressed',
-                finalPart
-                    ? 'true'
-                    : 'false'
-            );
-
-            // Evitar doble clic mientras guarda
-            button.disabled = true;
-        }
-
-        // ==================================
-        // ASEGURAR ESTRUCTURA LOCAL
-        // ==================================
+        // ======================================
+        // ACTUALIZAR MEMORIA
+        // ======================================
         if (!attendanceData[studentId]) {
             attendanceData[studentId] = {};
         }
@@ -26055,9 +26046,6 @@ async function updateAttPart(
             ][classId] = {};
         }
 
-        // ==================================
-        // ACTUALIZAR MEMORIA
-        // ==================================
         attendanceData[
             studentId
         ][classId][fecha] = {
@@ -26065,9 +26053,27 @@ async function updateAttPart(
             part: finalPart
         };
 
-        // ==================================
-        // PERSISTIR EN FIRESTORE
-        // ==================================
+        // ======================================
+        // ACTUALIZAR BOTON INMEDIATAMENTE
+        // ======================================
+        if (button) {
+
+            button.classList.toggle(
+                'active',
+                finalPart
+            );
+
+            button.setAttribute(
+                'aria-pressed',
+                finalPart
+                    ? 'true'
+                    : 'false'
+            );
+        }
+
+        // ======================================
+        // GUARDAR
+        // ======================================
         if (
             typeof persistAttendanceRecord ===
             'function'
@@ -26079,9 +26085,9 @@ async function updateAttPart(
             );
         }
 
-        // ==================================
-        // COMPROBAR ESTADO GUARDADO
-        // ==================================
+        // ======================================
+        // COMPROBAR ESTADO DEFINITIVO
+        // ======================================
         const saved =
             getStudentAttendance(
                 studentId,
@@ -26089,44 +26095,31 @@ async function updateAttPart(
                 fecha
             );
 
-        console.log(
-            '⭐ Participacion actualizada:',
-            {
-                studentId,
-                classId,
-                fecha,
-                status: saved?.status,
-                part: saved?.part
-            }
-        );
+        const savedPart =
+            saved?.status === 'P' &&
+            saved?.part === true;
 
-        // ==================================
-        // SINCRONIZAR BOTON CON ESTADO FINAL
-        // ==================================
+        // ======================================
+        // SINCRONIZAR BOTON CON EL RESULTADO
+        // ======================================
         if (button) {
-
-            const isActive =
-                saved?.status === 'P' &&
-                saved?.part === true;
 
             button.classList.toggle(
                 'active',
-                isActive
+                savedPart
             );
 
             button.setAttribute(
                 'aria-pressed',
-                isActive
+                savedPart
                     ? 'true'
                     : 'false'
             );
-
-            button.disabled = false;
         }
 
-        // ==================================
-        // ACTUALIZAR DASHBOARD
-        // ==================================
+        // ======================================
+        // ACTUALIZAR TARJETAS
+        // ======================================
         if (
             typeof renderDashboardSimplified ===
             'function'
@@ -26134,16 +26127,29 @@ async function updateAttPart(
             renderDashboardSimplified();
         }
 
+        console.log(
+            '✅ Participación final:',
+            {
+                studentId,
+                classId,
+                fecha,
+                status:
+                    saved?.status,
+                part:
+                    saved?.part
+            }
+        );
+
     } catch (error) {
 
         console.error(
-            'Error actualizando participacion:',
+            '❌ Error actualizando participación:',
             error
         );
 
-        // ==================================
-        // SI FALLA, RESTAURAR EL BOTON
-        // ==================================
+        // ======================================
+        // RESTAURAR ESTADO VISUAL REAL
+        // ======================================
         if (button) {
 
             const current =
@@ -26168,8 +26174,6 @@ async function updateAttPart(
                     ? 'true'
                     : 'false'
             );
-
-            button.disabled = false;
         }
 
         if (
