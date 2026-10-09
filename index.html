@@ -5949,7 +5949,23 @@ button.auth-submit:hover {
                 id="newUsername"
                 required>
         </div>
+<div>
+    <label>Correo:</label>
 
+    <input
+        type="email"
+        id="newUserEmail"
+        required>
+</div>
+
+<div>
+    <label>Firebase UID:</label>
+
+    <input
+        type="text"
+        id="newUserUid"
+        placeholder="UID Firebase Authentication">
+</div>
         <div>
             <label>Contraseña:</label>
 
@@ -24390,11 +24406,109 @@ studentForm.addEventListener('submit', async (e) => {
         mostrarNotificacion('❌ No se pudo guardar el estudiante en Firestore', 'error');
     }
 });
+async function saveUserToFirestore(user) {
+
+    const api = window.firestoreUsers;
+
+    if (!window.db || !api) {
+        throw new Error(
+            'Firestore no disponible para usuarios'
+        );
+    }
+
+    const documentId =
+        String(
+            user.firebaseUid ||
+            user.id
+        );
+
+    const data = {
+
+        ...user,
+
+        updatedAt:
+            new Date().toISOString(),
+
+        updatedBy:
+            currentUser?.email ||
+            currentUser?.username ||
+            'system'
+    };
+
+    await api.setDoc(
+        api.doc(
+            window.db,
+            'users',
+            documentId
+        ),
+        data,
+        {
+            merge: true
+        }
+    );
+}
+
+async function loadUsersFromFirestore() {
+
+    const api =
+        window.firestoreUsers;
+
+    if (
+        !window.db ||
+        !api
+    ) {
+        return false;
+    }
+
+    try {
+
+        const snapshot =
+            await api.getDocs(
+                api.collection(
+                    window.db,
+                    'users'
+                )
+            );
+
+        users =
+            snapshot.docs.map(
+                item => ({
+                    id: item.id,
+                    ...item.data()
+                })
+            );
+
+        if (
+            typeof renderUsers ===
+            'function'
+        ) {
+            renderUsers();
+        }
+
+        console.log(
+            '✅ Usuarios cargados desde Firestore:',
+            users.length
+        );
+
+        return true;
+
+    }
+    catch (error) {
+
+        console.error(
+            '❌ Error cargando usuarios:',
+            error
+        );
+
+        return false;
+    }
+}
+
  //Usuarios
 const userForm =
     document.getElementById('userForm');
 
-userForm.addEventListener('submit', (e) => {
+userForm.addEventListener('submit', async (e) => {
 
     e.preventDefault();
 
@@ -24404,8 +24518,20 @@ userForm.addEventListener('submit', (e) => {
     const password =
         document.getElementById('newPassword').value;
 
-    const role =
-        document.getElementById('newRole').value;
+   const role =
+    document.getElementById(
+        'newRole'
+    ).value;
+
+const email =
+    document.getElementById(
+        'newUserEmail'
+    ).value.trim();
+
+const firebaseUid =
+    document.getElementById(
+        'newUserUid'
+    ).value.trim();
 
     const userId =
     document.getElementById('userId').value;
@@ -24494,50 +24620,58 @@ const userExists =
     );
  
 
-} 
+}
 else {
 
-   const newUser = {
+    const newUser = {
 
-    id:
-        Date.now(),
+        id:
+            firebaseUid ||
+            `user_${Date.now()}`,
 
-    username,
+        firebaseUid,
 
-    password,
+        username,
 
-    role,
+        email,
 
-    activo:
-        true,
+        role,
 
-    requiereCambioPassword:
-        true
-};
+        activo: true,
 
-    users.push(newUser);
+        createdAt:
+            new Date().toISOString(),
 
-    mostrarNotificacion(
-        '✅ Usuario creado',
-        'success'
+        updatedAt:
+            new Date().toISOString(),
+
+        updatedBy:
+            currentUser?.email ||
+            'system'
+    };
+
+    await saveUserToFirestore(
+        newUser
     );
 
+    mostrarNotificacion(
+        '✅ Usuario creado en Firestore',
+        'success'
+    );
 }
 
-   
+// ==============================
+// RECARGAR USUARIOS
+// ==============================
+await loadUsersFromFirestore();
 
-   //sers.push(newUser);
+renderUsers();
 
-    saveAll();
+userForm.reset();
 
-    renderUsers();
-
-    userForm.reset();
-    document.getElementById(
+document.getElementById(
     'userId'
 ).value = '';
-
-   
 
 });
  // ==========================================
@@ -24950,6 +25084,96 @@ async function saveStudentToFirestore(student) {
     const data = { ...student, id: String(student.id), updatedAt: new Date().toISOString(), updatedBy: currentUser?.email || currentUser?.username || 'superadmin' };
     await api.setDoc(api.doc(window.db, 'students', String(student.id)), data, { merge: true });
 }
+async function saveUserToFirestore(user) {
+
+    const api = window.firestoreUsers;
+
+    if (!window.db || !api) {
+        throw new Error(
+            'Firestore no disponible para usuarios'
+        );
+    }
+
+    const data = {
+
+        ...user,
+
+        updatedAt:
+            new Date().toISOString(),
+
+        updatedBy:
+            currentUser?.email ||
+            'system'
+    };
+
+    await api.setDoc(
+        api.doc(
+            window.db,
+            'users',
+            String(
+                user.firebaseUid ||
+                user.id
+            )
+        ),
+        data,
+        {
+            merge: true
+        }
+    );
+}
+async function loadUsersFromFirestore() {
+
+    const api =
+        window.firestoreUsers;
+
+    if (
+        !window.db ||
+        !api
+    ) {
+        return false;
+    }
+
+    try {
+
+        const snapshot =
+            await api.getDocs(
+                api.collection(
+                    window.db,
+                    'users'
+                )
+            );
+
+        users =
+            snapshot.docs.map(
+                doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                })
+            );
+
+        renderUsers();
+
+        console.log(
+            '✅ Usuarios cargados desde Firestore:',
+            users.length
+        );
+
+        return true;
+
+    }
+    catch (error) {
+
+        console.error(
+            '❌ Error cargando usuarios:',
+            error
+        );
+
+        return false;
+    }
+}
+
+window.loadUsersFromFirestore =
+    loadUsersFromFirestore;
 
 function renderStudentTable() {
 
