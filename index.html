@@ -5958,14 +5958,7 @@ button.auth-submit:hover {
         required>
 </div>
 
-<div>
-    <label>Firebase UID:</label>
 
-    <input
-        type="text"
-        id="newUserUid"
-        placeholder="UID Firebase Authentication">
-</div>
         <div>
             <label>Contraseña:</label>
 
@@ -24264,47 +24257,126 @@ async function toggleClassStatus(id) {
 }
 //Tabla de usuarios
 function renderUsers() {
+
     const tbody =
         document.getElementById(
             'userTableBody'
         );
+
+    if (!tbody) {
+        return;
+    }
+
     tbody.innerHTML = '';
-    users.forEach(u => {
+
+    if (!users.length) {
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5"
+                    style="
+                        text-align:center;
+                        color:#666;
+                    ">
+                    No hay usuarios registrados
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    users.forEach(user => {
+
         const row =
             document.createElement('tr');
+
+        const safeId =
+            JSON.stringify(
+                String(user.id)
+            );
+
         row.innerHTML = `
-            <td>${u.username}</td>
 
-            <td>${u.role}</td>
             <td>
-           
-                ${u.activo
+                ${user.username || ''}
+            </td>
 
-                   ? '<span style="color:#27ae60;font-weight:bold;">🟢 Activo</span>'
-                    : '<span style="color:#e74c3c;font-weight:bold;">🔴 Inactivo</span>'
+            <td>
+                ${user.email || ''}
+            </td>
+
+            <td>
+                ${user.role || ''}
+            </td>
+
+            <td>
+                ${
+                    user.activo
+                        ? `
+                        <span
+                            style="
+                                color:#27ae60;
+                                font-weight:bold;
+                            "
+                        >
+                            🟢 Activo
+                        </span>
+                        `
+                        : `
+                        <span
+                            style="
+                                color:#e74c3c;
+                                font-weight:bold;
+                            "
+                        >
+                            🔴 Inactivo
+                        </span>
+                        `
                 }
-           </td>
+            </td>
+
+            <td>
+
+                <div class="user-actions">
+
+                    <button
+                        class="btn-edit"
+                        onclick='editUser(${safeId})'
+                    >
+                        Editar
+                    </button>
+
+                    <button
+                        class="${
+                            user.activo
+                                ? 'btn-delete'
+                                : 'btn-save'
+                        } btn-status"
+                        onclick='toggleUserStatus(${safeId})'
+                    >
+                        ${
+                            user.activo
+                                ? '🔒 Bloquear'
+                                : '🔓 Habilitar'
+                        }
+                    </button>
+
+                    <button
+                        class="btn-delete"
+                        onclick='deleteUser(${safeId})'
+                    >
+                        🗑️ Eliminar
+                    </button>
+
+                </div>
 
             </td>
-           <td>
-            <div class="user-actions">
-              <button
-                class="btn-edit"
-                onclick="editUser(${u.id})">
-                Editar
-                </button>
-                <button
-                class="${u.activo ? 'btn-delete' : 'btn-save'} btn-status"
-                onclick="toggleUserStatus(${u.id})">
-                ${u.activo ? '🔒 Bloquear' : '🔓 Habilitar'}
-              </button>
-            </div>
-          </td>
         `;
+
         tbody.appendChild(row);
 
     });
-
 }
 function toggleUserStatus(id) {
   const user =
@@ -24343,36 +24415,98 @@ if (
 
 }
 function editUser(id) {
-    console.log("Editando usuario:", id);
-    const user =
-        users.find(u => u.id === id);
 
-    if (!user) return;
-
-    document.getElementById('userId').value =
-        user.id;
-
-    document.getElementById(
-        'newUsername'
-    ).value = user.username;
-
-   const passwordInput =
-    document.getElementById(
-        'newPassword'
+    console.log(
+        'Editando usuario:',
+        id
     );
 
-if (passwordInput) {
+    const user =
+        users.find(
+            u =>
+                String(u.id) ===
+                String(id)
+        );
 
-    passwordInput.value = '';
+    if (!user) {
 
-    passwordInput.placeholder =
-        'Dejar vacío para conservar la contraseña';
-}
+        console.warn(
+            'Usuario no encontrado:',
+            id
+        );
 
+        mostrarNotificacion(
+            '❌ Usuario no encontrado',
+            'error'
+        );
+
+        return;
+    }
+
+    // ==============================
+    // ID
+    // ==============================
+    document.getElementById(
+        'userId'
+    ).value = user.id;
+
+    // ==============================
+    // USUARIO
+    // ==============================
+    document.getElementById(
+        'newUsername'
+    ).value =
+        user.username || '';
+
+    // ==============================
+    // EMAIL
+    // ==============================
+    const emailField =
+        document.getElementById(
+            'newUserEmail'
+        );
+
+    if (emailField) {
+
+        emailField.value =
+            user.email || '';
+
+    }
+
+    // ==============================
+    // PASSWORD
+    // ==============================
+    const passwordInput =
+        document.getElementById(
+            'newPassword'
+        );
+
+    if (passwordInput) {
+
+        passwordInput.value = '';
+
+        passwordInput.placeholder =
+            'Dejar vacío para conservar la contraseña';
+
+    }
+
+    // ==============================
+    // ROL
+    // ==============================
     document.getElementById(
         'newRole'
-    ).value = user.role;
+    ).value =
+        user.role || 'maestro';
 
+    console.log(
+        '✅ Usuario cargado para edición:',
+        {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role
+        }
+    );
 }
   // ESTUDIANTES
 
@@ -24523,20 +24657,15 @@ userForm.addEventListener('submit', async (e) => {
         'newRole'
     ).value;
 
-const email =
-    document.getElementById(
-        'newUserEmail'
-    ).value.trim();
-
-const firebaseUid =
-    document.getElementById(
-        'newUserUid'
-    ).value.trim();
+    const email =
+        document.getElementById(
+            'newUserEmail'
+        ).value.trim();
 
     const userId =
-    document.getElementById('userId').value;
+        document.getElementById('userId').value;
 
-const userExists =
+    const userExists =
     users.some(
         u =>
             u.username.toLowerCase() ===
@@ -24556,80 +24685,28 @@ const userExists =
     }
 
    
-    if (userId) {
+if (userId) {
 
-    users =
-        users.map(
-            u => {
-
-                if (
-                    u.id !==
-                    parseInt(userId)
-                ) {
-
-                    return u;
-                }
-
-
-                // ==================================
-                // EDICIÓN GENERAL
-                // ==================================
-
-                const updatedUser = {
-
-                    ...u,
-
-                    username,
-
-                    role
-                };
-
-
-                // ==================================
-                // NUEVA CONTRASEÑA ADMINISTRATIVA
-                //
-                // Si el SuperAdmin escribe una nueva
-                // contraseña, se considera temporal.
-                // ==================================
-
-                if (
-                    password &&
-                    password.trim()
-                ) {
-
-                    updatedUser.password =
-                        password.trim();
-
-                    updatedUser
-                        .requiereCambioPassword =
-                            true;
-                }
-
-
-                return updatedUser;
-            }
+    const existingUser =
+        users.find(
+            u =>
+                String(u.id) ===
+                String(userId)
         );
 
+    if (!existingUser) {
 
-    mostrarNotificacion(
-        password &&
-        password.trim()
-            ? '✅ Usuario actualizado. La nueva contraseña es temporal.'
-            : '✅ Usuario actualizado',
-        'success'
-    );
- 
+        mostrarNotificacion(
+            '❌ Usuario no encontrado',
+            'error'
+        );
 
-}
-else {
+        return;
+    }
 
-    const newUser = {
+    const updatedUser = {
 
-        id:
-            firebaseUid ||
-            `user_${Date.now()}`,
-
-        firebaseUid,
+        ...existingUser,
 
         username,
 
@@ -24637,17 +24714,52 @@ else {
 
         role,
 
-        activo: true,
-
-        createdAt:
-            new Date().toISOString(),
-
         updatedAt:
             new Date().toISOString(),
 
         updatedBy:
             currentUser?.email ||
             'system'
+    };
+
+    await saveUserToFirestore(
+        updatedUser
+    );
+
+    mostrarNotificacion(
+        '✅ Usuario actualizado',
+        'success'
+    );
+
+
+}
+else {
+
+   const newUser = {
+
+    id:
+        `user_${Date.now()}`,
+
+    username,
+
+    email,
+
+    role,
+
+    activo: true,
+
+    firebaseUid: '',
+
+    createdAt:
+        new Date().toISOString(),
+
+    updatedAt:
+        new Date().toISOString(),
+
+    updatedBy:
+        currentUser?.email ||
+        'system'
+
     };
 
     await saveUserToFirestore(
@@ -24959,7 +25071,7 @@ if (groupForm) {
                 // luego estudiantes.
                 // ==================================
                 await loadGroupsFromFirestore();
-
+                await loadUsersFromFirestore();
                 await loadClassesFromFirestore();
 
                 await loadStudentsFromFirestore();
@@ -25450,132 +25562,61 @@ function renderStudentTable() {
 // Activo <-> Inactivo
 // ==========================================
 
-async function toggleStudentStatus(studentId) {
-    try {
-        const student = students.find(
-            item =>
-                String(item.id) ===
-                String(studentId)
+async function toggleUserStatus(id) {
+
+    const user =
+        users.find(
+            u =>
+                String(u.id) ===
+                String(id)
         );
 
-        if (!student) {
-            mostrarNotificacion(
-                '❌ No se encontró el estudiante',
-                'error'
-            );
-            return;
-        }
+    if (!user) {
+        return;
+    }
 
-        const currentStatus =
-            student.estado === 'Inactivo'
-                ? 'Inactivo'
-                : 'Activo';
-
-        const newStatus =
-            currentStatus === 'Activo'
-                ? 'Inactivo'
-                : 'Activo';
-
-        const actionText =
-            newStatus === 'Inactivo'
-                ? 'inactivar'
-                : 'activar';
-
-        const studentName = [
-            student.nombre,
-            student.apellido
-        ]
-            .filter(Boolean)
-            .join(' ');
-
-        const confirmed = confirm(
-            `¿Desea ${actionText} a ${studentName}?`
-        );
-
-        if (!confirmed) {
-            return;
-        }
-
-        // ======================================
-        // FIRESTORE
-        // ======================================
-
-        const api =
-            window.firestoreStudents;
-
-        if (
-            !window.db ||
-            !api ||
-            !api.doc ||
-            !api.setDoc
-        ) {
-            mostrarNotificacion(
-                '❌ Firestore no está disponible',
-                'error'
-            );
-            return;
-        }
-
-        const studentRef =
-            api.doc(
-                window.db,
-                'students',
-                String(student.id)
-            );
-
-        await api.setDoc(
-            studentRef,
-            {
-                estado: newStatus,
-                updatedAt:
-                    new Date().toISOString(),
-                updatedBy:
-                    currentUser?.email ||
-                    currentUser?.username ||
-                    'sistema'
-            },
-            {
-                merge: true
-            }
-        );
-
-        // ======================================
-        // ACTUALIZAR MEMORIA LOCAL
-        // ======================================
-
-        student.estado = newStatus;
-
-        // ======================================
-        // REFRESCAR TABLA
-        // ======================================
-
-        renderStudentTable();
+    if (
+        user.role === 'superadmin'
+    ) {
 
         mostrarNotificacion(
-            newStatus === 'Activo'
-                ? '✅ Estudiante activado correctamente'
-                : '✅ Estudiante inactivado correctamente',
+            '❌ No puede inactivar el SuperAdmin',
+            'error'
+        );
+
+        return;
+    }
+
+    try {
+
+        await saveUserToFirestore({
+
+            ...user,
+
+            activo:
+                !Boolean(
+                    user.activo
+                )
+
+        });
+
+        await loadUsersFromFirestore();
+
+        mostrarNotificacion(
+            '✅ Estado del usuario actualizado',
             'success'
         );
 
-        console.log(
-            '✅ Estado del estudiante actualizado:',
-            {
-                id: student.id,
-                estudiante: studentName,
-                estadoAnterior: currentStatus,
-                estadoNuevo: newStatus
-            }
-        );
     }
     catch (error) {
+
         console.error(
-            '❌ Error cambiando estado del estudiante:',
+            '❌ Error actualizando usuario:',
             error
         );
 
         mostrarNotificacion(
-            '❌ No se pudo cambiar el estado del estudiante',
+            '❌ No se pudo actualizar el usuario',
             'error'
         );
     }
@@ -31025,39 +31066,33 @@ function clearFinanceAuditFilters() {
 
     renderFinanceAuditLog();
 }
-function deleteUser(id) {
-
-    const user =
-        users.find(u => u.id === id);
+async function deleteUser(id) {
 
     if (
-        user &&
-        user.role === 'superadmin'
+        !confirm(
+            '¿Eliminar usuario?'
+        )
     ) {
-
-        mostrarNotificacion(
-            '❌ No puede borrar el SuperAdmin',
-            'error'
-        );
-
-        return;
-
-    }
-
-    if (!confirm(
-        '¿Desea eliminar este usuario?'
-    )) {
         return;
     }
 
-    users = users.filter(
-        u => u.id !== id
+    const api =
+        window.firestoreUsers;
+
+    await api.deleteDoc(
+        api.doc(
+            window.db,
+            'users',
+            String(id)
+        )
     );
 
-    saveAll();
+    await loadUsersFromFirestore();
 
-    renderUsers();
-
+    mostrarNotificacion(
+        '✅ Usuario eliminado',
+        'success'
+    );
 }
 
   function reviewFinance(
