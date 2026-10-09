@@ -6460,10 +6460,7 @@ const userSnapshot =
         // ======================================
         const profile =
             userSnapshot.data();
-            console.log(
-    'PERFIL COMPLETO:',
-    profile
-);
+    
 
         console.log(
             '👤 Perfil Cultivo encontrado:',
@@ -6692,20 +6689,14 @@ const userSnapshot =
         );
 
 
-        // ======================================
-        // MOSTRAR APLICACION
-        // ======================================
-        showApp();
+       // ======================================
+// MOSTRAR APLICACION
+// ======================================
+showApp();
 
-
-        // ======================================
-        // ACTUALIZAR INFORMACION DEL USUARIO
-        // ======================================
-        const userInfo =
-    document.getElementById(
-        'userInfo'
-    );
-
+// ======================================
+// ACTUALIZAR USUARIO CONECTADO
+// ======================================
 if (
     userInfo &&
     currentUser
@@ -6719,16 +6710,62 @@ if (
     `;
 }
 
+// ======================================
+// APLICAR MENUS SEGUN ROL
+// ======================================
+try {
 
-        // ======================================
-        // APLICAR PERMISOS DE ROL EXISTENTES
-        // ======================================
-        if (
-            typeof updateMenuByRole ===
-            'function'
-        ) {
-            applyRolePermissions();
-        }
+    if (
+        typeof updateMenuByRole ===
+        'function'
+    ) {
+
+        updateMenuByRole();
+
+    }
+
+}
+catch (menuError) {
+
+    console.error(
+        '❌ Error aplicando menú por rol:',
+        menuError
+    );
+
+
+}
+
+
+     // ======================================
+// APLICAR MENÚ SEGÚN ROL
+// ======================================
+try {
+
+    if (
+        typeof updateMenuByRole ===
+        'function'
+    ) {
+
+        updateMenuByRole();
+
+    }
+    else {
+
+        console.warn(
+            '⚠️ updateMenuByRole no está definida'
+        );
+
+    }
+
+}
+catch (menuError) {
+
+    console.error(
+        '❌ Error aplicando menú por rol:',
+        menuError
+    );
+
+}
 
     }
     catch (error) {
