@@ -6839,35 +6839,20 @@ onAuthStateChanged(auth, async (firebaseUser) => {
 
     try {
 
-        if (
-            window.loadGroupsFromFirestore
-        ) {
-            await window.loadGroupsFromFirestore();
-        }
+        console.log('🔄 Cargando groups...');
+await window.loadGroupsFromFirestore();
 
-        if (
-            window.loadClassesFromFirestore
-        ) {
-            await window.loadClassesFromFirestore();
-        }
+console.log('🔄 Cargando classes...');
+await window.loadClassesFromFirestore();
 
-        if (
-            window.loadStudentsFromFirestore
-        ) {
-            await window.loadStudentsFromFirestore();
-        }
+console.log('🔄 Cargando students...');
+await window.loadStudentsFromFirestore();
 
-        if (
-            window.loadClassSessionsFromFirestore
-        ) {
-            await window.loadClassSessionsFromFirestore();
-        }
+console.log('🔄 Cargando classSessions...');
+await window.loadClassSessionsFromFirestore();
 
-        if (
-            window.loadAttendanceFromFirestore
-        ) {
-            await window.loadAttendanceFromFirestore();
-        }
+console.log('🔄 Cargando attendance...');
+await window.loadAttendanceFromFirestore();
 
         console.log(
             '✅ Datos cargados correctamente para:',
