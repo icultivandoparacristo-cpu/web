@@ -24210,16 +24210,91 @@ localStorage.setItem(
 // Lista de maestro
 function getTeachers() {
 
-    return users.filter(
-        u =>
-            (
-            u.role === 'teacher' ||
-            u.role === 'maestro'
-            )
-            &&
-            u.activo !== false
-    );
+    const teachersMap =
+        new Map();
 
+    // ==============================
+    // USUARIOS FIRESTORE
+    // ==============================
+    users
+        .filter(
+            user =>
+                (
+                    user.role ===
+                        'teacher' ||
+
+                    user.role ===
+                        'maestro'
+                )
+                &&
+                user.activo !== false
+        )
+        .forEach(user => {
+
+            teachersMap.set(
+                user.username,
+                {
+                    username:
+                        user.username,
+
+                    source:
+                        'users'
+                }
+            );
+
+        });
+
+    // ==============================
+    // MAESTROS HISTÓRICOS
+    // DE LOS SUBGRUPOS
+    // ==============================
+    classes.forEach(clase => {
+
+        (
+            clase.maestros || []
+        )
+        .forEach(nombre => {
+
+            const teacherName =
+                String(nombre || '')
+                    .trim();
+
+            if (!teacherName) {
+                return;
+            }
+
+            if (
+                !teachersMap.has(
+                    teacherName
+                )
+            ) {
+
+                teachersMap.set(
+                    teacherName,
+                    {
+                        username:
+                            teacherName,
+
+                        source:
+                            'legacy'
+                    }
+                );
+
+            }
+
+        });
+
+    });
+
+    return Array.from(
+        teachersMap.values()
+    ).sort(
+        (a, b) =>
+            a.username.localeCompare(
+                b.username,
+                'es'
+            )
+    );
 }
 //Estadistica de maestros
 function getTeacherStats() {
