@@ -23435,22 +23435,18 @@ function updateTeacher(
     // MAESTRO
     // =====================================
 
-    if (
-        role === 'maestro'
-    ) {
+    if (role === 'maestro') {
 
-        if (menuAsistencia) {
-            menuAsistencia.style.display =
-                'flex';
-        }
+    menuEstudiantes.style.display = 'flex';
 
-        if (menuReportes) {
-            menuReportes.style.display =
-                'flex';
-        }
+    menuAsistencia.style.display = 'flex';
 
-        return;
-    }
+    menuReportes.style.display = 'flex';
+
+    menuCumpleanos.style.display = 'flex';
+
+    return;
+}
 
     // =====================================
     // CUMPLEAÑOS
