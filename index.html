@@ -6856,6 +6856,18 @@ await window.loadClassesFromFirestore();
 
 console.log('🔄 Cargando students...');
 await window.loadStudentsFromFirestore();
+console.log(
+    '🔄 Cargando users...'
+);
+
+if (
+    typeof loadUsersFromFirestore ===
+    'function'
+) {
+
+    await loadUsersFromFirestore();
+
+}
 
 console.log('🔄 Cargando classSessions...');
 await window.loadClassSessionsFromFirestore();
