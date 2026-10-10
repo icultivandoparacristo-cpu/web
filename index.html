@@ -24711,13 +24711,22 @@ userForm.addEventListener('submit', async (e) => {
     const userId =
         document.getElementById('userId').value;
 
-    const userExists =
+const userExists =
     users.some(
         u =>
-            u.username.toLowerCase() ===
-            username.toLowerCase()
+
+            String(
+                u.email || ''
+            ).trim().toLowerCase() ===
+
+            String(
+                email || ''
+            ).trim().toLowerCase()
+
             &&
-            u.id !== parseInt(userId || 0)
+
+            String(u.id) !==
+            String(userId || '')
     );
 
     if (userExists) {
@@ -26056,33 +26065,7 @@ async function setAttendanceTouchStatus(
     // ======================================
     // GUARDAR EN FIRESTORE
     // ======================================
-    try {
-        if (
-            typeof saveAttendanceToFirestore ===
-            'function'
-        ) {
-            await saveAttendanceToFirestore(
-                studentId
-            );
-        }
-    } catch (error) {
-        console.error(
-            'Error guardando asistencia:',
-            error
-        );
-
-        if (
-            typeof mostrarNotificacion ===
-            'function'
-        ) {
-            mostrarNotificacion(
-                'No se pudo guardar la asistencia',
-                'error'
-            );
-        }
-
-        return;
-    }
+  
 
     // ======================================
     // ACTUALIZAR TABLA
