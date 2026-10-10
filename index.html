@@ -4038,6 +4038,7 @@ button.auth-submit:hover {
 
         <div
             class="menu-card"
+            id="menu-subgrupos"
             onclick="
                 mostrarModulo(
                     'tab-clases'
@@ -4121,6 +4122,7 @@ button.auth-submit:hover {
 
         <div
             class="menu-card"
+            id="menu-grupos"
             onclick="
                 mostrarModulo(
                     'tab-grupos'
@@ -23347,14 +23349,14 @@ function updateTeacher(
         );
 
     const menuGrupos =
-        document.getElementById(
-            'menu-grupos'
-        );
+    document.getElementById(
+        'tab-grupos'
+    );
 
-    const menuSubgrupos =
-        document.getElementById(
-            'menu-subgrupos'
-        );
+const menuSubgrupos =
+    document.getElementById(
+        'tab-clases'
+    );
 
     const menuEstudiantes =
         document.getElementById(
