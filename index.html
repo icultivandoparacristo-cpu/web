@@ -23435,15 +23435,41 @@ function updateTeacher(
     // MAESTRO
     // =====================================
 
-    if (role === 'maestro') {
+  if (role === 'maestro') {
 
-    menuEstudiantes.style.display = 'flex';
+    // Ocultar todo primero
+    if (menuUsuarios) {
+        menuUsuarios.style.display = 'none';
+    }
 
-    menuAsistencia.style.display = 'flex';
+    if (menuFinanzas) {
+        menuFinanzas.style.display = 'none';
+    }
 
-    menuReportes.style.display = 'flex';
+    if (menuGrupos) {
+        menuGrupos.style.display = 'none';
+    }
 
-    menuCumpleanos.style.display = 'flex';
+    if (menuSubgrupos) {
+        menuSubgrupos.style.display = 'none';
+    }
+
+    // Mostrar solo lo que necesita
+    if (menuEstudiantes) {
+        menuEstudiantes.style.display = 'flex';
+    }
+
+    if (menuAsistencia) {
+        menuAsistencia.style.display = 'flex';
+    }
+
+    if (menuReportes) {
+        menuReportes.style.display = 'flex';
+    }
+
+    if (menuCumpleanos) {
+        menuCumpleanos.style.display = 'flex';
+    }
 
     return;
 }
