@@ -6848,24 +6848,23 @@ onAuthStateChanged(auth, async (firebaseUser) => {
 
     try {
 
-        console.log('🔄 Cargando groups...');
-await window.loadGroupsFromFirestore();
-
-console.log('🔄 Cargando classes...');
-await window.loadClassesFromFirestore();
-
-console.log('🔄 Cargando students...');
-await window.loadStudentsFromFirestore();
-console.log(
-    '🔄 Cargando users...'
-);
-
-if (
-    typeof loadUsersFromFirestore ===
-    'function'
+    if (
+    currentUser?.role ===
+    'superadmin'
 ) {
 
-    await loadUsersFromFirestore();
+    console.log(
+        '🔄 Cargando users...'
+    );
+
+    if (
+        typeof loadUsersFromFirestore ===
+        'function'
+    ) {
+
+        await loadUsersFromFirestore();
+
+    }
 
 }
 
