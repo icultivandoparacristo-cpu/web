@@ -6364,6 +6364,24 @@ if (
             'function'
         ) {
             updateMenuByRole();
+            if (
+    currentUser?.role === 'maestro'
+) {
+
+    document.getElementById(
+        'menu-grupos'
+    )?.style.setProperty(
+        'display',
+        'none'
+    );
+
+    document.getElementById(
+        'menu-subgrupos'
+    )?.style.setProperty(
+        'display',
+        'none'
+    );
+}
         }
 
 
