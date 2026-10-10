@@ -6897,45 +6897,7 @@ console.log('✅ Firebase + Authentication conectados');
   let sessionTeachers = {}; // Derivado de classSessions; no se persiste por separado
   let groups = []; // Fuente oficial: Cloud Firestore /groups
   let classTeachers =JSON.parse(localStorage.getItem( 'biblical_class_teachers') ) || {};console.log("classTeachers cargado:", classTeachers);
-  let users = JSON.parse(localStorage.getItem('biblical_users')) || [
-
-  
-  {
-  id: 1,
-  username: "marisol",
-  password: "1234",
-  role: "registrador",
-  activo: true
-  },
-  {
-  id: 2,
-  username: "aracelis",
-  password: "1234",
-  role: "admin",
-  activo: true
-  },
-  {
-  id: 3,
-  username: "ambiorix",
-  password: "1234",
-  role: "auditor"
-  }, 
- {
-  id: 4,
-  username: "maestro",
-  password: "1234",
-  role: "maestro",
-  activo: true
-  },
-  {
-    id: 999,
-    username: "nathan",
-    password: "1234",
-    role: "superadmin",
-    activo: true
-
-  }
-  ];
+  let users = [];
  users = users.map(
     u => ({
         ...u,
@@ -8553,10 +8515,7 @@ function runPreFirebaseDiagnostic() {
 
         'biblical_finance_audit_log',
 
-        'biblical_users',
-
         'biblical_class_teachers',
-
 
         'biblical_class_sessions',
 
@@ -24149,10 +24108,10 @@ localStorage.setItem(
         financeAuditLog
     )
 );
-localStorage.setItem(
-'biblical_users',
-JSON.stringify(users)
-);
+// Usuarios ahora son gestionados desde
+// Firestore /users
+// localStorage eliminado.
+
   //localStorage.setItem('biblical_enrollments',JSON.stringify(enrollments));
 
 localStorage.setItem(
