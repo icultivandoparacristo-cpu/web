@@ -6891,11 +6891,16 @@ onAuthStateChanged(auth, async (firebaseUser) => {
 console.log('🔄 Cargando classSessions...');
 await window.loadClassSessionsFromFirestore();
 
+console.log('🔄 Cargando groups...');
+await window.loadGroupsFromFirestore();
+
+console.log('🔄 Cargando students...');
+await window.loadStudentsFromFirestore();
+
 console.log('🔄 Cargando attendance...');
 await window.loadAttendanceFromFirestore();
 
-        console.log(
-            '✅ Datos cargados correctamente para:',
+console.log('✅ Datos cargados correctamente para:',
             currentUser.username,
             '(' + currentUser.role + ')'
         );
@@ -25171,6 +25176,7 @@ if (groupForm) {
                 await loadClassesFromFirestore();
 
                 await loadStudentsFromFirestore();
+                renderDashboardSimplified();
 
                 // ==================================
                 // 5. ACTUALIZAR SELECTORES
