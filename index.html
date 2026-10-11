@@ -6020,6 +6020,24 @@ button.auth-submit:hover {
 </div>
 
 <script type="module">
+
+// VARIABLES GLOBALES
+  let students = []; // Fuente oficial: Cloud Firestore /students
+  //  let enrollments =JSON.parse(localStorage.getItem('biblical_enrollments')) || [];
+  let attendanceData = {}; // Fuente oficial: Cloud Firestore /attendance
+  let finances = JSON.parse(localStorage.getItem('biblical_finances')) || [];
+  let classes = []; // Fuente oficial: Cloud Firestore /classes
+
+  // Sesiones reales de clase: realizada o suspendida + bitácora
+  let classSessions = []; // Fuente oficial: Cloud Firestore /classSessions
+  let financeAuditLog =JSON.parse( localStorage.getItem('biblical_finance_audit_log')) || [];
+  let sessionTeachers = {}; // Derivado de classSessions; no se persiste por separado
+  let groups = []; // Fuente oficial: Cloud Firestore /groups
+  let classTeachers =JSON.parse(localStorage.getItem( 'biblical_class_teachers') ) || {};console.log("classTeachers cargado:", classTeachers);
+  let users = [];
+
+  let currentUser = null;
+
 import { initializeApp }
 from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 
