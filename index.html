@@ -6757,30 +6757,7 @@ if (
     `;
 }
 
-// ======================================
-// APLICAR MENUS SEGUN ROL
-// ======================================
-try {
 
-    if (
-        typeof updateMenuByRole ===
-        'function'
-    ) {
-
-        updateMenuByRole();
-
-    }
-
-}
-catch (menuError) {
-
-    console.error(
-        '❌ Error aplicando menú por rol:',
-        menuError
-    );
-
-
-}
 
 
      // ======================================
@@ -6912,6 +6889,9 @@ await window.loadClassSessionsFromFirestore();
 console.log('🔄 Cargando groups...');
 await window.loadGroupsFromFirestore();
 
+console.log('🔄 Cargando clases...');
+await window.loadClassesFromFirestore();
+
 console.log('🔄 Cargando students...');
 await window.loadStudentsFromFirestore();
 
@@ -6939,31 +6919,6 @@ console.log('✅ Firebase + Authentication conectados');
 
  
 
-  let students = []; // Fuente oficial: Cloud Firestore /students
-  //  let enrollments =JSON.parse(localStorage.getItem('biblical_enrollments')) || [];
-  let attendanceData = {}; // Fuente oficial: Cloud Firestore /attendance
-  let finances = JSON.parse(localStorage.getItem('biblical_finances')) || [];
-  let classes = []; // Fuente oficial: Cloud Firestore /classes
-
-  // Sesiones reales de clase: realizada o suspendida + bitácora
-  let classSessions = []; // Fuente oficial: Cloud Firestore /classSessions
-  let financeAuditLog =JSON.parse( localStorage.getItem('biblical_finance_audit_log')) || [];
-  let sessionTeachers = {}; // Derivado de classSessions; no se persiste por separado
-  let groups = []; // Fuente oficial: Cloud Firestore /groups
-  let classTeachers =JSON.parse(localStorage.getItem( 'biblical_class_teachers') ) || {};console.log("classTeachers cargado:", classTeachers);
-  let users = [];
- users = users.map(
-    u => ({
-        ...u,
-
-        activo:
-            u.activo !== false,
-
-        requiereCambioPassword:
-            u.requiereCambioPassword === true
-    })
-);
-  let currentUser = null;
 
   window.applyCultivoFirebaseUser = function(user) {
       currentUser = user;
