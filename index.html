@@ -6022,21 +6022,21 @@ button.auth-submit:hover {
 <script type="module">
 
 // VARIABLES GLOBALES
-  let students = []; // Fuente oficial: Cloud Firestore /students
-  //  let enrollments =JSON.parse(localStorage.getItem('biblical_enrollments')) || [];
-  let attendanceData = {}; // Fuente oficial: Cloud Firestore /attendance
-  let finances = JSON.parse(localStorage.getItem('biblical_finances')) || [];
-  let classes = []; // Fuente oficial: Cloud Firestore /classes
+ window.students = [];
+window.attendanceData = {};
+window.finances = [];
+window.classes = [];
+window.classSessions = [];
+window.groups = [];
+window.users = [];
+window.currentUser = null;
 
-  // Sesiones reales de clase: realizada o suspendida + bitácora
-  let classSessions = []; // Fuente oficial: Cloud Firestore /classSessions
-  let financeAuditLog =JSON.parse( localStorage.getItem('biblical_finance_audit_log')) || [];
-  let sessionTeachers = {}; // Derivado de classSessions; no se persiste por separado
-  let groups = []; // Fuente oficial: Cloud Firestore /groups
-  let classTeachers =JSON.parse(localStorage.getItem( 'biblical_class_teachers') ) || {};console.log("classTeachers cargado:", classTeachers);
-  let users = [];
-
-  let currentUser = null;
+Object.defineProperties(window, {
+    appData: {
+        value: window,
+        writable: false
+    }
+});
 
 import { initializeApp }
 from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
@@ -6230,7 +6230,7 @@ async function applyFirebaseAuthState(firebaseUser) {
             'ℹ️ No hay usuario autenticado en Firebase.'
         );
 
-        currentUser = null;
+        window.currentUser = null;
 
         window.clearCultivoFirebaseUser?.();
 
@@ -6284,7 +6284,7 @@ async function applyFirebaseAuthState(firebaseUser) {
             '⛔ Usuario Firebase sin UID o correo válido.'
         );
 
-        currentUser = null;
+        window.currentUser = null;
 
         window.clearCultivoFirebaseUser?.();
 
@@ -6324,12 +6324,12 @@ async function applyFirebaseAuthState(firebaseUser) {
         authenticatedEmail === authorizedEmail
     ) {
 
-        currentUser =
+        window.currentUser =
             toLocalSuperAdmin(
                 firebaseUser
             );
 
-        window.setCultivoFirebaseUser?.(
+        window.applyCultivoFirebaseUser?.(
             firebaseUser
         );
 
@@ -6343,7 +6343,7 @@ async function applyFirebaseAuthState(firebaseUser) {
                     firebaseUser.email,
 
                 role:
-                    currentUser.role
+                    window.currentUser.role
             }
         );
 
@@ -6360,16 +6360,16 @@ async function applyFirebaseAuthState(firebaseUser) {
 
 if (
     userInfo &&
-    currentUser
+    window.currentUser
 ) {
 
     userInfo.innerHTML = `
         👤
         <strong>
-            ${currentUser.username}
+            ${window.currentUser.username}
         </strong>
         |
-        ${currentUser.role}
+        ${window.currentUser.role}
     `;
 }
 
@@ -6383,7 +6383,7 @@ if (
         ) {
             updateMenuByRole();
             if (
-    currentUser?.role === 'maestro'
+    window.currentUser?.role === 'maestro'
 ) {
 
     document.getElementById(
@@ -6459,7 +6459,7 @@ const userSnapshot =
                 }
             );
 
-            currentUser = null;
+            window.currentUser = null;
 
             window.clearCultivoFirebaseUser?.();
 
@@ -6540,7 +6540,7 @@ const userSnapshot =
                 authenticatedEmail
             );
 
-            currentUser = null;
+            window.currentUser = null;
 
             window.clearCultivoFirebaseUser?.();
 
@@ -6596,7 +6596,7 @@ const userSnapshot =
                 '⛔ El Firebase UID del perfil no coincide.'
             );
 
-            currentUser = null;
+            window.currentUser = null;
 
             window.clearCultivoFirebaseUser?.();
 
@@ -6627,7 +6627,7 @@ const userSnapshot =
                 '⛔ El correo Firebase no coincide con el perfil de Cultivo System.'
             );
 
-            currentUser = null;
+            window.currentUser = null;
 
             window.clearCultivoFirebaseUser?.();
 
@@ -6666,7 +6666,7 @@ const userSnapshot =
                 role
             );
 
-            currentUser = null;
+            window.currentUser = null;
 
             window.clearCultivoFirebaseUser?.();
 
@@ -6679,7 +6679,7 @@ const userSnapshot =
         // ======================================
         // CONSTRUIR currentUser
         // ======================================
-        currentUser = {
+        window.currentUser = {
 
             id:
                 firebaseUid,
@@ -6713,7 +6713,7 @@ const userSnapshot =
         // ======================================
         // GUARDAR USUARIO FIREBASE ACTUAL
         // ======================================
-        window.setCultivoFirebaseUser?.(
+        window.applyCultivoFirebaseUser?.(
             firebaseUser
         );
 
@@ -6722,16 +6722,16 @@ const userSnapshot =
             '✅ Usuario Cultivo autorizado:',
             {
                 username:
-                    currentUser.username,
+                    window.currentUser.username,
 
                 email:
-                    currentUser.email,
+                    window.currentUser.email,
 
                 role:
-                    currentUser.role,
+                    window.currentUser.role,
 
                 uid:
-                    currentUser.uid
+                    window.currentUser.uid
             }
         );
 
@@ -6746,14 +6746,14 @@ showApp();
 // ======================================
 if (
     userInfo &&
-    currentUser
+    window.currentUser
 ) {
 
     userInfo.innerHTML = `
         👤 <strong>
-            ${currentUser.username}
+            ${window.currentUser.username}
         </strong>
-        | ${currentUser.role}
+        | ${window.currentUser.role}
     `;
 }
 
@@ -6799,7 +6799,7 @@ catch (menuError) {
             error
         );
 
-        currentUser = null;
+        window.currentUser = null;
 
         window.clearCultivoFirebaseUser?.();
 
@@ -6837,6 +6837,12 @@ catch (menuError) {
             );
         }
     }
+console.log('currentUser', window.currentUser);
+console.log('students', window.students?.length);
+console.log('groups', window.groups?.length);
+console.log('classes', window.classes?.length);
+console.log('users', window.users?.length);
+console.log('classSessions', window.classSessions?.length);
 }
 
 onAuthStateChanged(auth, async (firebaseUser) => {
@@ -6851,8 +6857,8 @@ onAuthStateChanged(auth, async (firebaseUser) => {
     // ======================================
     if (
         !firebaseUser ||
-        !currentUser ||
-        currentUser.activo !== true
+        !window.currentUser ||
+        window.currentUser.activo !== true
     ) {
         console.warn(
             '⛔ Usuario no autorizado. Se detiene la carga de datos.'
@@ -6864,7 +6870,7 @@ onAuthStateChanged(auth, async (firebaseUser) => {
     try {
 
     if (
-    currentUser?.role ===
+    window.currentUser?.role ===
     'superadmin'
 ) {
 
@@ -6899,8 +6905,8 @@ console.log('🔄 Cargando attendance...');
 await window.loadAttendanceFromFirestore();
 
 console.log('✅ Datos cargados correctamente para:',
-            currentUser.username,
-            '(' + currentUser.role + ')'
+            window.currentUser.username,
+            '(' + window.currentUser.role + ')'
         );
 
     }
@@ -6920,15 +6926,14 @@ console.log('✅ Firebase + Authentication conectados');
  
 
 
-  window.applyCultivoFirebaseUser = function(user) {
-      currentUser = user;
-      pendingPasswordChangeUser = null;
-      localStorage.removeItem('biblical_current_user');
-      if (typeof updateMenuByRole === 'function') updateMenuByRole();
+window.applyCultivoFirebaseUser = function(user) {
+    
+window.firebaseUser = user;
+   
   };
 
   window.clearCultivoFirebaseUser = function() {
-      currentUser = null;
+      window.currentUser = null;
       pendingPasswordChangeUser = null;
       localStorage.removeItem('biblical_current_user');
   };
@@ -7379,14 +7384,16 @@ function normalizeStudentEnrollments(
 
 
 function migrateStudentEnrollments() {
+    if (!Array.isArray(window.students)) {
+    console.error('students no cargado');
+    return;
+}
 
     let migrated =
         false;
 
 
-    students =
-        students.map(
-            student => {
+    window.students = window.students.map(student => {
 
                 // ==================================
                 // YA UTILIZA EL NUEVO MODELO
@@ -7581,7 +7588,7 @@ function runPreFirebaseDiagnostic() {
                 return null;
             }
 
-            return classes.find(
+            return window.classes.find(
                 clase =>
                     clase.grupo ===
                         enrollment.grupo
@@ -7597,17 +7604,17 @@ function runPreFirebaseDiagnostic() {
     // ==========================================
 
     result.students.total =
-        students.length;
+        window.students.length;
 
 
     result.students.activos =
-        students.filter(
+        window.students.filter(
             student =>
                 student.estado === 'Activo'
         ).length;
 
 
-    students.forEach(
+    window.students.forEach(
         student => {
 
             const rawEnrollments =
@@ -7801,7 +7808,7 @@ function runPreFirebaseDiagnostic() {
     // ==========================================
 
     result.groups.total =
-        groups.length;
+        window.groups.length;
 
 
     // ==========================================
@@ -7809,14 +7816,14 @@ function runPreFirebaseDiagnostic() {
     // ==========================================
 
     result.classes.total =
-        classes.length;
+        window.classes.length;
 
 
     const classIds =
         new Set();
 
 
-    classes.forEach(
+    window.classes.forEach(
         clase => {
 
             // ==================================
@@ -7895,7 +7902,7 @@ function runPreFirebaseDiagnostic() {
             // ==================================
 
             const groupExists =
-                groups.some(
+                window.groups.some(
                     group =>
                         group.nombre ===
                             clase.grupo
@@ -7933,7 +7940,7 @@ function runPreFirebaseDiagnostic() {
 
     const attendanceStudentIds =
         Object.keys(
-            attendanceData || {}
+           window.attendanceData || {}
         );
 
 
@@ -7945,7 +7952,7 @@ function runPreFirebaseDiagnostic() {
         studentId => {
 
             const student =
-                students.find(
+                window.students.find(
                     s =>
                         String(s.id) ===
                         String(studentId)
@@ -7967,7 +7974,7 @@ function runPreFirebaseDiagnostic() {
 
 
             const studentData =
-                attendanceData[
+                window.attendanceData[
                     studentId
                 ];
 
@@ -8050,7 +8057,7 @@ function runPreFirebaseDiagnostic() {
 
 
                     const clase =
-                        classes.find(
+                        window.classes.find(
                             c =>
                                 String(c.id) ===
                                 String(classId)
@@ -8252,12 +8259,12 @@ function runPreFirebaseDiagnostic() {
     // ==========================================
     // SESIONES DE CLASE
     // ==========================================
-    result.classSessions.total = Array.isArray(classSessions) ? classSessions.length : 0;
+    result.classSessions.total = Array.isArray(window.classSessions) ? window.classSessions.length : 0;
 
     const seenSessionIds = new Set();
     const seenSessionKeys = new Set();
 
-    (Array.isArray(classSessions) ? classSessions : []).forEach((session, index) => {
+    (Array.isArray(window.classSessions) ? window.classSessions : []).forEach((session, index) => {
         if (!session || typeof session !== 'object') {
             result.classSessions.estadosInvalidos.push({ index, reason: 'Registro no válido' });
             addError();
@@ -8282,7 +8289,7 @@ function runPreFirebaseDiagnostic() {
             seenSessionKeys.add(sessionKey);
         }
 
-        const clase = classes.find(c => String(c.id) === String(session.classId));
+        const clase = window.classes.find(c => String(c.id) === String(session.classId));
         if (!clase) {
             result.classSessions.claseNoEncontrada.push({ id: session.id, classId: session.classId, fecha: session.fecha });
             addError();
@@ -8306,7 +8313,7 @@ function runPreFirebaseDiagnostic() {
             }
 
             const studentsWithAttendance = [];
-            students.forEach(student => {
+            window.students.forEach(student => {
                 const att = getStudentAttendance(student.id, session.classId, session.fecha);
                 if (att && (att.status || att.part === true)) studentsWithAttendance.push(student.id);
             });
@@ -8346,7 +8353,7 @@ function runPreFirebaseDiagnostic() {
         classId => {
 
             const exists =
-                classes.some(
+                window.classes.some(
                     clase =>
                         String(clase.id) ===
                         String(classId)
@@ -8385,7 +8392,7 @@ function runPreFirebaseDiagnostic() {
         classId => {
 
             const exists =
-                classes.some(
+                window.classes.some(
                     clase =>
                         String(clase.id) ===
                         String(classId)
@@ -8420,10 +8427,10 @@ function runPreFirebaseDiagnostic() {
     // ==========================================
 
     result.finances.total =
-        finances.length;
+        window.finances.length;
 
 
-    finances.forEach(
+    window.finances.forEach(
         finance => {
 
             // ==================================
@@ -8435,7 +8442,7 @@ function runPreFirebaseDiagnostic() {
             ) {
 
                 const groupExists =
-                    groups.some(
+                    window.groups.some(
                         group =>
                             group.nombre ===
                             finance.grupo
@@ -8475,7 +8482,7 @@ function runPreFirebaseDiagnostic() {
             ) {
 
                 const classExists =
-                    classes.some(
+                    window.classes.some(
                         clase =>
                             clase.grupo ===
                                 finance.grupo
@@ -9556,7 +9563,7 @@ function renderStudentEnrollmentDraft() {
 
     console.log(
         '🔎 groups disponibles:',
-        groups
+        window.groups
     );
 
     if (
@@ -10772,14 +10779,14 @@ function getAcademicReportSessions({
             ? parseClassSessionDate(endDate)
             : null;
 
-    return (Array.isArray(classSessions)
-        ? classSessions
+    return (Array.isArray(window.classSessions)
+        ? window.classSessions
         : []
     )
     .map(session => {
 
         const clase =
-            classes.find(
+            window.classes.find(
                 c =>
                     String(c.id) ===
                     String(session.classId)
@@ -10930,7 +10937,7 @@ function getAcademicClassStudents(
         return [];
     }
 
-    return students.filter(
+    return window.students.filter(
         student =>
             student.estado === 'Activo'
             &&
@@ -10962,7 +10969,7 @@ function buildAcademicSessionStats(
 
     const clase =
         session.clase ||
-        classes.find(
+        window.classes.find(
             c =>
                 String(c.id) ===
                 String(session.classId)
@@ -11307,7 +11314,7 @@ function getAcademicSessionSummary(
     // CLASE / SUBGRUPO
     // ==========================================
     const clase =
-        classes.find(
+        window.classes.find(
             c =>
                 String(c.id) ===
                 String(classId)
@@ -12178,7 +12185,7 @@ function loadTeacherReportSubGroups() {
     // 4. VALIDAR CLASSES
     // ----------------------------------------------------------
 
-    if (!Array.isArray(classes)) {
+    if (!Array.isArray(window.classes)) {
         console.error(
             '❌ classes no está disponible o no es un arreglo.',
             classes
@@ -12464,7 +12471,7 @@ function generateTeacherReport() {
     // 6. VALIDAR FUENTES DE DATOS
     // ==========================================================
 
-    if (!Array.isArray(classes)) {
+    if (!Array.isArray(window.classes)) {
         console.error(
             '❌ classes no está disponible.'
         );
@@ -12477,7 +12484,7 @@ function generateTeacherReport() {
         return;
     }
 
-    if (!Array.isArray(classSessions)) {
+    if (!Array.isArray(window.classSessions)) {
         console.error(
             '❌ classSessions no está disponible.'
         );
@@ -12496,7 +12503,7 @@ function generateTeacherReport() {
 
     const classMap = new Map();
 
-    classes.forEach(clase => {
+    window.classes.forEach(clase => {
         if (!clase || !clase.id) {
             return;
         }
@@ -12550,7 +12557,7 @@ function generateTeacherReport() {
     // ==========================================================
 
     const normalizedSessions =
-        classSessions
+        window.classSessions
             .map(session => {
                 if (!session) {
                     return null;
@@ -13286,7 +13293,7 @@ function updateReportFilters() {
                         Todas
                     </option>
 
-                    ${classes.map(c => `
+                    ${window.classes.map(c => `
 
                         <option value="${c.id}">
 
@@ -13385,7 +13392,7 @@ function updateReportFilters() {
     const teacherGroups =
         [
             ...new Set(
-                classes
+                window.classes
                     .map(
                         clase =>
                             clase.grupo
@@ -13536,7 +13543,7 @@ function updateReportFilters() {
     const uniqueGroups =
         [
             ...new Map(
-                groups.map(
+                window.groups.map(
                     g => [
                         g.nombre,
                         g
@@ -13632,7 +13639,7 @@ function updateReportFilters() {
     const uniqueGroups =
         [
             ...new Map(
-                groups.map(
+                window.groups.map(
                     g => [
                         g.nombre,
                         g
@@ -13751,7 +13758,7 @@ else if (type === 'classes') {
     const uniqueGroups =
         [
             ...new Set(
-                classes.map(
+                window.classes.map(
                     c => c.grupo
                 )
             )
@@ -13852,7 +13859,7 @@ else if (
     const financeAccounts =
         [
             ...new Set(
-                finances
+                window.finances
                     .map(
                         f => f.cuenta
                     )
@@ -14157,7 +14164,7 @@ function generateClassReport() {
     // ESTUDIANTES ACTIVOS DEL SUBGRUPO
     // ==========================================
     const subGroupStudents =
-        students.filter(
+        window.students.filter(
             student =>
                 student.estado === 'Activo' &&
                 isStudentEnrolledIn(
@@ -15858,7 +15865,7 @@ function buildGroupSubgroupReport(
     // ESTUDIANTES ACTIVOS DEL SUBGRUPO
     // ==========================================
     const subGroupStudents =
-        students.filter(
+        window.students.filter(
             student =>
                 student.estado === 'Activo' &&
                 isStudentEnrolledIn(
@@ -18407,7 +18414,7 @@ function generateStudentReport() {
     );
 
     const student =
-        students.find(
+        window.students.find(
             item =>
                 String(item.id) ===
                 String(studentId)
@@ -19728,7 +19735,7 @@ function loadReportTeachers() {
     ) return;
 
     const clase =
-        classes.find(
+        window.classes.find(
             c =>
                 String(c.id) ===
                 String(classId)
@@ -21655,7 +21662,7 @@ function buildFinanceReportPDF(
             );
 
     const generatedBy =
-        currentUser?.username ||
+        window.currentUser?.username ||
         'Sistema';
 
     const container =
@@ -22654,7 +22661,7 @@ async function loadClassSessionsFromFirestore() {
   const api = window.firestoreClassSessions;
   if (!api || !window.db) return;
   const snapshot = await api.getDocs(api.collection(window.db, 'classSessions'));
-  classSessions = snapshot.docs.map(d => ({...d.data(), firestoreId:d.id}));
+  window.classSessions = snapshot.docs.map(d => ({...d.data(), firestoreId:d.id}));
   classSessions.sort((a,b) => parseClassSessionDate(a.fecha)-parseClassSessionDate(b.fecha));
   rebuildSessionTeachersFromClassSessions();
   console.log(`✅ classSessions cargadas desde Firestore: ${classSessions.length}`);
@@ -22692,7 +22699,7 @@ async function persistAttendanceRecord(studentId, classId, fecha) {
     fecha,
     status: attendance.status || '',
     part: attendance.status === 'P' && attendance.part === true,
-    updatedBy: currentUser?.username || 'Sistema',
+    updatedBy: window.currentUser?.username || 'Sistema',
     updatedAt: new Date().toISOString()
   });
 }
@@ -22710,12 +22717,12 @@ function getClassSession(classId, fecha) {
 function classSessionExists(classId, fecha) { return !!getClassSession(classId, fecha); }
 async function createClassSession(classId, fecha, options = {}) {
   if (classId == null || !fecha) return null;
-  const clase = classes.find(c => String(c.id) === String(classId));
+  const clase = window.classes.find(c => String(c.id) === String(classId));
   if (!clase) { console.error('❌ No existe el subgrupo asociado:', classId); return null; }
   const existing = getClassSession(classId, fecha);
   if (existing) return existing;
   const estado = options.estado === 'Suspendida' ? 'Suspendida' : 'Realizada';
-  const username = currentUser?.username || 'Sistema';
+  const username = window.currentUser?.username || 'Sistema';
   const now = new Date().toISOString();
   const session = {
     id: generateClassSessionId(), classId: clase.id, fecha, estado,
@@ -22733,7 +22740,7 @@ async function updateClassSession(classId, fecha, changes = {}) {
   if (changes.estado === 'Realizada' || changes.estado === 'Suspendida') session.estado = changes.estado;
   ['motivoSuspension','detalleSuspension','nota','responsable'].forEach(k => { if (changes[k] !== undefined) session[k] = changes[k]; });
   if (session.estado === 'Realizada') { session.motivoSuspension = null; session.detalleSuspension = ''; }
-  session.updatedBy = currentUser?.username || 'Sistema'; session.updatedAt = new Date().toISOString();
+  session.updatedBy = window.currentUser?.username || 'Sistema'; session.updatedAt = new Date().toISOString();
   await saveClassSessionToFirestore(session); return session;
 }
 async function saveClassSession(classId, fecha, data = {}) {
@@ -22831,7 +22838,7 @@ function loadAttendanceDates() {
     if (!classId) return;
 
     const clase =
-        classes.find(
+        window.classes.find(
             c =>
                 String(c.id) ===
                 String(classId)
@@ -22867,7 +22874,7 @@ function getSelectedClass() {
 
     if (!classId) return null;
 
-    return classes.find(
+    return window.classes.find(
         c => String(c.id) === String(classId)
     );
 
@@ -22876,7 +22883,7 @@ function getSelectedClass() {
 function editClass(id) {
 
     const clase =
-        classes.find(
+        window.classes.find(
             c => String(c.id) === String(id)
         );
 
@@ -23137,7 +23144,7 @@ function getCurrentMonthBirthdays() {
                 .getMonth() + 1
         ).padStart(2,'0');
 
-    return students.filter(
+    return window.students.filter(
         s =>
             s.fechaNacimiento
              .split('/')[1]
@@ -23363,25 +23370,29 @@ function updateTeacher(
 
   
   function isTeacher() {
-        return currentUser &&
-              currentUser.role === 'maestro';
+        return window.currentUser &&
+              window.currentUser.role === 'maestro';
  }
  function isBirthdayUser() {
-
-    return currentUser &&
-           currentUser.role === 'cumpleanos';
-
+    return (
+        window.currentUser &&
+        window.currentUser.role === 'cumpleanos'
+    );
 }
     
   function updateMenuByRole() {
+    if (!window.currentUser) {
+    console.warn('window.currentUser aún no cargado');
+    return;
+}
 
-    if (!currentUser) {
+    if (!window.currentUser) {
         return;
     }
 
     const role =
         String(
-            currentUser.role || ''
+            window.currentUser.role || ''
         ).toLowerCase();
 
     // =====================================
@@ -23395,12 +23406,12 @@ function updateTeacher(
 
     const menuGrupos =
     document.getElementById(
-        'tab-grupos'
+        'menu-grupos'
     );
 
 const menuSubgrupos =
     document.getElementById(
-        'tab-clases'
+        'menu-subgrupos'
     );
 
     const menuEstudiantes =
@@ -24035,7 +24046,7 @@ async function loadClassesFromFirestore() {
     if (!window.db || !api) { mostrarNotificacion('Firestore todavía no está disponible para subgrupos', 'error'); return false; }
     try {
         const snapshot = await api.getDocs(api.collection(window.db, 'classes'));
-        classes = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+        window.classes = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
         classes.sort((a,b) => `${a.grupo||''} ${a.materia||''}`.localeCompare(`${b.grupo||''} ${b.materia||''}`, 'es'));
         renderClasses(); loadAttendanceClasses(); loadStudentSubGroups(); loadFinanceSubGroups();
         console.log('✅ Subgrupos cargados desde Firestore:', classes); return true;
@@ -24044,7 +24055,7 @@ async function loadClassesFromFirestore() {
 async function saveClassToFirestore(clase) {
     const api = window.firestoreClasses;
     if (!window.db || !api) throw new Error('Firestore no disponible para subgrupos');
-    const data = { ...clase, id: String(clase.id), updatedAt: new Date().toISOString(), updatedBy: currentUser?.email || currentUser?.username || 'superadmin' };
+    const data = { ...clase, id: String(clase.id), updatedAt: new Date().toISOString(), updatedBy:window.currentUser?.email || window.currentUser?.username || 'superadmin' };
     await api.setDoc(api.doc(window.db, 'classes', String(clase.id)), data, { merge: true });
 }
 
@@ -24139,7 +24150,7 @@ function renderClasses() {
     if (!window.db || !api) { mostrarNotificacion('Firestore todavía no está disponible', 'error'); return false; }
     try {
         const snapshot = await api.getDocs(api.collection(window.db, 'groups'));
-        groups = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+        window.groups = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
         groups.sort((a,b) => String(a.nombre||'').localeCompare(String(b.nombre||''), 'es'));
         renderGroups(); loadGroupOptions(); loadClassGroups(); loadFinanceGroups();
         console.log('✅ Grupos cargados desde Firestore:', groups); return true;
@@ -24157,7 +24168,7 @@ function renderGroups() {
 }
 async function saveGroupToFirestore(group) {
     const api=window.firestoreGroups; if(!window.db||!api) throw new Error('Firestore no disponible');
-    await api.setDoc(api.doc(window.db,'groups',String(group.id)), {nombre:String(group.nombre||'').trim(),estado:group.estado==='Inactivo'?'Inactivo':'Activo',updatedAt:new Date().toISOString(),updatedBy:currentUser?.email||currentUser?.username||'superadmin'}, {merge:true});
+    await api.setDoc(api.doc(window.db,'groups',String(group.id)), {nombre:String(group.nombre||'').trim(),estado:group.estado==='Inactivo'?'Inactivo':'Activo',updatedAt:new Date().toISOString(),updatedBy:window.currentUser?.email||currentUser?.username||'superadmin'}, {merge:true});
 }
 async function toggleGroupStatus(id) {
     const group=groups.find(g=>String(g.id)===String(id)); if(!group)return;
@@ -24365,7 +24376,7 @@ function getTeacherStats() {
 }
 //Función editar clases
 async function toggleClassStatus(id) {
-    const clase=classes.find(c=>String(c.id)===String(id)); if(!clase)return;
+    const clase=window.classes.find(c=>String(c.id)===String(id)); if(!clase)return;
     try{await saveClassToFirestore({...clase,estado:clase.estado==='Activa'?'Inactiva':'Activa'});await loadClassesFromFirestore();mostrarNotificacion('✅ Estado del subgrupo actualizado en Firestore','success');}
     catch(error){console.error(error);mostrarNotificacion('❌ No se pudo actualizar el subgrupo','error');}
 }
@@ -24492,42 +24503,7 @@ function renderUsers() {
 
     });
 }
-function toggleUserStatus(id) {
-  const user =
-    users.find(u => u.id === id);
 
-if (
-    user &&
-    user.role === 'superadmin'
-) {
-
-    mostrarNotificacion(
-        '❌ No puede inactivar el SuperAdmin',
-        'error'
-    );
-
-    return;
-
-}
-
-    users = users.map(u =>
-
-        u.id === id
-
-        ? {
-            ...u,
-            activo: !u.activo
-        }
-
-        : u
-
-    );
-
-    saveAll();
-
-    renderUsers();
-
-}
 function editUser(id) {
 
     console.log(
@@ -24654,103 +24630,9 @@ studentForm.addEventListener('submit', async (e) => {
         mostrarNotificacion('❌ No se pudo guardar el estudiante en Firestore', 'error');
     }
 });
-async function saveUserToFirestore(user) {
 
-    const api = window.firestoreUsers;
 
-    if (!window.db || !api) {
-        throw new Error(
-            'Firestore no disponible para usuarios'
-        );
-    }
 
-    const documentId =
-        String(
-            user.firebaseUid ||
-            user.id
-        );
-
-    const data = {
-
-        ...user,
-
-        updatedAt:
-            new Date().toISOString(),
-
-        updatedBy:
-            currentUser?.email ||
-            currentUser?.username ||
-            'system'
-    };
-
-    await api.setDoc(
-        api.doc(
-            window.db,
-            'users',
-            documentId
-        ),
-        data,
-        {
-            merge: true
-        }
-    );
-}
-
-async function loadUsersFromFirestore() {
-
-    const api =
-        window.firestoreUsers;
-
-    if (
-        !window.db ||
-        !api
-    ) {
-        return false;
-    }
-
-    try {
-
-        const snapshot =
-            await api.getDocs(
-                api.collection(
-                    window.db,
-                    'users'
-                )
-            );
-
-        users =
-            snapshot.docs.map(
-                item => ({
-                    id: item.id,
-                    ...item.data()
-                })
-            );
-
-        if (
-            typeof renderUsers ===
-            'function'
-        ) {
-            renderUsers();
-        }
-
-        console.log(
-            '✅ Usuarios cargados desde Firestore:',
-            users.length
-        );
-
-        return true;
-
-    }
-    catch (error) {
-
-        console.error(
-            '❌ Error cargando usuarios:',
-            error
-        );
-
-        return false;
-    }
-}
 
  //Usuarios
 const userForm =
@@ -24841,7 +24723,7 @@ if (userId) {
             new Date().toISOString(),
 
         updatedBy:
-            currentUser?.email ||
+            window.currentUser?.email ||
             'system'
     };
 
@@ -24880,7 +24762,7 @@ else {
         new Date().toISOString(),
 
     updatedBy:
-        currentUser?.email ||
+        window.currentUser?.email ||
         'system'
 
     };
@@ -25086,7 +24968,7 @@ if (groupForm) {
                     // ESTUDIANTES
                     // ==================================
                     const affectedStudents =
-                        students.filter(
+                        window.students.filter(
                             student => {
 
                                 const enrollments =
@@ -25303,7 +25185,7 @@ async function loadStudentsFromFirestore() {
     if (!window.db || !api) { mostrarNotificacion('Firestore todavía no está disponible para estudiantes', 'error'); return false; }
     try {
         const snapshot = await api.getDocs(api.collection(window.db, 'students'));
-        students = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+        window.students = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
         students.sort((a,b) => `${a.nombre||''} ${a.apellido||''}`.localeCompare(`${b.nombre||''} ${b.apellido||''}`, 'es'));
         renderStudentTable();
         console.log('✅ Estudiantes cargados desde Firestore:', students);
@@ -25317,7 +25199,7 @@ async function loadStudentsFromFirestore() {
 async function saveStudentToFirestore(student) {
     const api = window.firestoreStudents;
     if (!window.db || !api) throw new Error('Firestore no disponible para estudiantes');
-    const data = { ...student, id: String(student.id), updatedAt: new Date().toISOString(), updatedBy: currentUser?.email || currentUser?.username || 'superadmin' };
+    const data = { ...student, id: String(student.id), updatedAt: new Date().toISOString(), updatedBy: window.currentUser?.email || window.currentUser?.username || 'superadmin' };
     await api.setDoc(api.doc(window.db, 'students', String(student.id)), data, { merge: true });
 }
 async function saveUserToFirestore(user) {
@@ -25338,7 +25220,7 @@ async function saveUserToFirestore(user) {
             new Date().toISOString(),
 
         updatedBy:
-            currentUser?.email ||
+            window.currentUser?.email ||
             'system'
     };
 
@@ -25379,7 +25261,7 @@ async function loadUsersFromFirestore() {
                 )
             );
 
-        users =
+        window.users =
             snapshot.docs.map(
                 doc => ({
                     id: doc.id,
@@ -25753,7 +25635,7 @@ async function toggleUserStatus(id) {
     // ==========================================
 
     const student =
-        students.find(
+        window.students.find(
             s => String(s.id) === String(id)
         );
 
@@ -25933,7 +25815,7 @@ async function toggleUserStatus(id) {
 }
 
   async function deleteStudent(id) {
-    const student = students.find(s => String(s.id) === String(id));
+    const student = window.students.find(s => String(s.id) === String(id));
     if (!student) return;
     const confirmado = confirm(`¿Desea eliminar a ${student.nombre} ${student.apellido}?\n\nEl estudiante se eliminará de Firestore. Su historial de asistencia local también se eliminará en este navegador.`);
     if (!confirmado) return;
@@ -26115,18 +25997,18 @@ async function setAttendanceTouchStatus(
     // ======================================
     // ASEGURAR ESTRUCTURA attendanceData
     // ======================================
-    if (!attendanceData[studentId]) {
-        attendanceData[studentId] = {};
+    if (!window.attendanceData[studentId]) {
+        window.attendanceData[studentId] = {};
     }
 
-    if (!attendanceData[studentId][classId]) {
-        attendanceData[studentId][classId] = {};
+    if (!window.attendanceData[studentId][classId]) {
+        window.attendanceData[studentId][classId] = {};
     }
 
     // ======================================
     // ACTUALIZAR REGISTRO LOCAL
     // ======================================
-    attendanceData[studentId][classId][fecha] = {
+    window.attendanceData[studentId][classId][fecha] = {
         status: finalStatus,
         part: finalPart
     };
@@ -26226,18 +26108,18 @@ async function toggleAttendanceParticipation(
     // ======================================
     // ASEGURAR ESTRUCTURA attendanceData
     // ======================================
-    if (!attendanceData[studentId]) {
-        attendanceData[studentId] = {};
+    if (!window.attendanceData[studentId]) {
+        window.attendanceData[studentId] = {};
     }
 
-    if (!attendanceData[studentId][classId]) {
-        attendanceData[studentId][classId] = {};
+    if (!window.attendanceData[studentId][classId]) {
+        window.attendanceData[studentId][classId] = {};
     }
 
     // ======================================
     // ACTUALIZAR REGISTRO LOCAL
     // ======================================
-    attendanceData[studentId][classId][fecha] = {
+    window.attendanceData[studentId][classId][fecha] = {
         status: 'P',
         part: newPart
     };
@@ -26395,7 +26277,7 @@ async function toggleAttendanceParticipation(
     // ESTUDIANTES ACTIVOS DEL SUBGRUPO
     // ==========================================
     const enrolledStudents =
-        students.filter(student => {
+        window.students.filter(student => {
 
             if (student.estado !== 'Activo') {
                 return false;
@@ -27171,7 +27053,7 @@ function analyzeLegacyAttendance() {
 
 
             const student =
-                students.find(
+                window.students.find(
                     s =>
                         String(s.id) ===
                         String(studentId)
@@ -27304,7 +27186,7 @@ function migrateLegacyAttendance() {
 
 
             const student =
-                students.find(
+                window.students.find(
                     s =>
                         String(s.id) ===
                         String(studentId)
@@ -27548,12 +27430,12 @@ async function updateAttPart(
         // ======================================
         // ACTUALIZAR MEMORIA
         // ======================================
-        if (!attendanceData[studentId]) {
-            attendanceData[studentId] = {};
+        if (!window.attendanceData[studentId]) {
+            window.attendanceData[studentId] = {};
         }
 
         if (
-            !attendanceData[
+            !window.attendanceData[
                 studentId
             ][classId]
         ) {
@@ -27807,16 +27689,16 @@ async function updateAttStatus(
         // ==================================
         // ASEGURAR ESTRUCTURA LOCAL
         // ==================================
-        if (!attendanceData[studentId]) {
-            attendanceData[studentId] = {};
+        if (!window.attendanceData[studentId]) {
+            window.attendanceData[studentId] = {};
         }
 
         if (
-            !attendanceData[
+            !window.attendanceData[
                 studentId
             ][classId]
         ) {
-            attendanceData[
+            window.attendanceData[
                 studentId
             ][classId] = {};
         }
@@ -27824,7 +27706,7 @@ async function updateAttStatus(
         // ==================================
         // ACTUALIZAR STATUS + PART JUNTOS
         // ==================================
-        attendanceData[
+        window.attendanceData[
             studentId
         ][classId][fecha] = {
             status: finalStatus,
@@ -27955,7 +27837,7 @@ function renderDashboardSimplified() {
     // ESTUDIANTES ACTIVOS
     // ==========================================
     const groupStudents =
-        students.filter(
+        window.students.filter(
             student =>
                 student.estado === 'Activo' &&
                 isStudentEnrolledIn(
@@ -29540,7 +29422,7 @@ financeForm.addEventListener(
             creadoPor:
                 existingFinance
                     ?.creadoPor ||
-                currentUser.username,
+                window.currentUser.username,
 
             fechaCreacion:
                 existingFinance
@@ -29550,7 +29432,7 @@ financeForm.addEventListener(
 
             modificadoPor:
                 id
-                    ? currentUser.username
+                    ? window.currentUser.username
                     : null,
 
             fechaModificacion:
@@ -29735,8 +29617,8 @@ else {
     // ==========================================
 
     if (
-        !Array.isArray(finances) ||
-        finances.length === 0
+        !Array.isArray(window.finances) ||
+        window.finances.length === 0
     ) {
 
         tbody.innerHTML = `
@@ -30300,7 +30182,7 @@ function cancelFinance(id) {
                             motivoLimpio,
 
                         anuladoPor:
-                            currentUser.username,
+                            window.currentUser.username,
 
                         fechaAnulacion:
                             new Date()
@@ -30583,11 +30465,11 @@ function addFinanceAuditLog(
         action,
 
         user:
-            currentUser?.username ||
+            window.currentUser?.username ||
             'Sistema',
 
         role:
-            currentUser?.role ||
+            window.currentUser?.role ||
             'sistema',
 
         timestamp:
@@ -31252,7 +31134,7 @@ async function deleteUser(id) {
                             estado,
 
                         auditadoPor:
-                            currentUser.username,
+                            window.currentUser.username,
 
                         fechaAuditoria:
                             new Date()
@@ -31661,7 +31543,7 @@ function calculateFinanceByGroup(
 
  function logout() {
     if (!window.firebaseAuth || !window.firebaseSignOut) {
-        currentUser = null;
+        window.currentUser = null;
         document.querySelector('.container').style.display = 'none';
         document.getElementById('loginView').style.display = 'block';
         return;
@@ -31669,7 +31551,7 @@ function calculateFinanceByGroup(
 
     window.firebaseSignOut(window.firebaseAuth)
         .then(() => {
-            currentUser = null;
+            window.currentUser = null;
             pendingPasswordChangeUser = null;
             localStorage.removeItem('biblical_current_user');
             const passInput = document.getElementById('loginPass');
@@ -31964,7 +31846,7 @@ function completeInitialPasswordChange() {
     // CREAR SESIÓN NORMAL
     // ==========================================
 
-    currentUser =
+    window.currentUser =
         updatedUser;
 
 
@@ -32061,10 +31943,10 @@ function completeInitialPasswordChange() {
         userInfo.innerHTML = `
             👤
             <strong>
-                ${currentUser.username}
+                ${window.currentUser.username}
             </strong>
             |
-            ${currentUser.role}
+            ${window.currentUser.role}
         `;
     }
 
@@ -32109,13 +31991,13 @@ function completeInitialPasswordChange() {
         '✅ Cambio inicial de contraseña completado:',
         {
             userId:
-                currentUser.id,
+                window.currentUser.id,
 
             username:
-                currentUser.username,
+                window.currentUser.username,
 
             requiereCambioPassword:
-                currentUser
+                window.currentUser
                     .requiereCambioPassword
         }
     );
@@ -32135,18 +32017,18 @@ function completeInitialPasswordChange() {
 
 function isAdmin() {
 
-    return currentUser &&
+    return window.currentUser &&
         (
-            currentUser.role === 'admin' ||
-            currentUser.role === 'superadmin'
+            window.currentUser.role === 'admin' ||
+            window.currentUser.role === 'superadmin'
         );
 }
 
 
 function isAuditor() {
 
-    return currentUser &&
-        currentUser.role === 'auditor';
+    return window.currentUser &&
+        window.currentUser.role === 'auditor';
 }
 
 
@@ -32156,23 +32038,23 @@ function isAuditor() {
 
 function canViewFinance() {
 
-    return currentUser &&
+    return window.currentUser &&
         (
-            currentUser.role === 'registrador' ||
-            currentUser.role === 'admin' ||
-            currentUser.role === 'auditor' ||
-            currentUser.role === 'superadmin'
+            window.currentUser.role === 'registrador' ||
+            window.currentUser.role === 'admin' ||
+            window.currentUser.role === 'auditor' ||
+            window.currentUser.role === 'superadmin'
         );
 }
 
 
 function canRegisterFinance() {
 
-    return currentUser &&
+    return window.currentUser &&
         (
-            currentUser.role === 'registrador' ||
-            currentUser.role === 'admin' ||
-            currentUser.role === 'superadmin'
+            window.currentUser.role === 'registrador' ||
+            window.currentUser.role === 'admin' ||
+            window.currentUser.role === 'superadmin'
         );
 }
 
@@ -32181,10 +32063,10 @@ function canRegisterFinance() {
 // ==========================================
 function canCancelFinance() {
 
-    return currentUser &&
+    return window.currentUser &&
         (
-            currentUser.role === 'admin' ||
-            currentUser.role === 'superadmin'
+            window.currentUser.role === 'admin' ||
+            window.currentUser.role === 'superadmin'
         );
 }
 
@@ -32192,18 +32074,18 @@ function canCancelFinance() {
 
 function canEditFinance() {
 
-    return currentUser &&
+    return window.currentUser &&
         (
-            currentUser.role === 'admin' ||
-            currentUser.role === 'superadmin'
+            window.currentUser.role === 'admin' ||
+            window.currentUser.role === 'superadmin'
         );
 }
 
 
 function canAuditFinance() {
 
-    return currentUser &&
-        currentUser.role === 'auditor';
+    return window.currentUser &&
+        window.currentUser.role === 'auditor';
 }
 function applyFinancePermissions() {
 
@@ -32269,14 +32151,13 @@ function applyFinancePermissions() {
 //Función super usuario
 function isSuperAdmin() {
 
-    return currentUser &&
-           currentUser.role === "superadmin";
+    return window.currentUser &&
+           window.currentUser.role === "superadmin";
 
 }
 
 
 window.addEventListener('DOMContentLoaded', () => {
-    migrateStudentEnrollments();
     migrateStudentEnrollments();
     startHomeCarousel();
     setCurrentMonth();
