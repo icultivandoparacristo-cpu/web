@@ -5019,7 +5019,11 @@ button.auth-submit:hover {
 
         </div>
         <div id="attendanceInfoCard"class="card" style="display:none;"></div>
-          
+          <div
+    id="classSessionEditor"
+    class="card"
+    style="margin-top:15px;"
+        ></div>
       
       </div>
       <p style="font-size:12px; color:#665; margin: 10px 0 0 0;">
@@ -22356,9 +22360,245 @@ function escapeHtml(value) {
 }
 
 function renderClassSessionPanel() {
-    // El editor ahora vive dentro de la tabla de asistencia.
-    // Redibujamos la tabla para mantenerlo sincronizado con subgrupo y fecha.
-    renderAttendanceTable();
+    function renderClassSessionPanel() {
+
+    const container =
+        document.getElementById(
+            'classSessionEditor'
+        );
+
+    if (!container) {
+        return;
+    }
+
+    const clase =
+        getSelectedClass();
+
+    const fecha =
+        document.getElementById(
+            'attendanceDate'
+        )?.value;
+
+    if (!clase || !fecha) {
+
+        container.style.display =
+            'none';
+
+        return;
+    }
+
+    container.style.display =
+        'block';
+
+    const session =
+        getClassSession(
+            clase.id,
+            fecha
+        );
+
+    container.innerHTML = `
+
+        <h3>
+            📘 Sesión de Clase
+        </h3>
+
+        <div
+            style="
+                display:grid;
+                gap:12px;
+            "
+        >
+
+            <div>
+
+                <label>
+                    👨‍🏫 Responsable
+                </label>
+
+                <input
+                    id="sessionResponsible"
+                    type="text"
+                    value="${
+                        session?.responsable || ''
+                    }"
+                    style="
+                        width:100%;
+                    "
+                >
+
+            </div>
+
+            <div>
+
+                <label>
+                    📌 Estado
+                </label>
+
+                <select
+                    id="sessionStatus"
+                    style="
+                        width:100%;
+                    "
+                >
+                    <option
+                        value="Realizada"
+                        ${
+                            session?.estado ===
+                            'Realizada'
+                                ? 'selected'
+                                : ''
+                        }
+                    >
+                        Realizada
+                    </option>
+
+                    <option
+                        value="Suspendida"
+                        ${
+                            session?.estado ===
+                            'Suspendida'
+                                ? 'selected'
+                                : ''
+                        }
+                    >
+                        Suspendida
+                    </option>
+                </select>
+
+            </div>
+
+            <div>
+
+                <label>
+                    🚫 Motivo suspensión
+                </label>
+
+                <textarea
+                    id="sessionReason"
+                    rows="3"
+                    style="
+                        width:100%;
+                    "
+                >${
+                    session?.motivoSuspension || ''
+                }</textarea>
+
+            </div>
+
+            <div>
+
+                <label>
+                    📝 Bitácora
+                </label>
+
+                <textarea
+                    id="sessionNote"
+                    rows="6"
+                    style="
+                        width:100%;
+                    "
+                >${
+                    session?.nota || ''
+                }</textarea>
+
+            </div>
+
+            <button
+                type="button"
+                class="btn-save"
+                onclick="
+                    saveCurrentSessionEditor()
+                "
+            >
+                💾 Guardar sesión
+            </button>
+
+        </div>
+
+    `;
+}
+  
+}
+async function saveCurrentSessionEditor() {
+
+    const clase =
+        getSelectedClass();
+
+    const fecha =
+        document.getElementById(
+            'attendanceDate'
+        ).value;
+
+    if (!clase || !fecha) {
+        return;
+    }
+
+    const session =
+        getClassSession(
+            clase.id,
+            fecha
+        );
+
+    if (!session) {
+
+        alert(
+            'No existe una sesión para esta fecha.'
+        );
+
+        return;
+    }
+
+    session.responsable =
+        document.getElementById(
+            'sessionResponsible'
+        ).value.trim();
+
+    session.estado =
+        document.getElementById(
+            'sessionStatus'
+        ).value;
+
+    session.motivoSuspension =
+        document.getElementById(
+            'sessionReason'
+        ).value.trim();
+
+    session.nota =
+        document.getElementById(
+            'sessionNote'
+        ).value.trim();
+
+    session.updatedAt =
+        new Date().toISOString();
+
+    try {
+
+        if (
+            typeof saveClassSessionToFirestore ===
+            'function'
+        ) {
+
+            await saveClassSessionToFirestore(
+                session
+            );
+
+        }
+
+        renderAttendanceInfo();
+
+        alert(
+            '✅ Sesión guardada'
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            '❌ Error al guardar'
+        );
+
+    }
 }
 
 function updateClassSessionPanelVisibility() {
