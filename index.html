@@ -4999,10 +4999,7 @@ button.auth-submit:hover {
             id="attendanceDate"
             onchange="
                 
-                renderAttendanceInfo();
-                renderAttendanceTable();
-                renderClassSessionPanel();
-                renderDashboardSimplified();
+               handleAttendanceDateChange()
             ">
         </select>
         <div style="margin-top:15px;">
@@ -11256,6 +11253,37 @@ function getAcademicSessionSummary(
         sesionesSuspendidas:
             suspendidas
     };
+
+}
+async function handleAttendanceDateChange() {
+
+    const clase =
+        getSelectedClass();
+
+    const fecha =
+        document.getElementById(
+            'attendanceDate'
+        )?.value;
+
+    if (!clase || !fecha) {
+        return;
+    }
+
+    await ensureClassSession(
+        clase.id,
+        fecha
+    );
+
+    renderAttendanceInfo();
+    renderAttendanceTable();
+    renderClassSessionPanel();
+
+    if (
+        typeof renderDashboardSimplified ===
+        'function'
+    ) {
+        renderDashboardSimplified();
+    }
 
 }
 
@@ -22981,6 +23009,44 @@ async function createClassSession(classId, fecha, options = {}) {
   };
   classSessions.push(session); await saveClassSessionToFirestore(session); return session;
 }
+async function ensureClassSession(
+    classId,
+    fecha,
+    options = {}
+) {
+
+    if (!classId || !fecha) {
+        return null;
+    }
+
+    let session =
+        getClassSession(
+            classId,
+            fecha
+        );
+
+    if (session) {
+        return session;
+    }
+
+    console.log(
+        '📘 Creando sesión automáticamente:',
+        classId,
+        fecha
+    );
+
+    session =
+        await createClassSession(
+            classId,
+            fecha,
+            {
+                estado: 'Realizada',
+                ...options
+            }
+        );
+
+    return session;
+}
 async function updateClassSession(classId, fecha, changes = {}) {
   const session = getClassSession(classId, fecha);
   if (!session) return null;
@@ -23109,7 +23175,28 @@ function loadAttendanceDates() {
         `;
 
     });
+const primeraFecha =
+    fechaSelect.value;
 
+if (primeraFecha) {
+
+    ensureClassSession(
+        classId,
+        primeraFecha
+    ).then(() => {
+
+        renderAttendanceInfo();
+
+        if (
+            typeof renderDashboardSimplified ===
+            'function'
+        ) {
+            renderDashboardSimplified();
+        }
+
+    });
+
+}
 }
 //función para obtener la clase seleccionada
 function getSelectedClass() {
