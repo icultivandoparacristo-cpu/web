@@ -22529,6 +22529,40 @@ function loadAttendanceClasses() {
              </option>
              `;
         });
+        if (
+    typeof loadAttendanceDates ===
+    'function'
+) {
+    loadAttendanceDates();
+}
+
+if (
+    typeof renderAttendanceInfo ===
+    'function'
+) {
+    renderAttendanceInfo();
+}
+
+if (
+    typeof renderAttendanceTable ===
+    'function'
+) {
+    renderAttendanceTable();
+}
+
+if (
+    typeof renderClassSessionPanel ===
+    'function'
+) {
+    renderClassSessionPanel();
+}
+
+if (
+    typeof renderDashboardSimplified ===
+    'function'
+) {
+    renderDashboardSimplified();
+}
 }
 function renderAttendanceInfo() {
 
