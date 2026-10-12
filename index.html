@@ -32169,6 +32169,215 @@ window.addEventListener('DOMContentLoaded', () => {
     const appContainer = document.querySelector('.container');
     if (appContainer) appContainer.style.display = 'none';
 });
+function auditDuplicateFunctions() {
+
+    const html =
+        document.documentElement.outerHTML;
+
+    const functionRegex =
+        /function\s+([a-zA-Z0-9_]+)\s*\(/g;
+
+    const functions = {};
+
+    let match;
+
+    while (
+        (match = functionRegex.exec(html))
+        !== null
+    ) {
+        const functionName = match[1];
+
+        if (!functions[functionName]) {
+            functions[functionName] = 0;
+        }
+
+        functions[functionName]++;
+    }
+
+    const duplicates =
+        Object.entries(functions)
+            .filter(
+                ([name, count]) =>
+                    count > 1
+            )
+            .sort(
+                (a, b) =>
+                    b[1] - a[1]
+            );
+
+    console.group(
+        '🔍 FUNCIONES DUPLICADAS'
+    );
+
+    if (
+        duplicates.length === 0
+    ) {
+        console.log(
+            '✅ No se encontraron funciones duplicadas'
+        );
+    } else {
+
+        duplicates.forEach(
+            ([name, count]) => {
+
+                console.warn(
+                    `❌ ${name} aparece ${count} veces`
+                );
+
+            }
+        );
+
+    }
+
+    console.groupEnd();
+
+    return duplicates;
+}
+function auditGlobalVariables() {
+
+    const html =
+        document.documentElement.outerHTML;
+
+    const regex =
+        /(let|const|var)\s+([a-zA-Z0-9_]+)/g;
+
+    const vars = {};
+
+    let match;
+
+    while (
+        (match = regex.exec(html))
+        !== null
+    ) {
+
+        const variableName =
+            match[2];
+
+        vars[variableName] =
+            (vars[variableName] || 0) + 1;
+    }
+
+    const duplicates =
+        Object.entries(vars)
+            .filter(
+                ([name, count]) =>
+                    count > 1
+            );
+
+    console.group(
+        '🔍 VARIABLES DUPLICADAS'
+    );
+
+    duplicates.forEach(
+        ([name, count]) => {
+
+            console.warn(
+                `❌ ${name} aparece ${count} veces`
+            );
+
+        }
+    );
+
+    console.groupEnd();
+
+    return duplicates;
+}
+function auditCultivoDuplicates() {
+
+    const html =
+        document.documentElement.outerHTML;
+
+    const targets = [
+
+        'saveUserToFirestore',
+
+        'loadUsersFromFirestore',
+
+        'toggleUserStatus',
+
+        'updateMenuByRole',
+
+        'isBirthdayUser',
+
+        'loadStudentsFromFirestore',
+
+        'loadClassesFromFirestore',
+
+        'loadGroupsFromFirestore',
+
+        'loadClassSessionsFromFirestore',
+
+        'applyFirebaseAuthState',
+
+        'getClassSession',
+
+        'renderAttendance',
+
+        'loadAttendanceClasses'
+    ];
+
+    console.group(
+        '🌱 CULTIVO SYSTEM AUDIT'
+    );
+
+    targets.forEach(
+        name => {
+
+            const matches =
+                html.match(
+                    new RegExp(
+                        `function\\s+${name}\\s*\\(`,
+                        'g'
+                    )
+                );
+
+            const total =
+                matches
+                ? matches.length
+                : 0;
+
+            if (total > 1) {
+
+                console.error(
+                    `❌ ${name}: ${total} definiciones`
+                );
+
+            } else if (total === 1) {
+
+                console.log(
+                    `✅ ${name}`
+                );
+
+            } else {
+
+                console.warn(
+                    `⚠️ ${name} no encontrado`
+                );
+
+            }
+
+        }
+    );
+
+    console.groupEnd();
+}function runSystemAudit() {
+
+    console.clear();
+
+    console.log(
+        '🌱 Iniciando auditoría completa...'
+    );
+
+    auditDuplicateFunctions();
+
+    auditGlobalVariables();
+
+    auditCultivoDuplicates();
+
+    console.log(
+        '✅ Auditoría finalizada'
+    );
+}
 </script>
 <!-- ==========================================
      VISTA PREVIA REPORTE FINANCIERO
