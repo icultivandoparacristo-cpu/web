@@ -22503,8 +22503,6 @@ async function saveSessionTeacher() {
 );
 
 }
-
-// Función para cargar clases
 function loadAttendanceClasses() {
 
     const select =
@@ -22513,56 +22511,73 @@ function loadAttendanceClasses() {
         );
 
     if (!select) return;
+
     select.innerHTML =
         '<option value="">Seleccione</option>';
+
     classes
         .filter(
             c => c.estado === 'Activa'
         )
         .forEach(c => {
-        select.innerHTML += `
 
-            <option value="${c.id}">
-            ${c.grupo}
-            |
-            ${c.materia}
-             </option>
-             `;
+            select.innerHTML += `
+                <option value="${c.id}">
+                    ${c.grupo}
+                    |
+                    ${c.materia}
+                </option>
+            `;
         });
-        if (
-    typeof loadAttendanceDates ===
-    'function'
-) {
-    loadAttendanceDates();
-}
 
-if (
-    typeof renderAttendanceInfo ===
-    'function'
-) {
-    renderAttendanceInfo();
-}
+    // ======================================
+    // SELECCIONAR PRIMER SUBGRUPO
+    // ======================================
 
-if (
-    typeof renderAttendanceTable ===
-    'function'
-) {
-    renderAttendanceTable();
-}
+    if (
+        !select.value &&
+        select.options.length > 1
+    ) {
 
-if (
-    typeof renderClassSessionPanel ===
-    'function'
-) {
-    renderClassSessionPanel();
-}
+        select.value =
+            select.options[1].value;
 
-if (
-    typeof renderDashboardSimplified ===
-    'function'
-) {
-    renderDashboardSimplified();
-}
+    }
+
+    if (
+        typeof loadAttendanceDates ===
+        'function'
+    ) {
+        loadAttendanceDates();
+    }
+
+    if (
+        typeof renderAttendanceInfo ===
+        'function'
+    ) {
+        renderAttendanceInfo();
+    }
+
+    if (
+        typeof renderAttendanceTable ===
+        'function'
+    ) {
+        renderAttendanceTable();
+    }
+
+    if (
+        typeof renderClassSessionPanel ===
+        'function'
+    ) {
+        renderClassSessionPanel();
+    }
+
+    if (
+        typeof renderDashboardSimplified ===
+        'function'
+    ) {
+        renderDashboardSimplified();
+    }
 }
 function renderAttendanceInfo() {
 
