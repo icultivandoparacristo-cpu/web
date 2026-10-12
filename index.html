@@ -22540,8 +22540,7 @@ function loadAttendanceClasses() {
     ) {
         renderDashboardSimplified();
     }
-}
-function renderAttendanceInfo() {
+}function renderAttendanceInfo() {
 
     const clase =
         getSelectedClass();
@@ -22556,19 +22555,28 @@ function renderAttendanceInfo() {
             'attendanceInfoCard'
         );
 
+    if (!card) {
+        return;
+    }
+
     if (!clase) {
 
         card.style.display =
             'none';
 
         return;
-
     }
+
+    const session =
+        getClassSession(
+            clase.id,
+            fecha
+        );
 
     card.style.display =
         'block';
 
-card.innerHTML = `
+    card.innerHTML = `
 
 <div
     style="
@@ -22580,51 +22588,50 @@ card.innerHTML = `
     ">
 
     <div>
-
         👥 Grupo:
         <strong>
-            ${clase.grupo}
+            ${clase.grupo || 'Sin grupo'}
         </strong>
-
     </div>
 
     <div>
-
         📚 Subgrupo:
         <strong>
-            ${clase.materia}
+            ${clase.materia || 'Sin subgrupo'}
         </strong>
-
     </div>
 
     <div>
-
         📅 Fecha:
         <strong>
             ${fecha || 'Sin fecha'}
         </strong>
-
     </div>
 
     <div>
-
         👨‍🏫 Responsable:
         <strong>
             ${
-                sessionTeachers[
-                    clase.id
-                ]?.[
-                    fecha
-                ] ||
+                session?.responsable ||
                 'Sin asignar'
             }
         </strong>
+    </div>
 
+    <div>
+        📌 Estado:
+        <strong>
+            ${
+                session?.estado ||
+                'Sin sesión'
+            }
+        </strong>
     </div>
 
 </div>
 
 `;
+
 }
 
 
@@ -32311,7 +32318,7 @@ function auditCultivoDuplicates() {
 
         'getClassSession',
 
-        'renderAttendance',
+        
 
         'loadAttendanceClasses'
     ];
