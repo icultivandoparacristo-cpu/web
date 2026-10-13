@@ -26591,53 +26591,53 @@ async function toggleAttendanceParticipation(
     );
 }
 
-  // ASISTENCIA
   function renderAttendanceTable() {
 
-    // ==========================================
-    // ELEMENTOS PRINCIPALES
-    // ==========================================
     const header =
-        document.getElementById('attendanceHeader');
+        document.getElementById(
+            'attendanceHeader'
+        );
 
     const tbody =
-        document.getElementById('attendanceTableBody');
+        document.getElementById(
+            'attendanceTableBody'
+        );
 
     const dateInput =
-        document.getElementById('attendanceDate');
+        document.getElementById(
+            'attendanceDate'
+        );
 
     if (!header || !tbody || !dateInput) {
         console.warn(
-            'No se encontraron los elementos de la tabla de asistencia.'
+            'No se encontraron los elementos de asistencia.'
         );
         return;
     }
 
-    // ==========================================
-    // CLASE SELECCIONADA
-    // ==========================================
-    const clase = getSelectedClass();
+    const clase =
+        getSelectedClass();
 
-    const fecha = dateInput.value;
+    const fecha =
+        dateInput.value;
 
-    // ==========================================
-    // SIN CLASE O SIN FECHA
-    // ==========================================
     if (!clase || !fecha) {
 
         header.innerHTML = `
-        
             <th>Estudiante</th>
             <th>Asistencia y participación</th>
         `;
 
         tbody.innerHTML = `
             <tr>
-                <td colspan="2" style="
-                    text-align:center;
-                    padding:20px;
-                    color:#777;
-                ">
+                <td
+                    colspan="2"
+                    style="
+                        text-align:center;
+                        padding:20px;
+                        color:#777;
+                    "
+                >
                     Selecciona una clase y una fecha.
                 </td>
             </tr>
@@ -26646,28 +26646,26 @@ async function toggleAttendanceParticipation(
         return;
     }
 
-    const classId = clase.id;
+    const classId =
+        clase.id;
 
-    // ==========================================
-    // SESION ACTUAL
-    // ==========================================
     const currentSession =
-        typeof getClassSession === 'function'
-            ? getClassSession(classId, fecha)
+        typeof getClassSession ===
+        'function'
+            ? getClassSession(
+                classId,
+                fecha
+            )
             : null;
 
     const sessionStatus =
-        currentSession &&
-        currentSession.estado
-            ? currentSession.estado
-            : 'Realizada';
+        currentSession?.estado ||
+        'Realizada';
 
     const isSuspended =
-        sessionStatus === 'Suspendida';
+        sessionStatus ===
+        'Suspendida';
 
-    // ==========================================
-    // ENCABEZADO
-    // ==========================================
     header.innerHTML = `
         <th style="text-align:left;">
             Estudiante
@@ -26678,99 +26676,72 @@ async function toggleAttendanceParticipation(
         </th>
     `;
 
-// ==========================================
-// ESTUDIANTES ACTIVOS DEL SUBGRUPO
-// ==========================================
-const enrolledStudents =
-    window.students.filter(student => {
+    const enrolledStudents =
+        window.students.filter(
+            student => {
 
-        if (student.estado !== 'Activo') {
-            return false;
-        }
+                if (
+                    student.estado !==
+                    'Activo'
+                ) {
+                    return false;
+                }
 
-        return isStudentEnrolledIn(
-            student,
-            clase.grupo,
-            clase.materia
+                return isStudentEnrolledIn(
+                    student,
+                    clase.grupo,
+                    clase.materia
+                );
+            }
         );
-    });
 
-// ==========================================
-// SIN ESTUDIANTES
-// ==========================================
-if (enrolledStudents.length === 0) {
+    if (
+        enrolledStudents.length === 0
+    ) {
 
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="2"
-                style="
-                    text-align:center;
-                    padding:20px;
-                    color:#777;
-                ">
-                No hay estudiantes activos
-                registrados en este subgrupo.
-            </td>
-        </tr>
-    `;
-
-    return;
-}
-
-// ==========================================
-// SESIÓN SUSPENDIDA
-// ==========================================
-if (isSuspended) {
-
-    let suspendedRows = '';
-
-    enrolledStudents.forEach(student => {
-
-        const studentName =
-            [
-                student.nombre,
-                student.apellido
-            ]
-                .filter(Boolean)
-                .join(' ') ||
-            student.name ||
-            'Sin nombre';
-
-        suspendedRows += `
+        tbody.innerHTML = `
             <tr>
-                <td>
-                    ${studentName}
-                </td>
-
-                <td>
-                    ⛔ Clase suspendida
+                <td
+                    colspan="2"
+                    style="
+                        text-align:center;
+                        padding:20px;
+                        color:#777;
+                    "
+                >
+                    No hay estudiantes activos
+                    registrados en este subgrupo.
                 </td>
             </tr>
         `;
-    });
 
-    tbody.innerHTML =
-        suspendedRows;
+        return;
+    }
 
-    return;
-}
-const teacherOptions =
-    (Array.isArray(clase.maestros)
-        ? clase.maestros
-        : [])
-        .map(maestro => `
-            <option
-                value="${maestro}"
-                ${
-                    session?.responsable === maestro
-                        ? 'selected'
-                        : ''
-                }
-            >
-                ${maestro}
-            </option>
-        `)
+    const teacherOptions =
+        (
+            Array.isArray(
+                clase.maestros
+            )
+                ? clase.maestros
+                : []
+        )
+        .map(
+            maestro => `
+                <option
+                    value="${maestro}"
+                    ${
+                        currentSession?.responsable === maestro
+                            ? 'selected'
+                            : ''
+                    }
+                >
+                    ${maestro}
+                </option>
+            `
+        )
         .join('');
+
     let rows = `
 
 <tr>
@@ -26821,10 +26792,10 @@ const teacherOptions =
                 <textarea
                     id="sessionNote"
                     rows="4"
-                    style="
-                        width:100%;
-                    "
-                >${currentSession?.nota || ''}</textarea>
+                    style="width:100%;"
+                >${
+                    currentSession?.nota || ''
+                }</textarea>
 
             </div>
 
@@ -26833,7 +26804,9 @@ const teacherOptions =
                 <button
                     type="button"
                     class="btn-save"
-                    onclick="saveCurrentSessionEditor()"
+                    onclick="
+                        saveCurrentSessionEditor()
+                    "
                 >
                     💾 Guardar sesión
                 </button>
@@ -26847,260 +26820,192 @@ const teacherOptions =
 </tr>
 
 `;
-    // ==========================================
-    // GENERAR FILAS DE ESTUDIANTES
-    // ==========================================
-   
 
-    enrolledStudents.forEach(student => {
+    enrolledStudents.forEach(
+        student => {
 
-        // ======================================
-        // ASEGURAR REGISTRO
-        // ======================================
-        if (
-            typeof ensureStudentAttendance ===
-            'function'
-        ) {
-            ensureStudentAttendance(
-                student.id,
-                classId,
-                fecha
-            );
-        }
+            if (
+                typeof ensureStudentAttendance ===
+                'function'
+            ) {
 
-        // ======================================
-        // OBTENER ASISTENCIA
-        // ======================================
-        const att =
-            getStudentAttendance(
-                student.id,
-                classId,
-                fecha
-            ) || {
-                status: '',
-                part: false
-            };
+                ensureStudentAttendance(
+                    student.id,
+                    classId,
+                    fecha
+                );
+            }
 
-        const status =
-            att.status || '';
+            const att =
+                getStudentAttendance(
+                    student.id,
+                    classId,
+                    fecha
+                ) || {
+                    status: '',
+                    part: false
+                };
 
-        const participated =
-            status === 'P' &&
-            att.part === true;
+            const status =
+                att.status || '';
 
-        // ======================================
-        // NOMBRE
-        // ======================================
-        const studentName =
-            [
-                student.nombre,
-                student.apellido
-            ]
+            const participated =
+                status === 'P' &&
+                att.part === true;
+
+            const studentName =
+                [
+                    student.nombre,
+                    student.apellido
+                ]
                 .filter(Boolean)
-                .join(' ') ||
-            student.name ||
-            'Sin nombre';
+                .join(' ')
+                ||
+                student.name
+                ||
+                'Sin nombre';
 
-        // ======================================
-        // IDs SEGUROS PARA ONCLICK
-        // ======================================
-        const safeStudentId =
-            String(student.id)
-                .replace(/\\/g, '\\\\')
-                .replace(/'/g, "\\'");
+            const safeStudentId =
+                String(student.id)
+                    .replace(/'/g, "\\'");
 
-        const safeClassId =
-            String(classId)
-                .replace(/\\/g, '\\\\')
-                .replace(/'/g, "\\'");
+            const safeClassId =
+                String(classId)
+                    .replace(/'/g, "\\'");
 
-        const safeDate =
-            String(fecha)
-                .replace(/\\/g, '\\\\')
-                .replace(/'/g, "\\'");
+            const safeDate =
+                String(fecha)
+                    .replace(/'/g, "\\'");
 
-        // ======================================
-        // BOTONES TACTILES
-        // ======================================
-        const attendanceControls = `
+            let attendanceControls =
+                '';
 
-            <div
-                class="attendance-touch-controls"
-                role="group"
-                aria-label="Asistencia de ${studentName}"
-            >
+            if (isSuspended) {
 
-                <!-- =========================
-                     PRESENTE
-                ========================== -->
-                <button
-                    type="button"
-                    class="
-                        attendance-touch-btn
-                        status-present
-                        ${status === 'P' ? 'active' : ''}
-                    "
-                    onclick="
-                        updateAttStatus(
-                            '${safeStudentId}',
-                            '${safeClassId}',
-                            '${safeDate}',
-                            'P'
-                        )
-                    "
-                    aria-pressed="${
-                        status === 'P'
-                            ? 'true'
-                            : 'false'
-                    }"
-                    title="Presente"
-                >
-                    <span class="att-icon">
-                        ✅
+                attendanceControls = `
+                    <span
+                        style="
+                            color:#c0392b;
+                            font-weight:bold;
+                        "
+                    >
+                        ⛔ Clase suspendida
                     </span>
+                `;
 
-                    <span class="att-label">
-                        P
-                    </span>
-                </button>
+            } else {
 
+                attendanceControls = `
+                    <div
+                        class="attendance-touch-controls"
+                    >
 
-                <!-- =========================
-                     AUSENTE
-                ========================== -->
-                <button
-                    type="button"
-                    class="
-                        attendance-touch-btn
-                        status-absent
-                        ${status === 'A' ? 'active' : ''}
-                    "
-                    onclick="
-                        updateAttStatus(
-                            '${safeStudentId}',
-                            '${safeClassId}',
-                            '${safeDate}',
-                            'A' 
-                        )
-                    "
-                    aria-pressed="${
-                        status === 'A'
-                            ? 'true'
-                            : 'false'
-                    }"
-                    title="Ausente"
-                >
-                    <span class="att-icon">
-                        ❌
-                    </span>
+                        <button
+                            type="button"
+                            class="
+                                attendance-touch-btn
+                                status-present
+                                ${status === 'P' ? 'active' : ''}
+                            "
+                            onclick="
+                                updateAttStatus(
+                                    '${safeStudentId}',
+                                    '${safeClassId}',
+                                    '${safeDate}',
+                                    'P'
+                                )
+                            "
+                        >
+                            ✅ P
+                        </button>
 
-                    <span class="att-label">
-                        A
-                    </span>
-                </button>
+                        <button
+                            type="button"
+                            class="
+                                attendance-touch-btn
+                                status-absent
+                                ${status === 'A' ? 'active' : ''}
+                            "
+                            onclick="
+                                updateAttStatus(
+                                    '${safeStudentId}',
+                                    '${safeClassId}',
+                                    '${safeDate}',
+                                    'A'
+                                )
+                            "
+                        >
+                            ❌ A
+                        </button>
 
+                        <button
+                            type="button"
+                            class="
+                                attendance-touch-btn
+                                status-excused
+                                ${status === 'E' ? 'active' : ''}
+                            "
+                            onclick="
+                                updateAttStatus(
+                                    '${safeStudentId}',
+                                    '${safeClassId}',
+                                    '${safeDate}',
+                                    'E'
+                                )
+                            "
+                        >
+                            📝 E
+                        </button>
 
-                <!-- =========================
-                     EXCUSA
-                ========================== -->
-                <button
-                    type="button"
-                    class="
-                        attendance-touch-btn
-                        status-excused
-                        ${status === 'E' ? 'active' : ''}
-                    "
-                    onclick="
-                        updateAttStatus(
-                            '${safeStudentId}',
-                            '${safeClassId}',
-                            '${safeDate}',
-                           'E'
-                        )
-                    "
-                    aria-pressed="${
-                        status === 'E'
-                            ? 'true'
-                            : 'false'
-                    }"
-                    title="Excusa"
-                >
-                    <span class="att-icon">
-                        📝
-                    </span>
+                        <button
+                            type="button"
+                            class="
+                                attendance-touch-btn
+                                status-participation
+                                ${participated ? 'active' : ''}
+                            "
+                            onclick="
+                                updateAttPart(
+                                    '${safeStudentId}',
+                                    '${safeClassId}',
+                                    '${safeDate}',
+                                    this
+                                )
+                            "
+                            ${
+                                status !== 'P'
+                                    ? 'disabled'
+                                    : ''
+                            }
+                        >
+                            ⭐
+                        </button>
 
-                    <span class="att-label">
-                        E
-                    </span>
-                </button>
+                    </div>
+                `;
+            }
 
+            rows += `
+                <tr>
 
-                <!-- =========================
-                     PARTICIPACION
-                ========================== -->
-                <button
-    type="button"
-    class="
-        attendance-touch-btn
-        status-participation
-        ${participated ? 'active' : ''}
-    "
-    onclick="
-        updateAttPart(
-            '${safeStudentId}',
-            '${safeClassId}',
-            '${safeDate}',
-            this
-        )
-    "
-    ${status !== 'P' ? 'disabled' : ''}
-    aria-pressed="${participated ? 'true' : 'false'}"
-    title="${
-        status === 'P'
-            ? 'Participación'
-            : 'Primero marque al estudiante como Presente'
-    }"
->
-    <span class="att-icon">
-        ⭐
-    </span>
+                    <td class="text-left">
+                        <strong>
+                            ${studentName}
+                        </strong>
+                    </td>
 
-    <span class="att-label">
-        Part.
-    </span>
-</button>
+                    <td class="att-cell">
+                        ${attendanceControls}
+                    </td>
 
-            </div>
-        `;
+                </tr>
+            `;
+        }
+    );
 
-        // ======================================
-        // FILA
-        // ======================================
-        rows += `
-            <tr>
-
-                <td class="text-left">
-                    <strong>
-                        ${studentName}
-                    </strong>
-                </td>
-
-                <td class="att-cell">
-                    ${attendanceControls}
-                </td>
-
-            </tr>
-        `;
-    });
-
-    // ==========================================
-    // MOSTRAR TABLA
-    // ==========================================
-    tbody.innerHTML = rows;
+    tbody.innerHTML =
+        rows;
 }
-// ==========================================
-// ASISTENCIA - NUEVO MODELO POR SUBGRUPO
-// ==========================================
 
 function getStudentAttendance(
     studentId,
