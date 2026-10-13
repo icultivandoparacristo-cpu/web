@@ -26833,17 +26833,6 @@ async function toggleAttendanceParticipation(
                 >
                     Suspendida
                 </option>
-    <option
-                    value="Pendiente"
-                    ${
-                        currentSession?.estado ===
-                        'Pendiente'
-                            ? 'selected'
-                            : ''
-                    }
-                >
-                    Pendiente
-                </option>
                 <option
                     value="Pendiente"
                     ${
@@ -26855,10 +26844,32 @@ async function toggleAttendanceParticipation(
                 >
                     Pendiente
                 </option>
+              
 
             </select>
 
         </div>
+            <div
+                id="sessionReasonContainer"
+                style="
+                    margin-top:12px;
+                "
+            >
+
+                <label>
+                    🚫 Motivo suspensión
+                </label>
+
+                <textarea
+                    id="sessionReason"
+                    rows="3"
+                    style="
+                        width:100%;
+                    "
+                >${currentSession?.motivoSuspension || ''}</textarea>
+
+            </div>
+
             <div>
 
                 <label>
