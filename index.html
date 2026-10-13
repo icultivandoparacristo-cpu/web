@@ -26761,11 +26761,107 @@ async function toggleAttendanceParticipation(
 
         return;
     }
+const teacherOptions =
+    (Array.isArray(clase.maestros)
+        ? clase.maestros
+        : [])
+        .map(maestro => `
+            <option
+                value="${maestro}"
+                ${
+                    session?.responsable === maestro
+                        ? 'selected'
+                        : ''
+                }
+            >
+                ${maestro}
+            </option>
+        `)
+        .join('');
+      let rows = `
+<tr>
 
+    <td
+        colspan="2"
+        style="
+            background:#f8fafc;
+            border-bottom:2px solid #e5e7eb;
+            padding:16px;
+        "
+    >
+
+        <div
+            style="
+                display:grid;
+                gap:12px;
+            "
+        >
+
+            <div>
+
+                <label>
+                    👨‍🏫 Maestro Responsable
+                </label>
+
+                <select
+                    id="sessionResponsible"
+                    style="
+                        width:100%;
+                    "
+                >
+
+                    <option value="">
+                        Seleccione maestro
+                    </option>
+
+                    ${teacherOptions}
+
+                </select>
+
+            </div>
+
+            <div>
+
+                <label>
+                    📝 Bitácora
+                </label>
+
+                <textarea
+                    id="sessionNote"
+                    rows="4"
+                    style="
+                        width:100%;
+                    "
+                >${
+                    currentSession?.nota || ''
+                }</textarea>
+
+            </div>
+
+            <div>
+
+                <button
+                    type="button"
+                    class="btn-save"
+                    onclick="
+                        saveCurrentSessionEditor()
+                    "
+                >
+                    💾 Guardar sesión
+                </button>
+
+            </div>
+
+        </div>
+
+    </td>
+
+</tr>
+`;  
     // ==========================================
     // GENERAR FILAS DE ESTUDIANTES
     // ==========================================
-    let rows = '';
+   
 
     enrolledStudents.forEach(student => {
 
