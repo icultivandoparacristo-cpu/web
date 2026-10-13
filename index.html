@@ -26626,6 +26626,7 @@ async function toggleAttendanceParticipation(
     if (!clase || !fecha) {
 
         header.innerHTML = `
+        
             <th>Estudiante</th>
             <th>Asistencia y participación</th>
         `;
@@ -26677,101 +26678,82 @@ async function toggleAttendanceParticipation(
         </th>
     `;
 
-    // ==========================================
-    // ESTUDIANTES ACTIVOS DEL SUBGRUPO
-    // ==========================================
-    const enrolledStudents =
-        window.students.filter(student => {
-            console.log(
-    'Clase:',
-    clase.grupo,
-    clase.materia
-);
+// ==========================================
+// ESTUDIANTES ACTIVOS DEL SUBGRUPO
+// ==========================================
+const enrolledStudents =
+    window.students.filter(student => {
 
-console.log(
-    'Estudiantes filtrados:',
-    enrolledStudents.length
-);
+        if (student.estado !== 'Activo') {
+            return false;
+        }
 
-            if (student.estado !== 'Activo') {
-                return false;
-            }
+        return isStudentEnrolledIn(
+            student,
+            clase.grupo,
+            clase.materia
+        );
+    });
 
-            return isStudentEnrolledIn(
-                student,
-                clase.grupo,
-                clase.materia
-            );
-        });
+// ==========================================
+// SIN ESTUDIANTES
+// ==========================================
+if (enrolledStudents.length === 0) {
 
-    // ==========================================
-    // SIN ESTUDIANTES
-    // ==========================================
-    if (enrolledStudents.length === 0) {
-
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="2" style="
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="2"
+                style="
                     text-align:center;
                     padding:20px;
                     color:#777;
                 ">
-                    No hay estudiantes activos
-                    registrados en este subgrupo.
+                No hay estudiantes activos
+                registrados en este subgrupo.
+            </td>
+        </tr>
+    `;
+
+    return;
+}
+
+// ==========================================
+// SESIÓN SUSPENDIDA
+// ==========================================
+if (isSuspended) {
+
+    let suspendedRows = '';
+
+    enrolledStudents.forEach(student => {
+
+        const studentName =
+            [
+                student.nombre,
+                student.apellido
+            ]
+                .filter(Boolean)
+                .join(' ') ||
+            student.name ||
+            'Sin nombre';
+
+        suspendedRows += `
+            <tr>
+                <td>
+                    ${studentName}
+                </td>
+
+                <td>
+                    ⛔ Clase suspendida
                 </td>
             </tr>
         `;
+    });
 
-        return;
-    }
+    tbody.innerHTML =
+        suspendedRows;
 
-    // ==========================================
-    // SESION SUSPENDIDA
-    // ==========================================
-    if (isSuspended) {
-
-        let suspendedRows = '';
-
-        enrolledStudents.forEach(student => {
-
-            const studentName =
-                [
-                    student.nombre,
-                    student.apellido
-                ]
-                    .filter(Boolean)
-                    .join(' ') ||
-                student.name ||
-                'Sin nombre';
-
-            suspendedRows += `
-                <tr>
-                    <td class="text-left">
-                        ${studentName}
-                    </td>
-
-                    <td style="text-align:center;">
-                        <span
-                            style="
-                                display:inline-block;
-                                padding:7px 12px;
-                                border-radius:8px;
-                                background:#fdecea;
-                                color:#c0392b;
-                                font-weight:600;
-                            "
-                        >
-                            ⛔ Clase suspendida
-                        </span>
-                    </td>
-                </tr>
-            `;
-        });
-
-        tbody.innerHTML = suspendedRows;
-
-        return;
-    }
+    return;
+}
 const teacherOptions =
     (Array.isArray(clase.maestros)
         ? clase.maestros
