@@ -22653,6 +22653,21 @@ async function saveCurrentSessionEditor() {
                 'sessionReason'
             )?.value?.trim() || '';
 
+        if (
+            estado === 'Suspendida' &&
+            !motivo
+        ) {
+
+            alert(
+                '⚠️ Debe indicar el motivo de la suspensión.'
+            );
+
+            document.getElementById(
+                'sessionReason'
+            )?.focus();
+
+            return;
+        }
         await saveClassSession(
             clase.id,
             fecha,
@@ -27065,7 +27080,9 @@ async function toggleAttendanceParticipation(
     );
 
     tbody.innerHTML = rows;
-    const statusSelect =
+
+
+const statusSelect =
     document.getElementById(
         'sessionStatus'
     );
@@ -27081,11 +27098,37 @@ function toggleReason() {
         return;
     }
 
-    reasonContainer.style.display =
+    const reasonInput =
+        document.getElementById(
+            'sessionReason'
+        );
+
+    const isSuspended =
         statusSelect?.value ===
-        'Suspendida'
+        'Suspendida';
+
+    reasonContainer.style.display =
+        isSuspended
             ? 'block'
             : 'none';
+
+    if (isSuspended) {
+
+        reasonInput?.setAttribute(
+            'required',
+            'required'
+        );
+
+    } else {
+
+        reasonInput?.removeAttribute(
+            'required'
+        );
+
+        if (reasonInput) {
+            reasonInput.value = '';
+        }
+    }
 }
 
 statusSelect?.addEventListener(
