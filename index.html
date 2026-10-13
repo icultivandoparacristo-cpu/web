@@ -22386,9 +22386,7 @@ function escapeHtml(value) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
 }
-
-function renderClassSessionPanel() {
-    function renderClassSessionPanel() {
+async function renderClassSessionPanel() {
 
     const container =
         document.getElementById(
@@ -22412,6 +22410,8 @@ function renderClassSessionPanel() {
         container.style.display =
             'none';
 
+        container.innerHTML = '';
+
         return;
     }
 
@@ -22419,7 +22419,7 @@ function renderClassSessionPanel() {
         'block';
 
     const session =
-        getClassSession(
+        await ensureClassSession(
             clase.id,
             fecha
         );
@@ -22468,6 +22468,7 @@ function renderClassSessionPanel() {
                         width:100%;
                     "
                 >
+
                     <option
                         value="Realizada"
                         ${
@@ -22491,6 +22492,7 @@ function renderClassSessionPanel() {
                     >
                         Suspendida
                     </option>
+
                 </select>
 
             </div>
@@ -22544,8 +22546,6 @@ function renderClassSessionPanel() {
         </div>
 
     `;
-}
-  
 }
 async function saveCurrentSessionEditor() {
 
