@@ -26782,7 +26782,51 @@ async function toggleAttendanceParticipation(
                 </select>
 
             </div>
+<div>
 
+    <label>
+        📌 Estado
+    </label>
+
+    <select id="sessionStatus" style="width:100%;">
+
+                <option
+                    value="Realizada"
+                    ${
+                        currentSession?.estado ===
+                        'Realizada'
+                            ? 'selected'
+                            : ''}>
+                    Realizada
+                </option>
+
+                <option
+                    value="Suspendida"
+                    ${
+                        currentSession?.estado ===
+                        'Suspendida'
+                            ? 'selected'
+                            : ''
+                    }
+                >
+                    Suspendida
+                </option>
+
+                <option
+                    value="Pendiente"
+                    ${
+                        currentSession?.estado ===
+                        'Pendiente'
+                            ? 'selected'
+                            : ''
+                    }
+                >
+                    Pendiente
+                </option>
+
+            </select>
+
+        </div>
             <div>
 
                 <label>
