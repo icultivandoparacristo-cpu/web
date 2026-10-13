@@ -22619,110 +22619,79 @@ const teacherOptions =
 }
 async function saveCurrentSessionEditor() {
 
-   
-   const estado =
-    document.getElementById(
-        'sessionStatus'
-    ).value;
-
-    const motivo =
-    document.getElementById(
-        'sessionReason'
-    )?.value || '';
-   
-   
     const clase =
         getSelectedClass();
 
     const fecha =
         document.getElementById(
             'attendanceDate'
-        ).value;
+        )?.value;
 
     if (!clase || !fecha) {
         return;
     }
 
-    const session =
-        getClassSession(
-            clase.id,
-            fecha
-        );
-
-    if (!session) {
-
-        alert(
-            'No existe una sesión para esta fecha.'
-        );
-
-        return;
-    }
-
-    session.responsable =
-        document.getElementById(
-            'sessionResponsible'
-        ).value.trim();
-
-    session.estado =
-        document.getElementById(
-            'sessionStatus'
-        ).value;
-
-    session.motivoSuspension =
-        document.getElementById(
-            'sessionReason'
-        ).value.trim();
-
-    session.nota =
-        document.getElementById(
-            'sessionNote'
-        ).value.trim();
-
-    session.updatedAt =
-        new Date().toISOString();
-
     try {
 
-        if (
-            typeof saveClassSessionToFirestore ===
-            'function'
-        ) {
+        const responsable =
+            document.getElementById(
+                'sessionResponsible'
+            )?.value?.trim() || '';
 
-            await saveClassSessionToFirestore(
-                session
-            );
-            await saveClassSession(
-        clase.id,
-        fecha,
-        {
-            responsable,
-            nota,
+        const nota =
+            document.getElementById(
+                'sessionNote'
+            )?.value?.trim() || '';
 
-            estado,
+        const estado =
+            document.getElementById(
+                'sessionStatus'
+            )?.value || 'Realizada';
 
-            motivoSuspension:
-                estado === 'Suspendida'
-                    ? motivo
-                    : ''
-        }
-);
+        const motivo =
+            document.getElementById(
+                'sessionReason'
+            )?.value?.trim() || '';
 
-        }
+        await saveClassSession(
+            clase.id,
+            fecha,
+            {
+                responsable,
+                nota,
+                estado,
+                motivoSuspension:
+                    estado === 'Suspendida'
+                        ? motivo
+                        : ''
+            }
+        );
 
         renderAttendanceInfo();
 
+        renderAttendanceTable();
+
+        if (
+            typeof renderDashboardSimplified ===
+            'function'
+        ) {
+            renderDashboardSimplified();
+        }
+
         alert(
-            '✅ Sesión guardada'
+            '✅ Sesión guardada correctamente'
         );
 
     } catch (error) {
 
-        console.error(error);
-
-        alert(
-            '❌ Error al guardar'
+        console.error(
+            'Error guardando sesión:',
+            error
         );
 
+        alert(
+            '❌ Error al guardar la sesión'
+        );
     }
 }
 
