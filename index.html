@@ -22619,6 +22619,18 @@ const teacherOptions =
 }
 async function saveCurrentSessionEditor() {
 
+   
+   const estado =
+    document.getElementById(
+        'sessionStatus'
+    ).value;
+
+    const motivo =
+    document.getElementById(
+        'sessionReason'
+    )?.value || '';
+   
+   
     const clase =
         getSelectedClass();
 
@@ -22679,6 +22691,21 @@ async function saveCurrentSessionEditor() {
             await saveClassSessionToFirestore(
                 session
             );
+            await saveClassSession(
+        clase.id,
+        fecha,
+        {
+            responsable,
+            nota,
+
+            estado,
+
+            motivoSuspension:
+                estado === 'Suspendida'
+                    ? motivo
+                    : ''
+        }
+);
 
         }
 
@@ -23122,7 +23149,18 @@ async function updateClassSession(classId, fecha, changes = {}) {
   if (!session) return null;
   if (changes.estado === 'Realizada' || changes.estado === 'Suspendida') session.estado = changes.estado;
   ['motivoSuspension','detalleSuspension','nota','responsable'].forEach(k => { if (changes[k] !== undefined) session[k] = changes[k]; });
-  if (session.estado === 'Realizada') { session.motivoSuspension = null; session.detalleSuspension = ''; }
+ if (
+    changes.estado ===
+    'Realizada'
+) {
+
+    session.motivoSuspension =
+        '';
+
+    session.detalleSuspension =
+        '';
+
+}
   session.updatedBy = window.currentUser?.username || 'Sistema'; session.updatedAt = new Date().toISOString();
   await saveClassSessionToFirestore(session); return session;
 }
@@ -26811,7 +26849,17 @@ async function toggleAttendanceParticipation(
                 >
                     Suspendida
                 </option>
-
+    <option
+                    value="Pendiente"
+                    ${
+                        currentSession?.estado ===
+                        'Pendiente'
+                            ? 'selected'
+                            : ''
+                    }
+                >
+                    Pendiente
+                </option>
                 <option
                     value="Pendiente"
                     ${
@@ -27047,8 +27095,36 @@ async function toggleAttendanceParticipation(
         }
     );
 
-    tbody.innerHTML =
-        rows;
+    tbody.innerHTML = rows;
+    const statusSelect =
+    document.getElementById(
+        'sessionStatus'
+    );
+
+const reasonContainer =
+    document.getElementById(
+        'sessionReasonContainer'
+    );
+
+function toggleReason() {
+
+    if (!reasonContainer) {
+        return;
+    }
+
+    reasonContainer.style.display =
+        statusSelect?.value ===
+        'Suspendida'
+            ? 'block'
+            : 'none';
+}
+
+statusSelect?.addEventListener(
+    'change',
+    toggleReason
+);
+
+toggleReason();
 }
 
 function getStudentAttendance(
