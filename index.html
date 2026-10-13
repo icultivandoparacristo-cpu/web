@@ -22429,22 +22429,23 @@ async function renderClassSessionPanel() {
             ? clase.maestros
             : [];
 
-    const teacherOptions =
-        maestros.map(maestro => `
-
+const teacherOptions =
+    (Array.isArray(clase.maestros)
+        ? clase.maestros
+        : [])
+        .map(maestro => `
             <option
                 value="${maestro}"
                 ${
-                    session?.responsable ===
-                    maestro
+                    currentSession?.responsable === maestro
                         ? 'selected'
                         : ''
                 }
             >
                 ${maestro}
             </option>
-
-        `).join('');
+        `)
+        .join('');
 
     container.innerHTML = `
 
@@ -26681,6 +26682,16 @@ async function toggleAttendanceParticipation(
     // ==========================================
     const enrolledStudents =
         window.students.filter(student => {
+            console.log(
+    'Clase:',
+    clase.grupo,
+    clase.materia
+);
+
+console.log(
+    'Estudiantes filtrados:',
+    enrolledStudents.length
+);
 
             if (student.estado !== 'Activo') {
                 return false;
@@ -26778,7 +26789,8 @@ const teacherOptions =
             </option>
         `)
         .join('');
-      let rows = `
+    let rows = `
+
 <tr>
 
     <td
@@ -26805,9 +26817,7 @@ const teacherOptions =
 
                 <select
                     id="sessionResponsible"
-                    style="
-                        width:100%;
-                    "
+                    style="width:100%;"
                 >
 
                     <option value="">
@@ -26832,9 +26842,7 @@ const teacherOptions =
                     style="
                         width:100%;
                     "
-                >${
-                    currentSession?.nota || ''
-                }</textarea>
+                >${currentSession?.nota || ''}</textarea>
 
             </div>
 
@@ -26843,9 +26851,7 @@ const teacherOptions =
                 <button
                     type="button"
                     class="btn-save"
-                    onclick="
-                        saveCurrentSessionEditor()
-                    "
+                    onclick="saveCurrentSessionEditor()"
                 >
                     💾 Guardar sesión
                 </button>
@@ -26857,7 +26863,8 @@ const teacherOptions =
     </td>
 
 </tr>
-`;  
+
+`;
     // ==========================================
     // GENERAR FILAS DE ESTUDIANTES
     // ==========================================
