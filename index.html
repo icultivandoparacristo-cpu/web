@@ -24495,10 +24495,7 @@ localStorage.setItem(
 
   //localStorage.setItem('biblical_enrollments',JSON.stringify(enrollments));
 
-localStorage.setItem(
- 'biblical_class_teachers',
- JSON.stringify(classTeachers)
-);
+// classTeachers eliminado
 // Grupos ya no se guardan en localStorage. Fuente oficial: Firestore.
 // Subgrupos/Clases ya no se guardan en localStorage. Fuente oficial: Firestore.
 const autoBackup = {
@@ -24533,19 +24530,18 @@ const autoBackup = {
     responsablesSesiones:
         sessionTeachers,
 
-    maestrosClases:
-        classTeachers,
+    
 
     usuarios:
         users
 };
 
-localStorage.setItem(
-    'cultivo_auto_backup',
-    JSON.stringify(
-        autoBackup
-    )
-);
+// localStorage.setItem(
+//     'biblical_finance_audit_log',
+//     JSON.stringify(
+//         financeAuditLog
+//     )
+// );
 }
 // Lista de maestro
 function getTeachers() {
