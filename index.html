@@ -6104,6 +6104,7 @@ window.firestoreStudents = { collection, getDocs, doc, setDoc, deleteDoc };
 window.firestoreClasses = { collection, getDocs, doc, setDoc, deleteDoc };
 window.firestoreClassSessions = { collection, getDocs, doc, setDoc, deleteDoc };
 window.firestoreAttendance = { collection, getDocs, doc, setDoc, deleteDoc };
+window.firestoreFinances = {collection,getDocs,doc,setDoc,deleteDoc};
 window.firebaseAuth = auth;
 window.firebaseSignIn = signInWithEmailAndPassword;
 window.firebaseSignOut = signOut;
@@ -6899,6 +6900,8 @@ await window.loadGroupsFromFirestore();
 
 console.log('🔄 Cargando clases...');
 await window.loadClassesFromFirestore();
+console.log('🔄 Cargando finanzas...');
+await loadFinancesFromFirestore();
 
 console.log('🔄 Cargando students...');
 await window.loadStudentsFromFirestore();
@@ -10571,6 +10574,104 @@ function clearFinanceSummaryFilters() {
     }
 
     renderDetailedFinanceSummary();
+}
+async function loadFinancesFromFirestore() {
+
+    const api =
+        window.firestoreFinances;
+
+    if (
+        !window.db ||
+        !api
+    ) {
+        console.warn(
+            '⚠️ Firestore todavía no está disponible para finanzas'
+        );
+
+        return false;
+    }
+
+    try {
+
+        const snapshot =
+            await api.getDocs(
+                api.collection(
+                    window.db,
+                    'finances'
+                )
+            );
+
+        finances =
+            snapshot.docs.map(
+                item => ({
+                    id: item.id,
+                    ...item.data()
+                })
+            );
+
+        renderFinanceTable();
+
+        console.log(
+            '✅ Finanzas cargadas desde Firestore:',
+            finances
+        );
+
+        return true;
+
+    }
+    catch (error) {
+
+        console.error(
+            '❌ Error cargando finanzas desde Firestore:',
+            error
+        );
+
+        return false;
+    }
+}
+async function saveFinanceToFirestore(
+    finance
+) {
+
+    const api =
+        window.firestoreFinances;
+
+    if (
+        !window.db ||
+        !api ||
+        !finance
+    ) {
+        return false;
+    }
+
+    try {
+
+        await api.setDoc(
+            api.doc(
+                window.db,
+                'finances',
+                String(finance.id)
+            ),
+            finance
+        );
+
+        console.log(
+            '✅ Movimiento financiero guardado en Firestore:',
+            finance.id
+        );
+
+        return true;
+
+    }
+    catch (error) {
+
+        console.error(
+            '❌ Error guardando finanzas:',
+            error
+        );
+
+        return false;
+    }
 }
  function loadFinanceCategories() {
 
@@ -29911,6 +30012,9 @@ if (id) {
                     ? entry
                     : f
         );
+    saveFinanceToFirestore(
+    entry
+    );    
 
     addFinanceAuditLog(
         'EDITAR',
@@ -29959,6 +30063,9 @@ else {
                 entry.descripcion
         }
     );
+    saveFinanceToFirestore(
+    entry
+);
 
     mostrarNotificacion(
         '✅ Movimiento registrado',
