@@ -6105,6 +6105,7 @@ window.firestoreClasses = { collection, getDocs, doc, setDoc, deleteDoc };
 window.firestoreClassSessions = { collection, getDocs, doc, setDoc, deleteDoc };
 window.firestoreAttendance = { collection, getDocs, doc, setDoc, deleteDoc };
 window.firestoreFinances = {collection,getDocs,doc,setDoc,deleteDoc};
+window.firestoreFinanceAuditLog = {collection,getDocs,doc,setDoc,deleteDoc};
 window.firebaseAuth = auth;
 window.firebaseSignIn = signInWithEmailAndPassword;
 window.firebaseSignOut = signOut;
@@ -6902,6 +6903,9 @@ console.log('🔄 Cargando clases...');
 await window.loadClassesFromFirestore();
 console.log('🔄 Cargando finanzas...');
 await loadFinancesFromFirestore();
+
+console.log('🔄 Cargando Bitacora...');
+await loadFinanceAuditLogFromFirestore();
 
 console.log('🔄 Cargando students...');
 await window.loadStudentsFromFirestore();
@@ -10667,6 +10671,93 @@ async function saveFinanceToFirestore(
 
         console.error(
             '❌ Error guardando finanzas:',
+            error
+        );
+
+        return false;
+    }
+}
+async function saveFinanceAuditLogToFirestore(
+    logEntry
+) {
+
+    const api =
+        window.firestoreFinanceAuditLog;
+
+    if (
+        !window.db ||
+        !api ||
+        !logEntry
+    ) {
+        return false;
+    }
+
+    try {
+
+        await api.setDoc(
+            api.doc(
+                window.db,
+                'financeAuditLog',
+                String(logEntry.id)
+            ),
+            logEntry
+        );
+
+        return true;
+
+    }
+    catch (error) {
+
+        console.error(
+            '❌ Error guardando bitácora financiera:',
+            error
+        );
+
+        return false;
+    }
+}
+async function loadFinanceAuditLogFromFirestore() {
+
+    const api =
+        window.firestoreFinanceAuditLog;
+
+    if (
+        !window.db ||
+        !api
+    ) {
+        return false;
+    }
+
+    try {
+
+        const snapshot =
+            await api.getDocs(
+                api.collection(
+                    window.db,
+                    'financeAuditLog'
+                )
+            );
+
+        window.financeAuditLog =
+            snapshot.docs.map(
+                item => ({
+                    id: item.id,
+                    ...item.data()
+                })
+            );
+
+        console.log(
+            '✅ Bitácora financiera cargada:',
+            window.financeAuditLog.length
+        );
+
+        return true;
+
+    }
+    catch (error) {
+
+        console.error(
+            '❌ Error cargando bitácora financiera:',
             error
         );
 
@@ -30985,6 +31076,9 @@ function addFinanceAuditLog(
     };
 
    window.financeAuditLog.push(
+    logEntry
+);
+saveFinanceAuditLogToFirestore(
     logEntry
 );
 
