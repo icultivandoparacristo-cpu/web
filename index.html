@@ -30881,9 +30881,9 @@ function addFinanceAuditLog(
 
     };
 
-    financeAuditLog.push(
-        logEntry
-    );
+   window.financeAuditLog.push(
+    logEntry
+);
 
     console.log(
         '📋 Bitácora financiera:',
@@ -31258,7 +31258,7 @@ function renderFinanceAuditLog() {
         )?.value || '';
 
     let logs = [
-        ...financeAuditLog
+        ...(window.financeAuditLog || [])
     ];
 
     // ==========================================
