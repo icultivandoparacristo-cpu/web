@@ -33113,6 +33113,36 @@ function getDefaultPermissions(role) {
 
     return permissions;
 }
+function hasPermission(permission) {
+
+    if (!window.currentUser) {
+        return false;
+    }
+
+    if (
+        String(
+            window.currentUser.role || ''
+        ).toLowerCase() === 'superadmin'
+    ) {
+        return true;
+    }
+
+    return (
+        window.currentUser.permissions?.[
+            permission
+        ] === true
+    );
+}function toggleMenu(menuElement, permission) {
+
+    if (!menuElement) {
+        return;
+    }
+
+    menuElement.style.display =
+        hasPermission(permission)
+            ? 'flex'
+            : 'none';
+}
 function auditDuplicateFunctions() {
 
     const html =
