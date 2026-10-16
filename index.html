@@ -20180,6 +20180,29 @@ function loadPermissionCheckboxes(user) {
     ).checked =
         permissions.users_edit || false;
 }
+function getPermissionsFromForm() {
+
+    return {
+        students_view: document.getElementById('perm_students_view')?.checked || false,
+        students_create: document.getElementById('perm_students_create')?.checked || false,
+        students_edit: document.getElementById('perm_students_edit')?.checked || false,
+        students_delete: document.getElementById('perm_students_delete')?.checked || false,
+
+        attendance_view: document.getElementById('perm_attendance_view')?.checked || false,
+        attendance_edit: document.getElementById('perm_attendance_edit')?.checked || false,
+
+        reports_view: document.getElementById('perm_reports_view')?.checked || false,
+
+        finances_view: document.getElementById('perm_finances_view')?.checked || false,
+        finances_create: document.getElementById('perm_finances_create')?.checked || false,
+        finances_edit: document.getElementById('perm_finances_edit')?.checked || false,
+        finances_cancel: document.getElementById('perm_finances_cancel')?.checked || false,
+
+        users_view: document.getElementById('perm_users_view')?.checked || false,
+        users_edit: document.getElementById('perm_users_edit')?.checked || false
+    };
+
+}
 function loadFinanceReportSubGroups() {
 
     const group =
@@ -25330,23 +25353,25 @@ if (userId) {
         return;
     }
 
-    const updatedUser = {
+   const updatedUser = {
+    ...existingUser,
 
-        ...existingUser,
+    username,
 
-        username,
+    email,
 
-        email,
+    role,
 
-        role,
+    permissions:
+        getPermissionsFromForm(),
 
-        updatedAt:
-            new Date().toISOString(),
+    updatedAt:
+        new Date().toISOString(),
 
-        updatedBy:
-            window.currentUser?.email ||
-            'system'
-    };
+    updatedBy:
+        window.currentUser?.email ||
+        'system'
+};
 
     await saveUserToFirestore(
         updatedUser
@@ -25372,7 +25397,7 @@ else {
 
     role,
 
-    permissions: getDefaultPermissions(role),
+   permissions: getPermissionsFromForm(),
 
     activo: true,
 
