@@ -6705,6 +6705,9 @@ const userSnapshot =
 
             role:
                 role,
+            permissions:
+            profile.permissions ||
+            getDefaultPermissions(role),
 
             activo:
                 true,
@@ -25231,6 +25234,8 @@ else {
 
     role,
 
+    permissions: getDefaultPermissions(role),
+
     activo: true,
 
     firebaseUid: '',
@@ -32768,6 +32773,183 @@ window.addEventListener('DOMContentLoaded', () => {
     const appContainer = document.querySelector('.container');
     if (appContainer) appContainer.style.display = 'none';
 });
+
+function getDefaultPermissions(role) {
+
+    const permissions = {
+        students_view: false,
+        students_create: false,
+        students_edit: false,
+        students_delete: false,
+
+        attendance_view: false,
+        attendance_edit: false,
+
+        groups_view: false,
+        groups_edit: false,
+
+        classes_view: false,
+        classes_edit: false,
+
+        reports_view: false,
+
+        finances_view: false,
+        finances_create: false,
+        finances_edit: false,
+        finances_cancel: false,
+        finances_audit: false,
+
+        users_view: false,
+        users_edit: false
+    };
+
+    switch (role) {
+
+        case 'superadmin':
+
+            Object.keys(permissions).forEach(key => {
+                permissions[key] = true;
+            });
+
+            break;
+
+        case 'maestro':
+
+            permissions.students_view = true;
+            permissions.attendance_view = true;
+            permissions.attendance_edit = true;
+            permissions.reports_view = true;
+
+            break;
+
+        case 'registrador':
+
+            permissions.students_view = true;
+            permissions.students_create = true;
+            permissions.students_edit = true;
+
+            permissions.attendance_view = true;
+            permissions.attendance_edit = true;
+
+            permissions.reports_view = true;
+
+            permissions.finances_view = true;
+            permissions.finances_create = true;
+
+            break;
+
+        case 'admin':
+
+            permissions.finances_view = true;
+            permissions.finances_create = true;
+            permissions.finances_edit = true;
+            permissions.finances_cancel = true;
+
+            break;
+
+        case 'auditor':
+
+            permissions.finances_view = true;
+            permissions.finances_audit = true;
+            permissions.reports_view = true;
+
+            break;
+
+        case 'cumpleanos':
+
+            break;
+    }
+
+    return permissions;
+}
+function getDefaultPermissions(role) {
+
+    const permissions = {
+        students_view: false,
+        students_create: false,
+        students_edit: false,
+        students_delete: false,
+
+        attendance_view: false,
+        attendance_edit: false,
+
+        groups_view: false,
+        groups_edit: false,
+
+        classes_view: false,
+        classes_edit: false,
+
+        reports_view: false,
+
+        finances_view: false,
+        finances_create: false,
+        finances_edit: false,
+        finances_cancel: false,
+        finances_audit: false,
+
+        users_view: false,
+        users_edit: false
+    };
+
+    switch (role) {
+
+        case 'superadmin':
+
+            Object.keys(permissions).forEach(key => {
+                permissions[key] = true;
+            });
+
+            break;
+
+        case 'maestro':
+
+            permissions.students_view = true;
+            permissions.attendance_view = true;
+            permissions.attendance_edit = true;
+            permissions.reports_view = true;
+
+            break;
+
+        case 'registrador':
+
+            permissions.students_view = true;
+            permissions.students_create = true;
+            permissions.students_edit = true;
+
+            permissions.attendance_view = true;
+            permissions.attendance_edit = true;
+
+            permissions.reports_view = true;
+
+            permissions.finances_view = true;
+            permissions.finances_create = true;
+
+            break;
+
+        case 'admin':
+
+            permissions.finances_view = true;
+            permissions.finances_create = true;
+            permissions.finances_edit = true;
+            permissions.finances_cancel = true;
+
+            break;
+
+        case 'auditor':
+
+            permissions.finances_view = true;
+            permissions.finances_audit = true;
+            permissions.reports_view = true;
+
+            break;
+
+        case 'cumpleanos':
+
+            break;
+    }
+
+    return permissions;
+}
 function auditDuplicateFunctions() {
 
     const html =
