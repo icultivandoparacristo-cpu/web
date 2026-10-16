@@ -5982,7 +5982,74 @@ button.auth-submit:hover {
                 <option value="cumpleanos">Cumpleaños</option>
 
             </select>
+<div id="permissionsContainer" class="mt-3">
+    <h4>🔐 Permisos</h4>
 
+    <label>
+        <input type="checkbox" id="perm_students_view">
+        Ver estudiantes
+    </label><br>
+
+    <label>
+        <input type="checkbox" id="perm_students_create">
+        Crear estudiantes
+    </label><br>
+
+    <label>
+        <input type="checkbox" id="perm_students_edit">
+        Editar estudiantes
+    </label><br>
+
+    <label>
+        <input type="checkbox" id="perm_students_delete">
+        Eliminar estudiantes
+    </label><br><br>
+
+    <label>
+        <input type="checkbox" id="perm_attendance_view">
+        Ver asistencia
+    </label><br>
+
+    <label>
+        <input type="checkbox" id="perm_attendance_edit">
+        Editar asistencia
+    </label><br><br>
+
+    <label>
+        <input type="checkbox" id="perm_reports_view">
+        Ver reportes
+    </label><br><br>
+
+    <label>
+        <input type="checkbox" id="perm_finances_view">
+        Ver finanzas
+    </label><br>
+
+    <label>
+        <input type="checkbox" id="perm_finances_create">
+        Crear movimientos
+    </label><br>
+
+    <label>
+        <input type="checkbox" id="perm_finances_edit">
+        Editar movimientos
+    </label><br>
+
+    <label>
+        <input type="checkbox" id="perm_finances_cancel">
+        Anular movimientos
+    </label><br><br>
+
+    <label>
+        <input type="checkbox" id="perm_users_view">
+        Ver usuarios
+    </label><br>
+
+    <label>
+        <input type="checkbox" id="perm_users_edit">
+        Administrar usuarios
+    </label>
+</div>
         </div>
 
     </div>
@@ -20043,6 +20110,76 @@ function loadReportSubGroups() {
     );
 
 }
+function loadPermissionCheckboxes(user) {
+
+    const permissions =
+        user.permissions || {};
+
+    document.getElementById(
+        'perm_students_view'
+    ).checked =
+        permissions.students_view || false;
+
+    document.getElementById(
+        'perm_students_create'
+    ).checked =
+        permissions.students_create || false;
+
+    document.getElementById(
+        'perm_students_edit'
+    ).checked =
+        permissions.students_edit || false;
+
+    document.getElementById(
+        'perm_students_delete'
+    ).checked =
+        permissions.students_delete || false;
+
+    document.getElementById(
+        'perm_attendance_view'
+    ).checked =
+        permissions.attendance_view || false;
+
+    document.getElementById(
+        'perm_attendance_edit'
+    ).checked =
+        permissions.attendance_edit || false;
+
+    document.getElementById(
+        'perm_reports_view'
+    ).checked =
+        permissions.reports_view || false;
+
+    document.getElementById(
+        'perm_finances_view'
+    ).checked =
+        permissions.finances_view || false;
+
+    document.getElementById(
+        'perm_finances_create'
+    ).checked =
+        permissions.finances_create || false;
+
+    document.getElementById(
+        'perm_finances_edit'
+    ).checked =
+        permissions.finances_edit || false;
+
+    document.getElementById(
+        'perm_finances_cancel'
+    ).checked =
+        permissions.finances_cancel || false;
+
+    document.getElementById(
+        'perm_users_view'
+    ).checked =
+        permissions.users_view || false;
+
+    document.getElementById(
+        'perm_users_edit'
+    ).checked =
+        permissions.users_edit || false;
+}
 function loadFinanceReportSubGroups() {
 
     const group =
@@ -25080,6 +25217,7 @@ function editUser(id) {
             role: user.role
         }
     );
+    loadPermissionCheckboxes(user);
 }
   // ESTUDIANTES
 
