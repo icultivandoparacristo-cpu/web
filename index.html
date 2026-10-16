@@ -24133,108 +24133,48 @@ const menuSubgrupos =
         return;
     }
 
-    // =====================================
-    // MAESTRO
-    // =====================================
+ toggleMenu(
+    menuUsuarios,
+    'users_view'
+);
 
-  if (role === 'maestro') {
+toggleMenu(
+    menuEstudiantes,
+    'students_view'
+);
 
-    // Ocultar todo primero
-    if (menuUsuarios) {
-        menuUsuarios.style.display = 'none';
-    }
+toggleMenu(
+    menuAsistencia,
+    'attendance_view'
+);
 
-   
+toggleMenu(
+    menuFinanzas,
+    'finances_view'
+);
 
-    if (menuGrupos) {
-        menuGrupos.style.display = 'none';
-    }
+toggleMenu(
+    menuReportes,
+    'reports_view'
+);
 
-    if (menuSubgrupos) {
-        menuSubgrupos.style.display = 'none';
-    }
+toggleMenu(
+    menuGrupos,
+    'groups_view'
+);
 
-    // Mostrar solo lo que necesita
-    if (menuEstudiantes) {
-        menuEstudiantes.style.display = 'flex';
-    }
+toggleMenu(
+    menuSubgrupos,
+    'classes_view'
+);
 
-    if (menuAsistencia) {
-        menuAsistencia.style.display = 'flex';
-    }
+// Cumpleaños visible para todos
 
-     if (menuFinanzas) {
-        menuFinanzas.style.display = 'flex';
-    }
-
-    if (menuReportes) {
-        menuReportes.style.display = 'flex';
-    }
-
-    if (menuCumpleanos) {
-        menuCumpleanos.style.display = 'flex';
-    }
-
-    return;
+if (menuCumpleanos) {
+    menuCumpleanos.style.display =
+        'flex';
 }
 
-    // =====================================
-    // CUMPLEAÑOS
-    // =====================================
-
-    if (
-        role === 'cumpleanos'
-    ) {
-
-        if (menuCumpleanos) {
-            menuCumpleanos.style.display =
-                'flex';
-        }
-
-        return;
-    }
-
-    // =====================================
-    // REGISTRADOR
-    // =====================================
-
-    if (
-        role === 'registrador'
-    ) {
-
-        if (menuEstudiantes) {
-            menuEstudiantes.style.display =
-                'flex';
-        }
-
-        if (menuAsistencia) {
-            menuAsistencia.style.display =
-                'flex';
-        }
-
-        if (menuReportes) {
-            menuReportes.style.display =
-                'flex';
-        }
-
-        return;
-    }
-
-    // =====================================
-    // ADMIN FINANZAS
-    // =====================================
-
-    if (
-        role === 'admin'
-    ) {
-
-        if (menuFinanzas) {
-            menuFinanzas.style.display =
-                'flex';
-        }
-
-        return;
-    }
 
     // =====================================
     // AUDITOR
