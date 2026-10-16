@@ -24996,6 +24996,10 @@ function renderUsers() {
 
     users.forEach(user => {
 
+        const canManageUsers =
+        hasPermission('users_edit');
+
+
         const row =
             document.createElement('tr');
 
@@ -25046,36 +25050,49 @@ function renderUsers() {
 
             <td>
 
-                <div class="user-actions">
+             <div class="user-actions">
 
-                    <button
-                        class="btn-edit"
-                        onclick='editUser(${safeId})'
-                    >
-                        Editar
-                    </button>
+                    ${
+                        canManageUsers
+                        ? `
+                        <button
+                            class="btn-edit"
+                            onclick='editUser(${safeId})'
+                        >
+                            Editar
+                        </button>
 
-                    <button
-                        class="${
-                            user.activo
-                                ? 'btn-delete'
-                                : 'btn-save'
-                        } btn-status"
-                        onclick='toggleUserStatus(${safeId})'
-                    >
-                        ${
-                            user.activo
-                                ? '🔒 Bloquear'
-                                : '🔓 Habilitar'
-                        }
-                    </button>
+                        <button
+                            class="${
+                                user.activo
+                                    ? 'btn-delete'
+                                    : 'btn-save'
+                            } btn-status"
+                            onclick='toggleUserStatus(${safeId})'
+                        >
+                            ${
+                                user.activo
+                                    ? '🔒 Bloquear'
+                                    : '🔓 Habilitar'
+                            }
+                        </button>
 
-                    <button
-                        class="btn-delete"
-                        onclick='deleteUser(${safeId})'
-                    >
-                        🗑️ Eliminar
-                    </button>
+                        <button
+                            class="btn-delete"
+                            onclick='deleteUser(${safeId})'
+                        >
+                            🗑️ Eliminar
+                        </button>
+                        `
+                        : `
+                        <span style="
+                            color:#666;
+                            font-size:12px;
+                        ">
+                            Solo lectura
+                        </span>
+                        `
+                    }
 
                 </div>
 
@@ -25088,6 +25105,16 @@ function renderUsers() {
 }
 
 function editUser(id) {
+
+    if (!hasPermission('users_edit')) {
+
+    mostrarNotificacion(
+        'No tiene permisos para editar usuarios',
+        'error'
+    );
+
+    return;
+}
 
     console.log(
         'Editando usuario:',
@@ -25225,7 +25252,15 @@ const userForm =
 userForm.addEventListener('submit', async (e) => {
 
     e.preventDefault();
+if (!hasPermission('users_edit')) {
 
+    mostrarNotificacion(
+        '❌ No tiene permisos para administrar usuarios',
+        'error'
+    );
+
+    return;
+}
     const username =
         document.getElementById('newUsername').value;
 
@@ -25393,7 +25428,15 @@ if (groupForm) {
         async (e) => {
 
             e.preventDefault();
+            if (!hasPermission('users_edit')) {
 
+                mostrarNotificacion(
+                    'No tiene permisos para administrar usuarios',
+                    'error'
+                );
+
+                return;
+            }
             // ======================================
             // DATOS DEL FORMULARIO
             // ======================================
@@ -26157,6 +26200,15 @@ function renderStudentTable() {
 // ==========================================
 
 async function toggleUserStatus(id) {
+    if (!hasPermission('users_edit')) {
+
+    mostrarNotificacion(
+        'No tiene permisos para modificar usuarios',
+        'error'
+    );
+
+    return;
+}
 
     const user =
         users.find(
@@ -31754,6 +31806,15 @@ function clearFinanceAuditFilters() {
     renderFinanceAuditLog();
 }
 async function deleteUser(id) {
+    if (!hasPermission('users_edit')) {
+
+    mostrarNotificacion(
+        'No tiene permisos para eliminar usuarios',
+        'error'
+    );
+
+    return;
+}
 
     if (
         !confirm(
