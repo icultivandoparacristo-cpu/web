@@ -24461,18 +24461,18 @@ function mostrarModulo(id) {
     }
 
 
-    if (
-        id === 'tab-usuarios' &&
-        !isSuperAdmin()
-    ) {
+if (
+    id === 'tab-usuarios' &&
+    !hasPermission('users_view')
+) {
 
-        mostrarNotificacion(
-            'No tiene permisos',
-            'error'
-        );
+    mostrarNotificacion(
+        '❌ No tiene acceso al módulo Usuarios',
+        'error'
+    );
 
-        return;
-    }
+    return;
+}
 
 
     document.getElementById(
