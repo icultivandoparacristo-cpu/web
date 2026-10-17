@@ -33428,55 +33428,31 @@ function isAuditor() {
 
 function canViewFinance() {
 
-    return window.currentUser &&
-        (
-            window.currentUser.role === 'registrador' ||
-            window.currentUser.role === 'admin' ||
-            window.currentUser.role === 'auditor' ||
-            window.currentUser.role === 'superadmin'
-        );
+    return hasPermission(
+        'finances_view'
+    );
+
 }
 
 
 function canRegisterFinance() {
 
-    return window.currentUser &&
-        (
-            window.currentUser.role === 'registrador' ||
-            window.currentUser.role === 'admin' ||
-            window.currentUser.role === 'superadmin'
-        );
+    return hasPermission(
+        'finances_create'
+    );
+
 }
-
-//==========================================
-// PERMISOS Pude anular
-// ==========================================
-function canCancelFinance() {
-
-    return window.currentUser &&
-        (
-            window.currentUser.role === 'admin' ||
-            window.currentUser.role === 'superadmin'
-        );
-}
-
 
 
 function canEditFinance() {
 
-    return window.currentUser &&
-        (
-            window.currentUser.role === 'admin' ||
-            window.currentUser.role === 'superadmin'
-        );
+    return hasPermission(
+        'finances_edit'
+    );
+
 }
 
 
-function canAuditFinance() {
-
-    return window.currentUser &&
-        window.currentUser.role === 'auditor';
-}
 function applyFinancePermissions() {
 
     const form =
