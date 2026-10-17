@@ -3195,7 +3195,6 @@ button.auth-submit:hover {
     display:grid;
     grid-template-columns: 1fr 520px;
     gap:20px;
-    align-items:start;
 }
 
 @media (max-width:1200px){
@@ -3205,10 +3204,10 @@ button.auth-submit:hover {
     }
 
 }
-  .permissions-grid{
+.permissions-grid{
     display:grid;
     grid-template-columns:
-        repeat(auto-fit,minmax(180px,1fr));
+        repeat(3,1fr);
     gap:12px;
     margin-top:10px;
 }
@@ -3227,10 +3226,12 @@ button.auth-submit:hover {
 }
 
 .permission-card label{
-    display:flex;
+    display:grid;
+    grid-template-columns:
+        20px 1fr;
     gap:8px;
     align-items:center;
-    margin:4px 0;
+    margin:6px 0;
     font-size:13px;
 }
 .user-data-panel{
