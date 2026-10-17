@@ -3233,6 +3233,23 @@ button.auth-submit:hover {
     margin:4px 0;
     font-size:13px;
 }
+.user-data-panel{
+    width:100%;
+}
+
+.user-permissions-panel{
+    width:100%;
+}
+
+.user-form-actions{
+    margin-top:20px;
+    display:flex;
+    justify-content:flex-end;
+}
+
+.user-form-actions .btn-save{
+    min-width:250px;
+}
   /* Estado y bitácora de la sesión de asistencia */
   .class-session-panel { margin-top:16px; padding:18px; border:1px solid #d8e7df; border-radius:14px; background:#f8fcfa; }
   .class-session-title { font-size:16px; font-weight:700; color:#075b38; margin-bottom:14px; }
@@ -5975,231 +5992,302 @@ button.auth-submit:hover {
         <h3>Crear Usuario</h3>
 
         <form id="userForm">
-            <div class="user-editor-layout">
 
-                        <input type="hidden" id="userId">
+    <input
+        type="hidden"
+        id="userId">
 
-                        <div class="form-group">
+    <div class="user-editor-layout">
 
-                            <div>
-                                <label>Usuario:</label>
+        <!-- ======================================
+             DATOS DEL USUARIO
+        ======================================= -->
+        <div class="user-data-panel">
 
-                                <input
-                                    type="text"
-                                    id="newUsername"
-                                    required>
-                            </div>
-                    <div>
-                        <label>Correo:</label>
+            <div class="form-group">
 
-                        <input
-                            type="email"
-                            id="newUserEmail"
-                            required>
-                    </div>
+                <div>
+                    <label>Usuario:</label>
 
+                    <input
+                        type="text"
+                        id="newUsername"
+                        required>
+                </div>
 
-                            <div>
-                                <label>Contraseña:</label>
+                <div>
+                    <label>Correo:</label>
 
-                                <input type="password" id="newPassword" placeholder="Contraseña temporal">
-                            </div>
+                    <input
+                        type="email"
+                        id="newUserEmail"
+                        required>
+                </div>
 
-         <div>
-                                <label>Rol:</label>
+                <div>
+                    <label>Contraseña:</label>
 
-                                <select
-                                    id="newRole"
-                                    required>
+                    <input
+                        type="password"
+                        id="newPassword"
+                        placeholder="Contraseña temporal">
+                </div>
 
-                                    <option value="maestro">Maestro</option>
-                                    <option value="registrador">Registrador</option>
-                                    <option value="admin">Admin Finanzas</option>
-                                    <option value="auditor">Auditor</option>
-                                    <option value="cumpleanos">Cumpleaños</option>
+                <div>
+                    <label>Rol:</label>
 
-                                </select>
-                        <button
-                            type="button"
-                            class="btn-secondary"
-                            onclick="applyRolePermissions()">
+                    <select
+                        id="newRole"
+                        required>
 
-                            Aplicar permisos del rol
+                        <option value="maestro">
+                            Maestro
+                        </option>
 
-                        </button>                   
-                   
-                <div class="permissions-grid">
+                        <option value="registrador">
+                            Registrador
+                        </option>
 
-                    <div class="permission-card">
+                        <option value="admin">
+                            Admin Finanzas
+                        </option>
 
-                        <h5>👤 Usuarios</h5>
+                        <option value="auditor">
+                            Auditor
+                        </option>
 
-                        <label>
-                            <input type="checkbox"
-                                id="perm_users_view">
-                            Ver
-                        </label>
+                        <option value="cumpleanos">
+                            Cumpleaños
+                        </option>
 
-                        <label>
-                            <input type="checkbox"
-                                id="perm_users_create">
-                            Crear
-                        </label>
-
-                        <label>
-                            <input type="checkbox"
-                                id="perm_users_edit">
-                            Editar
-                        </label>
-
-                    </div>
-
-                    <div class="permission-card">
-
-                        <h5>🎓 Estudiantes</h5>
-
-                        <label>
-                            <input type="checkbox"
-                                id="perm_students_view">
-                            Ver
-                        </label>
-
-                        <label>
-                            <input type="checkbox"
-                                id="perm_students_create">
-                            Crear
-                        </label>
-
-                        <label>
-                            <input type="checkbox"
-                                id="perm_students_edit">
-                            Editar
-                        </label>
-
-                    </div>
-
-                    <div class="permission-card">
-
-                        <h5>✅ Asistencia</h5>
-
-                        <label>
-                            <input type="checkbox"
-                                id="perm_attendance_view">
-                            Ver
-                        </label>
-
-                        <label>
-                            <input type="checkbox"
-                                id="perm_attendance_create">
-                            Crear
-                        </label>
-
-                        <label>
-                            <input type="checkbox"
-                                id="perm_attendance_edit">
-                            Editar
-                        </label>
-
-                    </div>
-
-                    <div class="permission-card">
-
-                        <h5>💰 Finanzas</h5>
-
-                        <label>
-                            <input type="checkbox"
-                                id="perm_finances_view">
-                            Ver
-                        </label>
-
-                        <label>
-                            <input type="checkbox"
-                                id="perm_finances_create">
-                            Crear
-                        </label>
-
-                        <label>
-                            <input type="checkbox"
-                                id="perm_finances_edit">
-                            Editar
-                        </label>
-
-                    </div>
-
-                    <div class="permission-card">
-
-                        <h5>📊 Reportes</h5>
-
-                        <label>
-                            <input type="checkbox"
-                                id="perm_reports_view">
-                            Ver
-                        </label>
-
-                    </div>
-
-                    <div class="permission-card">
-
-                        <h5>👥 Grupos</h5>
-
-                        <label>
-                            <input type="checkbox"
-                                id="perm_groups_view">
-                            Ver
-                        </label>
-
-                        <label>
-                            <input type="checkbox"
-                                id="perm_groups_create">
-                            Crear
-                        </label>
-
-                        <label>
-                            <input type="checkbox"
-                                id="perm_groups_edit">
-                            Editar
-                        </label>
-
-                    </div>
-
-                    <div class="permission-card">
-
-                        <h5>📚 Subgrupos</h5>
-
-                        <label>
-                            <input type="checkbox"
-                                id="perm_classes_view">
-                            Ver
-                        </label>
-
-                        <label>
-                            <input type="checkbox"
-                                id="perm_classes_create">
-                            Crear
-                        </label>
-
-                        <label>
-                            <input type="checkbox"
-                                id="perm_classes_edit">
-                            Editar
-                        </label>
-
-                    </div>
+                    </select>
 
                 </div>
-                
 
-</div>
-
-                        <button
-                            type="submit"
-                            class="btn-save">
-
-                            Guardar Usuario
-
-                        </button>
             </div>
-        </form>
+
+        </div>
+
+        <!-- ======================================
+             PERMISOS
+        ======================================= -->
+        <div class="user-permissions-panel">
+
+            <button
+                type="button"
+                class="btn-secondary"
+                onclick="applyRolePermissions()">
+
+                Aplicar permisos del rol
+
+            </button>
+
+            <div class="permissions-grid">
+
+                <!-- Usuarios -->
+                <div class="permission-card">
+
+                    <h5>👤 Usuarios</h5>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_users_view">
+                        Ver
+                    </label>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_users_create">
+                        Crear
+                    </label>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_users_edit">
+                        Editar
+                    </label>
+
+                </div>
+
+                <!-- Estudiantes -->
+                <div class="permission-card">
+
+                    <h5>🎓 Estudiantes</h5>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_students_view">
+                        Ver
+                    </label>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_students_create">
+                        Crear
+                    </label>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_students_edit">
+                        Editar
+                    </label>
+
+                </div>
+
+                <!-- Asistencia -->
+                <div class="permission-card">
+
+                    <h5>✅ Asistencia</h5>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_attendance_view">
+                        Ver
+                    </label>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_attendance_create">
+                        Crear
+                    </label>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_attendance_edit">
+                        Editar
+                    </label>
+
+                </div>
+
+                <!-- Finanzas -->
+                <div class="permission-card">
+
+                    <h5>💰 Finanzas</h5>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_finances_view">
+                        Ver
+                    </label>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_finances_create">
+                        Crear
+                    </label>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_finances_edit">
+                        Editar
+                    </label>
+
+                </div>
+
+                <!-- Reportes -->
+                <div class="permission-card">
+
+                    <h5>📊 Reportes</h5>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_reports_view">
+                        Ver
+                    </label>
+
+                </div>
+
+                <!-- Grupos -->
+                <div class="permission-card">
+
+                    <h5>👥 Grupos</h5>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_groups_view">
+                        Ver
+                    </label>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_groups_create">
+                        Crear
+                    </label>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_groups_edit">
+                        Editar
+                    </label>
+
+                </div>
+
+                <!-- Subgrupos -->
+                <div class="permission-card">
+
+                    <h5>📚 Subgrupos</h5>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_classes_view">
+                        Ver
+                    </label>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_classes_create">
+                        Crear
+                    </label>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            id="perm_classes_edit">
+                        Editar
+                    </label>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ======================================
+         BOTÓN GUARDAR
+    ======================================= -->
+    <div class="user-form-actions">
+
+        <button
+            type="submit"
+            class="btn-save">
+
+            Guardar Usuario
+
+        </button>
+
+    </div>
+
+</form>
 
     </div>
 
