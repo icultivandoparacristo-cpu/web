@@ -3193,7 +3193,7 @@ button.auth-submit:hover {
 
 .user-editor-layout{
     display:grid;
-    grid-template-columns: 1fr 520px;
+    grid-template-columns: 1fr 460px;
     gap:20px;
 }
 
@@ -3217,6 +3217,7 @@ button.auth-submit:hover {
     border-radius:8px;
     padding:10px;
     background:#fafafa;
+    min-height:auto;
 }
 
 .permission-card h5{
@@ -3226,13 +3227,12 @@ button.auth-submit:hover {
 }
 
 .permission-card label{
-    display:grid;
-    grid-template-columns:
-        20px 1fr;
-    gap:8px;
+   .permission-card label{
+    display:flex;
     align-items:center;
-    margin:6px 0;
-    font-size:13px;
+    gap:6px;
+    margin:3px 0;
+}
 }
 .user-data-panel{
     width:100%;
@@ -3241,16 +3241,17 @@ button.auth-submit:hover {
 .user-permissions-panel{
     width:100%;
 }
-
 .user-form-actions{
     margin-top:20px;
-    display:flex;
-    justify-content:flex-end;
+    text-align:right;
 }
 
 .user-form-actions .btn-save{
-    min-width:250px;
+    width:auto;
+    min-width:220px;
+    padding:12px 30px;
 }
+
   /* Estado y bitácora de la sesión de asistencia */
   .class-session-panel { margin-top:16px; padding:18px; border:1px solid #d8e7df; border-radius:14px; background:#f8fcfa; }
   .class-session-title { font-size:16px; font-weight:700; color:#075b38; margin-bottom:14px; }
@@ -6074,14 +6075,7 @@ button.auth-submit:hover {
         ======================================= -->
         <div class="user-permissions-panel">
 
-            <button
-                type="button"
-                class="btn-secondary"
-                onclick="applyRolePermissions()">
-
-                Aplicar permisos del rol
-
-            </button>
+           
 
             <div class="permissions-grid">
 
