@@ -5982,74 +5982,131 @@ button.auth-submit:hover {
                 <option value="cumpleanos">Cumpleaños</option>
 
             </select>
-<div id="permissionsContainer" class="mt-3">
-    <h4>🔐 Permisos</h4>
+<div id="permissionsContainer">
 
-    <label>
-        <input type="checkbox" id="perm_students_view">
-        Ver estudiantes
-    </label><br>
-
-    <label>
-        <input type="checkbox" id="perm_students_create">
-        Crear estudiantes
-    </label><br>
-
-    <label>
-        <input type="checkbox" id="perm_students_edit">
-        Editar estudiantes
-    </label><br>
-
-    <label>
-        <input type="checkbox" id="perm_students_delete">
-        Eliminar estudiantes
-    </label><br><br>
-
-    <label>
-        <input type="checkbox" id="perm_attendance_view">
-        Ver asistencia
-    </label><br>
-
-    <label>
-        <input type="checkbox" id="perm_attendance_edit">
-        Editar asistencia
-    </label><br><br>
-
-    <label>
-        <input type="checkbox" id="perm_reports_view">
-        Ver reportes
-    </label><br><br>
-
-    <label>
-        <input type="checkbox" id="perm_finances_view">
-        Ver finanzas
-    </label><br>
-
-    <label>
-        <input type="checkbox" id="perm_finances_create">
-        Crear movimientos
-    </label><br>
-
-    <label>
-        <input type="checkbox" id="perm_finances_edit">
-        Editar movimientos
-    </label><br>
-
-    <label>
-        <input type="checkbox" id="perm_finances_cancel">
-        Anular movimientos
-    </label><br><br>
+    <h4>👤 Usuarios</h4>
 
     <label>
         <input type="checkbox" id="perm_users_view">
-        Ver usuarios
-    </label><br>
+        Ver
+    </label>
+
+    <label>
+        <input type="checkbox" id="perm_users_create">
+        Crear
+    </label>
 
     <label>
         <input type="checkbox" id="perm_users_edit">
-        Administrar usuarios
+        Editar
     </label>
+
+    <hr>
+
+    <h4>🎓 Estudiantes</h4>
+
+    <label>
+        <input type="checkbox" id="perm_students_view">
+        Ver
+    </label>
+
+    <label>
+        <input type="checkbox" id="perm_students_create">
+        Crear
+    </label>
+
+    <label>
+        <input type="checkbox" id="perm_students_edit">
+        Editar
+    </label>
+
+    <hr>
+
+    <h4>✅ Asistencia</h4>
+
+    <label>
+        <input type="checkbox" id="perm_attendance_view">
+        Ver
+    </label>
+
+    <label>
+        <input type="checkbox" id="perm_attendance_create">
+        Crear
+    </label>
+
+    <label>
+        <input type="checkbox" id="perm_attendance_edit">
+        Editar
+    </label>
+
+    <hr>
+
+    <h4>💰 Finanzas</h4>
+
+    <label>
+        <input type="checkbox" id="perm_finances_view">
+        Ver
+    </label>
+
+    <label>
+        <input type="checkbox" id="perm_finances_create">
+        Crear
+    </label>
+
+    <label>
+        <input type="checkbox" id="perm_finances_edit">
+        Editar
+    </label>
+
+    <hr>
+
+    <h4>📊 Reportes</h4>
+
+    <label>
+        <input type="checkbox" id="perm_reports_view">
+        Ver
+    </label>
+
+    <hr>
+
+    <h4>👥 Grupos</h4>
+
+    <label>
+        <input type="checkbox" id="perm_groups_view">
+        Ver
+    </label>
+
+    <label>
+        <input type="checkbox" id="perm_groups_create">
+        Crear
+    </label>
+
+    <label>
+        <input type="checkbox" id="perm_groups_edit">
+        Editar
+    </label>
+
+    <hr>
+
+    <h4>📚 Subgrupos</h4>
+
+    <label>
+        <input type="checkbox" id="perm_classes_view">
+        Ver
+    </label>
+
+    <label>
+        <input type="checkbox" id="perm_classes_create">
+        Crear
+    </label>
+
+    <label>
+        <input type="checkbox" id="perm_classes_edit">
+        Editar
+    </label>
+
 </div>
+
         </div>
 
     </div>
@@ -6772,9 +6829,11 @@ const userSnapshot =
 
             role:
                 role,
-            permissions:
-            profile.permissions ||
-            getDefaultPermissions(role),
+           permissions:
+            normalizePermissions(
+                profile.permissions ||
+                getDefaultPermissions(role)
+            ),
 
             activo:
                 true,
@@ -20109,99 +20168,263 @@ function loadReportSubGroups() {
         }
     );
 
-}
-function loadPermissionCheckboxes(user) {
+}function loadPermissionCheckboxes(user) {
 
     const permissions =
-        user.permissions || {};
+        normalizePermissions(
+            user.permissions || {}
+        );
 
-    document.getElementById(
-        'perm_students_view'
-    ).checked =
-        permissions.students_view || false;
-
-    document.getElementById(
-        'perm_students_create'
-    ).checked =
-        permissions.students_create || false;
-
-    document.getElementById(
-        'perm_students_edit'
-    ).checked =
-        permissions.students_edit || false;
-
-    document.getElementById(
-        'perm_students_delete'
-    ).checked =
-        permissions.students_delete || false;
-
-    document.getElementById(
-        'perm_attendance_view'
-    ).checked =
-        permissions.attendance_view || false;
-
-    document.getElementById(
-        'perm_attendance_edit'
-    ).checked =
-        permissions.attendance_edit || false;
-
-    document.getElementById(
-        'perm_reports_view'
-    ).checked =
-        permissions.reports_view || false;
-
-    document.getElementById(
-        'perm_finances_view'
-    ).checked =
-        permissions.finances_view || false;
-
-    document.getElementById(
-        'perm_finances_create'
-    ).checked =
-        permissions.finances_create || false;
-
-    document.getElementById(
-        'perm_finances_edit'
-    ).checked =
-        permissions.finances_edit || false;
-
-    document.getElementById(
-        'perm_finances_cancel'
-    ).checked =
-        permissions.finances_cancel || false;
+    // =====================================
+    // USUARIOS
+    // =====================================
 
     document.getElementById(
         'perm_users_view'
     ).checked =
-        permissions.users_view || false;
+        permissions.users_view;
+
+    document.getElementById(
+        'perm_users_create'
+    ).checked =
+        permissions.users_create;
 
     document.getElementById(
         'perm_users_edit'
     ).checked =
-        permissions.users_edit || false;
+        permissions.users_edit;
+
+    // =====================================
+    // ESTUDIANTES
+    // =====================================
+
+    document.getElementById(
+        'perm_students_view'
+    ).checked =
+        permissions.students_view;
+
+    document.getElementById(
+        'perm_students_create'
+    ).checked =
+        permissions.students_create;
+
+    document.getElementById(
+        'perm_students_edit'
+    ).checked =
+        permissions.students_edit;
+
+    // =====================================
+    // ASISTENCIA
+    // =====================================
+
+    document.getElementById(
+        'perm_attendance_view'
+    ).checked =
+        permissions.attendance_view;
+
+    document.getElementById(
+        'perm_attendance_create'
+    ).checked =
+        permissions.attendance_create;
+
+    document.getElementById(
+        'perm_attendance_edit'
+    ).checked =
+        permissions.attendance_edit;
+
+    // =====================================
+    // FINANZAS
+    // =====================================
+
+    document.getElementById(
+        'perm_finances_view'
+    ).checked =
+        permissions.finances_view;
+
+    document.getElementById(
+        'perm_finances_create'
+    ).checked =
+        permissions.finances_create;
+
+    document.getElementById(
+        'perm_finances_edit'
+    ).checked =
+        permissions.finances_edit;
+
+    // =====================================
+    // REPORTES
+    // =====================================
+
+    document.getElementById(
+        'perm_reports_view'
+    ).checked =
+        permissions.reports_view;
+
+    // =====================================
+    // GRUPOS
+    // =====================================
+
+    document.getElementById(
+        'perm_groups_view'
+    ).checked =
+        permissions.groups_view;
+
+    document.getElementById(
+        'perm_groups_create'
+    ).checked =
+        permissions.groups_create;
+
+    document.getElementById(
+        'perm_groups_edit'
+    ).checked =
+        permissions.groups_edit;
+
+    // =====================================
+    // SUBGRUPOS / CLASES
+    // =====================================
+
+    document.getElementById(
+        'perm_classes_view'
+    ).checked =
+        permissions.classes_view;
+
+    document.getElementById(
+        'perm_classes_create'
+    ).checked =
+        permissions.classes_create;
+
+    document.getElementById(
+        'perm_classes_edit'
+    ).checked =
+        permissions.classes_edit;
 }
 function getPermissionsFromForm() {
 
     return {
-        students_view: document.getElementById('perm_students_view')?.checked || false,
-        students_create: document.getElementById('perm_students_create')?.checked || false,
-        students_edit: document.getElementById('perm_students_edit')?.checked || false,
-        students_delete: document.getElementById('perm_students_delete')?.checked || false,
 
-        attendance_view: document.getElementById('perm_attendance_view')?.checked || false,
-        attendance_edit: document.getElementById('perm_attendance_edit')?.checked || false,
+        // =====================================
+        // USUARIOS
+        // =====================================
 
-        reports_view: document.getElementById('perm_reports_view')?.checked || false,
+        users_view:
+            document.getElementById(
+                'perm_users_view'
+            )?.checked || false,
 
-        finances_view: document.getElementById('perm_finances_view')?.checked || false,
-        finances_create: document.getElementById('perm_finances_create')?.checked || false,
-        finances_edit: document.getElementById('perm_finances_edit')?.checked || false,
-        finances_cancel: document.getElementById('perm_finances_cancel')?.checked || false,
+        users_create:
+            document.getElementById(
+                'perm_users_create'
+            )?.checked || false,
 
-        users_view: document.getElementById('perm_users_view')?.checked || false,
-        users_edit: document.getElementById('perm_users_edit')?.checked || false
+        users_edit:
+            document.getElementById(
+                'perm_users_edit'
+            )?.checked || false,
+
+        // =====================================
+        // ESTUDIANTES
+        // =====================================
+
+        students_view:
+            document.getElementById(
+                'perm_students_view'
+            )?.checked || false,
+
+        students_create:
+            document.getElementById(
+                'perm_students_create'
+            )?.checked || false,
+
+        students_edit:
+            document.getElementById(
+                'perm_students_edit'
+            )?.checked || false,
+
+        // =====================================
+        // ASISTENCIA
+        // =====================================
+
+        attendance_view:
+            document.getElementById(
+                'perm_attendance_view'
+            )?.checked || false,
+
+        attendance_create:
+            document.getElementById(
+                'perm_attendance_create'
+            )?.checked || false,
+
+        attendance_edit:
+            document.getElementById(
+                'perm_attendance_edit'
+            )?.checked || false,
+
+        // =====================================
+        // FINANZAS
+        // =====================================
+
+        finances_view:
+            document.getElementById(
+                'perm_finances_view'
+            )?.checked || false,
+
+        finances_create:
+            document.getElementById(
+                'perm_finances_create'
+            )?.checked || false,
+
+        finances_edit:
+            document.getElementById(
+                'perm_finances_edit'
+            )?.checked || false,
+
+        // =====================================
+        // REPORTES
+        // =====================================
+
+        reports_view:
+            document.getElementById(
+                'perm_reports_view'
+            )?.checked || false,
+
+        // =====================================
+        // GRUPOS
+        // =====================================
+
+        groups_view:
+            document.getElementById(
+                'perm_groups_view'
+            )?.checked || false,
+
+        groups_create:
+            document.getElementById(
+                'perm_groups_create'
+            )?.checked || false,
+
+        groups_edit:
+            document.getElementById(
+                'perm_groups_edit'
+            )?.checked || false,
+
+        // =====================================
+        // SUBGRUPOS / CLASES
+        // =====================================
+
+        classes_view:
+            document.getElementById(
+                'perm_classes_view'
+            )?.checked || false,
+
+        classes_create:
+            document.getElementById(
+                'perm_classes_create'
+            )?.checked || false,
+
+        classes_edit:
+            document.getElementById(
+                'perm_classes_edit'
+            )?.checked || false
     };
-
 }
 function loadFinanceReportSubGroups() {
 
@@ -22948,6 +23171,7 @@ function handleClassSessionStatusChange() { updateClassSessionPanelVisibility();
 function handleClassSessionReasonChange() { updateClassSessionPanelVisibility(); }
 
 async function saveAttendanceClassSession() {
+
     const clase = getSelectedClass();
     const fecha = document.getElementById('attendanceDate')?.value;
     if (!clase || !fecha) {
@@ -23348,6 +23572,13 @@ async function ensureClassSession(
     return session;
 }
 async function updateClassSession(classId, fecha, changes = {}) {
+    if (!hasPermission('attendance_edit')) {
+    mostrarNotificacion(
+        '❌ No tiene permisos para modificar asistencia',
+        'error'
+    );
+    return;
+}
   const session = getClassSession(classId, fecha);
   if (!session) return null;
   if (changes.estado === 'Realizada' || changes.estado === 'Suspendida') session.estado = changes.estado;
@@ -24430,6 +24661,18 @@ if (menuCumpleanos) {
     notif.style.display = 'block';
     setTimeout(() => notif.style.display = 'none', 4000);
   }
+function canViewStudents() {
+    return hasPermission('students_view');
+}
+
+function canCreateStudents() {
+    return hasPermission('students_create');
+}
+
+function canEditStudents() {
+    return hasPermission('students_edit');
+}
+
 
 function mostrarModulo(id) {
 
@@ -24445,7 +24688,16 @@ function mostrarModulo(id) {
 
         return;
     }
-
+    if (
+        id === 'tab-asistencia' &&
+        !hasPermission('attendance_view')
+    ) {
+        mostrarNotificacion(
+            '❌ No tiene acceso al módulo Asistencia',
+            'error'
+        );
+        return;
+    }
 
     if (
         id === 'tab-finanzas' &&
@@ -24459,6 +24711,33 @@ function mostrarModulo(id) {
 
         return;
     }
+
+       // =====================================
+    // ESTUDIANTES
+    // =====================================
+
+    if (
+        id === 'tab-estudiantes' &&
+        !hasPermission('students_view')
+    ) {
+        mostrarNotificacion(
+            '❌ No tiene acceso al módulo Estudiantes',
+            'error'
+        );
+        return;
+    }
+if (
+    id === 'tab-reportes' &&
+    !hasPermission('reports_view')
+) {
+
+    mostrarNotificacion(
+        '❌ No tiene acceso al módulo Reportes',
+        'error'
+    );
+
+    return;
+}
 
 
 if (
@@ -24496,8 +24775,8 @@ if (
         id
     ).style.display =
         'block';
-
-
+    
+ 
     // =====================================
     // ESTUDIANTES
     // =====================================
@@ -25214,7 +25493,35 @@ function editUser(id) {
 
   
 studentForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
+
+ e.preventDefault();
+    const studentId =
+    document.getElementById('studentId').value;
+
+    if (
+    studentId &&
+    !hasPermission('students_edit')
+) {
+    mostrarNotificacion(
+        '❌ No tiene permisos para editar estudiantes',
+        'error'
+    );
+    return;
+}
+
+if (
+    !studentId &&
+    !hasPermission('students_create')
+) {
+    mostrarNotificacion(
+        '❌ No tiene permisos para crear estudiantes',
+        'error'
+    );
+    return;
+}
+   
+
+
     const id = document.getElementById('studentId').value;
     const enrollments = getStudentEnrollmentDraft();
     if (enrollments.length === 0) { mostrarNotificacion('⚠️ Agregue al menos una inscripción', 'warning'); return; }
@@ -25428,7 +25735,7 @@ if (groupForm) {
         async (e) => {
 
             e.preventDefault();
-            if (!hasPermission('users_edit')) {
+            if (!hasPermission('groups_edit')) {
 
                 mostrarNotificacion(
                     'No tiene permisos para administrar usuarios',
@@ -25893,12 +26200,20 @@ async function loadUsersFromFirestore() {
             );
 
         window.users =
-            snapshot.docs.map(
-                doc => ({
+            snapshot.docs.map(doc => {
+
+                const user = {
                     id: doc.id,
                     ...doc.data()
-                })
-            );
+                };
+
+                user.permissions =
+                    normalizePermissions(
+                        user.permissions
+                    );
+
+                return user;
+            });
 
         renderUsers();
 
@@ -25973,6 +26288,11 @@ function renderStudentTable() {
 
     students.forEach(
         student => {
+            const canEditStudents =
+            hasPermission('students_edit');
+
+            const canDeleteStudents =
+            hasPermission('students_edit');
 
             const row =
                 document.createElement(
@@ -26167,22 +26487,38 @@ function renderStudentTable() {
 
                 <td>
 
-    <button
-        type="button"
-        class="btn-edit"
-        onclick='editStudent(${JSON.stringify(String(student.id))})'
-    >
-        Editar
-    </button>
+    ${
+        canEditStudents
+            ? `
 
+                <button
+                    type="button"
+                    class="btn-edit"
+                    onclick='editStudent(${JSON.stringify(String(student.id))})'
+                >
+                    Editar
+                </button>
 
-    <button
-        type="button"
-        class="btn-delete"
-        onclick='deleteStudent(${JSON.stringify(String(student.id))})'
-    >
-        Borrar
-    </button>
+                <button
+                    type="button"
+                    class="btn-delete"
+                    onclick='deleteStudent(${JSON.stringify(String(student.id))})'
+                >
+                    Borrar
+                </button>
+
+            `
+            : `
+                <span
+                    style="
+                        color:#666;
+                        font-size:12px;
+                    "
+                >
+                    Solo lectura
+                </span>
+            `
+    }
 
 </td>
             `;
@@ -26289,7 +26625,13 @@ async function toggleUserStatus(id) {
 
         return;
     }
-
+    if (!hasPermission('students_edit')) {
+        mostrarNotificacion(
+            '❌ No tiene permisos para editar estudiantes',
+            'error'
+        );
+        return;
+    }
 
     // ==========================================
     // DATOS BÁSICOS
@@ -26455,6 +26797,14 @@ async function toggleUserStatus(id) {
 }
 
   async function deleteStudent(id) {
+        if (!hasPermission('students_edit')) {
+    mostrarNotificacion(
+        '❌ No tiene permisos para eliminar estudiantes',
+        'error'
+    );
+    return;
+}
+
     const student = window.students.find(s => String(s.id) === String(id));
     if (!student) return;
     const confirmado = confirm(`¿Desea eliminar a ${student.nombre} ${student.apellido}?\n\nEl estudiante se eliminará de Firestore. Su historial de asistencia local también se eliminará en este navegador.`);
@@ -26470,6 +26820,7 @@ async function toggleUserStatus(id) {
         console.error('❌ Error eliminando estudiante:', error);
         mostrarNotificacion('❌ No se pudo eliminar el estudiante', 'error');
     }
+
 }
 
 function resetStudentForm() {
@@ -32937,34 +33288,35 @@ window.addEventListener('DOMContentLoaded', () => {
     const appContainer = document.querySelector('.container');
     if (appContainer) appContainer.style.display = 'none';
 });
-
 function getDefaultPermissions(role) {
 
     const permissions = {
+
+        users_view: false,
+        users_create: false,
+        users_edit: false,
+
         students_view: false,
         students_create: false,
         students_edit: false,
-        students_delete: false,
 
         attendance_view: false,
+        attendance_create: false,
         attendance_edit: false,
-
-        groups_view: false,
-        groups_edit: false,
-
-        classes_view: false,
-        classes_edit: false,
-
-        reports_view: false,
 
         finances_view: false,
         finances_create: false,
         finances_edit: false,
-        finances_cancel: false,
-        finances_audit: false,
 
-        users_view: false,
-        users_edit: false
+        reports_view: false,
+
+        groups_view: false,
+        groups_create: false,
+        groups_edit: false,
+
+        classes_view: false,
+        classes_create: false,
+        classes_edit: false
     };
 
     switch (role) {
@@ -32980,8 +33332,11 @@ function getDefaultPermissions(role) {
         case 'maestro':
 
             permissions.students_view = true;
+
             permissions.attendance_view = true;
+            permissions.attendance_create = true;
             permissions.attendance_edit = true;
+
             permissions.reports_view = true;
 
             break;
@@ -32993,12 +33348,10 @@ function getDefaultPermissions(role) {
             permissions.students_edit = true;
 
             permissions.attendance_view = true;
+            permissions.attendance_create = true;
             permissions.attendance_edit = true;
 
             permissions.reports_view = true;
-
-            permissions.finances_view = true;
-            permissions.finances_create = true;
 
             break;
 
@@ -33007,24 +33360,82 @@ function getDefaultPermissions(role) {
             permissions.finances_view = true;
             permissions.finances_create = true;
             permissions.finances_edit = true;
-            permissions.finances_cancel = true;
 
             break;
 
         case 'auditor':
 
             permissions.finances_view = true;
-            permissions.finances_audit = true;
             permissions.reports_view = true;
-
-            break;
-
-        case 'cumpleanos':
 
             break;
     }
 
     return permissions;
+}
+function normalizePermissions(
+    permissions = {}
+) {
+
+    return {
+
+        users_view:
+            permissions.users_view || false,
+
+        users_create:
+            permissions.users_create || false,
+
+        users_edit:
+            permissions.users_edit || false,
+
+        students_view:
+            permissions.students_view || false,
+
+        students_create:
+            permissions.students_create || false,
+
+        students_edit:
+            permissions.students_edit || false,
+
+        attendance_view:
+            permissions.attendance_view || false,
+
+        attendance_create:
+            permissions.attendance_create || false,
+
+        attendance_edit:
+            permissions.attendance_edit || false,
+
+        finances_view:
+            permissions.finances_view || false,
+
+        finances_create:
+            permissions.finances_create || false,
+
+        finances_edit:
+            permissions.finances_edit || false,
+
+        reports_view:
+            permissions.reports_view || false,
+
+        groups_view:
+            permissions.groups_view || false,
+
+        groups_create:
+            permissions.groups_create || false,
+
+        groups_edit:
+            permissions.groups_edit || false,
+
+        classes_view:
+            permissions.classes_view || false,
+
+        classes_create:
+            permissions.classes_create || false,
+
+        classes_edit:
+            permissions.classes_edit || false
+    };
 }
 function getDefaultPermissions(role) {
 
@@ -33032,7 +33443,7 @@ function getDefaultPermissions(role) {
         students_view: false,
         students_create: false,
         students_edit: false,
-        students_delete: false,
+        
 
         attendance_view: false,
         attendance_edit: false,
