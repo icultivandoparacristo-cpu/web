@@ -31200,9 +31200,8 @@ else {
             let accionesHtml =
                 'Solo lectura';
 
-          if (
-    canEditFinance()
-) {
+          
+  if(hasPermission('finances_edit')){
 
     if (
         estado === 'Activo'
@@ -31242,7 +31241,7 @@ else {
 }
 
 else if (
-    canAuditFinance()
+    hasPermission('finances_edit')
 ) {
 
     accionesHtml = `
@@ -31443,6 +31442,34 @@ else if (
     );
 }
 
+function canAuditFinance() {
+
+    return hasPermission(
+        'finances_edit'
+    );
+
+}
+
+function canCancelFinance() {
+
+    return hasPermission(
+        'finances_edit'
+    );
+
+}
+function canCancelFinance() {
+
+    return hasPermission(
+        'finances_edit'
+    );
+
+}function canAuditFinance() {
+
+    return hasPermission(
+        'finances_edit'
+    );
+
+}
 function cancelFinance(id) {
 
     // ==========================================
@@ -32471,7 +32498,7 @@ async function deleteUser(id) {
 ) {
 
     if (
-        !canAuditFinance()
+        !hasPermission('finances_edit')
     ) {
 
         mostrarNotificacion(
