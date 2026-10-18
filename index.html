@@ -25383,14 +25383,7 @@ const autoBackup = {
         users
 };
 
-// localStorage.setItem(
-//     'biblical_finance_audit_log',
-//     JSON.stringify(
-//         financeAuditLog
-//     )
-// );
-}
-// Lista de maestro
+// Lista de maestros
 function getTeachers() {
 
     const teachersMap =
@@ -25399,26 +25392,38 @@ function getTeachers() {
     // ==============================
     // USUARIOS FIRESTORE
     // ==============================
+
     users
         .filter(
             user =>
                 (
-                    user.role ===
-                        'teacher' ||
-
-                    user.role ===
-                        'maestro'
-                )
-                &&
+                    user.role === 'teacher' ||
+                    user.role === 'maestro'
+                ) &&
                 user.activo !== false
         )
         .forEach(user => {
 
+            const teacherName =
+                String(
+                    user.username || ''
+                ).trim();
+
+            if (!teacherName) {
+
+                console.warn(
+                    '⚠️ Usuario maestro sin username:',
+                    user
+                );
+
+                return;
+            }
+
             teachersMap.set(
-                user.username,
+                teacherName,
                 {
                     username:
-                        user.username,
+                        teacherName,
 
                     source:
                         'users'
@@ -25429,18 +25434,18 @@ function getTeachers() {
 
     // ==============================
     // MAESTROS HISTÓRICOS
-    // DE LOS SUBGRUPOS
     // ==============================
+
     classes.forEach(clase => {
 
         (
             clase.maestros || []
-        )
-        .forEach(nombre => {
+        ).forEach(nombre => {
 
             const teacherName =
-                String(nombre || '')
-                    .trim();
+                String(
+                    nombre || ''
+                ).trim();
 
             if (!teacherName) {
                 return;
@@ -25469,16 +25474,30 @@ function getTeachers() {
 
     });
 
+    // ==============================
+    // ORDENAR DE FORMA SEGURA
+    // ==============================
+
     return Array.from(
         teachersMap.values()
     ).sort(
         (a, b) =>
-            a.username.localeCompare(
-                b.username,
+
+            String(
+                a?.username || ''
+            ).localeCompare(
+
+                String(
+                    b?.username || ''
+                ),
+
                 'es'
             )
     );
+
 }
+  }
+
 //Estadistica de maestros
 function getTeacherStats() {
 
