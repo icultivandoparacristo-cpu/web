@@ -23332,6 +23332,13 @@ const teacherOptions =
 }
 async function saveCurrentSessionEditor() {
 
+if (!hasPermission('attendance_edit')) {
+    mostrarNotificacion(
+        '❌ No tiene permisos para modificar asistencia',
+        'error'
+    );
+    return;
+}
     const clase =
         getSelectedClass();
 
@@ -23442,6 +23449,13 @@ function handleClassSessionStatusChange() { updateClassSessionPanelVisibility();
 function handleClassSessionReasonChange() { updateClassSessionPanelVisibility(); }
 
 async function saveAttendanceClassSession() {
+    if (!hasPermission('attendance_edit')) {
+    mostrarNotificacion(
+        '❌ No tiene permisos para modificar sesiones',
+        'error'
+    );
+    return;
+}
 
     const clase = getSelectedClass();
     const fecha = document.getElementById('attendanceDate')?.value;
@@ -23476,7 +23490,13 @@ async function saveAttendanceClassSession() {
 
 //Guardar Maestro responsable
 async function saveSessionTeacher() {
-
+    if (!hasPermission('attendance_edit')) {
+        mostrarNotificacion(
+            '❌ No tiene permisos para cambiar responsables',
+            'error'
+        );
+        return;
+    }
     const clase =
         getSelectedClass();
 
@@ -23787,6 +23807,13 @@ function getClassSession(classId, fecha) {
 function classSessionExists(classId, fecha) { return !!getClassSession(classId, fecha); }
 async function createClassSession(classId, fecha, options = {}) {
   if (classId == null || !fecha) return null;
+  if (!hasPermission('attendance_create')) {
+    mostrarNotificacion(
+        '❌ No tiene permisos para crear sesiones',
+        'error'
+    );
+    return null;
+}
   const clase = window.classes.find(c => String(c.id) === String(classId));
   if (!clase) { console.error('❌ No existe el subgrupo asociado:', classId); return null; }
   const existing = getClassSession(classId, fecha);
@@ -23829,7 +23856,12 @@ async function ensureClassSession(
         classId,
         fecha
     );
-
+    if (!hasPermission('attendance_create')) {
+        console.warn(
+            'Usuario sin permiso attendance_create'
+        );
+        return null;
+    }
     session =
         await createClassSession(
             classId,
@@ -27494,9 +27526,28 @@ async function toggleAttendanceParticipation(
 
     const clase =
         getSelectedClass();
+    const canViewAttendance =
+        hasPermission('attendance_view');
+
+    const canCreateAttendance =
+        hasPermission('attendance_create');
+
+    const canEditAttendance =
+        hasPermission('attendance_edit');
 
     const fecha =
         dateInput.value;
+
+    if (!canViewAttendance) {
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="2">
+                No tiene permisos para visualizar asistencia.
+            </td>
+        </tr>
+    `;
+    return;
+}
 
     if (!clase || !fecha) {
 
@@ -27648,6 +27699,7 @@ async function toggleAttendanceParticipation(
                 <select
                     id="sessionResponsible"
                     style="width:100%;"
+                     ${!canEditAttendance ? 'disabled' : ''}
                 >
 
                     <option value="">
@@ -27665,7 +27717,7 @@ async function toggleAttendanceParticipation(
         📌 Estado
     </label>
 
-    <select id="sessionStatus" style="width:100%;">
+    <select id="sessionStatus" style="width:100%;"  ${!canEditAttendance ? 'disabled' : ''}>
 
                 <option
                     value="Realizada"
@@ -27709,6 +27761,7 @@ async function toggleAttendanceParticipation(
                 style="
                     margin-top:12px;
                 "
+                 ${!canEditAttendance ? 'readonly' : ''}
             >
 
                 <label>
@@ -27735,6 +27788,7 @@ async function toggleAttendanceParticipation(
                     id="sessionNote"
                     rows="4"
                     style="width:100%;"
+                     ${!canEditAttendance ? 'readonly' : ''}
                 >${
                     currentSession?.nota || ''
                 }</textarea>
@@ -27743,15 +27797,15 @@ async function toggleAttendanceParticipation(
 
             <div>
 
+              ${canEditAttendance ? `
                 <button
                     type="button"
                     class="btn-save"
-                    onclick="
-                        saveCurrentSessionEditor()
-                    "
+                    onclick="saveCurrentSessionEditor()"
                 >
                     💾 Guardar sesión
                 </button>
+                ` : ''}
 
             </div>
 
@@ -27847,8 +27901,8 @@ async function toggleAttendanceParticipation(
                             class="
                                 attendance-touch-btn
                                 status-present
-                                ${status === 'P' ? 'active' : ''}
-                            "
+                                ${status === 'P' ? 'active' : ''}"
+                                ${!canEditAttendance ? 'disabled' : ''}
                             onclick="
                                 updateAttStatus(
                                     '${safeStudentId}',
@@ -27866,9 +27920,8 @@ async function toggleAttendanceParticipation(
                             class="
                                 attendance-touch-btn
                                 status-absent
-                                ${status === 'A' ? 'active' : ''}
-                            "
-                            onclick="
+                                ${status === 'A' ? 'active' : ''}"
+                                ${!canEditAttendance ? 'disabled' : ''}                         onclick="
                                 updateAttStatus(
                                     '${safeStudentId}',
                                     '${safeClassId}',
@@ -27885,8 +27938,8 @@ async function toggleAttendanceParticipation(
                             class="
                                 attendance-touch-btn
                                 status-excused
-                                ${status === 'E' ? 'active' : ''}
-                            "
+                                ${status === 'E' ? 'active' : ''}"
+                                ${!canEditAttendance ? 'disabled' : ''}
                             onclick="
                                 updateAttStatus(
                                     '${safeStudentId}',
@@ -27904,8 +27957,8 @@ async function toggleAttendanceParticipation(
                             class="
                                 attendance-touch-btn
                                 status-participation
-                                ${participated ? 'active' : ''}
-                            "
+                                ${participated ? 'active' : ''}"
+                                ${!canEditAttendance ? 'disabled' : ''}
                             onclick="
                                 updateAttPart(
                                     '${safeStudentId}',
@@ -28772,7 +28825,13 @@ async function updateAttPart(
 
         return;
     }
-
+if (!hasPermission('attendance_edit')) {
+    mostrarNotificacion(
+        '❌ No tiene permisos para modificar asistencia',
+        'error'
+    );
+    return;
+}
     try {
 
         // ======================================
@@ -28981,11 +29040,14 @@ async function updateAttPart(
 // Botones tactiles P / A / E
 // ==========================================
 async function updateAttStatus(
+    
     studentId,
     classId,
     fecha,
     newStatus
-) {
+) 
+
+{
     // ======================================
     // VALIDACION
     // ======================================
