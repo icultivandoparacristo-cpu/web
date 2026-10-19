@@ -25329,10 +25329,54 @@ function renderClasses() {
     }
 }
 function renderGroups() {
+    if (!hasPermission('groups_view')) {
+    mostrarNotificacion(
+        'No tiene permisos para acceder a Grupos.',
+        'error'
+    );
+    return;
+}
+const canViewGroups =
+    hasPermission('groups_view');
+
+const canCreateGroups =
+    hasPermission('groups_create');
+
+const canEditGroups =
+    hasPermission('groups_edit');
     const tbody=document.getElementById('groupTableBody'); if(!tbody)return; tbody.innerHTML='';
     if(!groups.length){tbody.innerHTML='<tr><td colspan="3" style="text-align:center;color:#666;">No hay grupos registrados en Firestore</td></tr>';return;}
     groups.forEach(g=>{ const row=document.createElement('tr'); const safeId=JSON.stringify(String(g.id));
-        row.innerHTML=`<td>${escapeHtml(g.nombre||'')}</td><td>${g.estado==='Activo'?'<span style="color:#27ae60;font-weight:bold;">🟢 Activo</span>':'<span style="color:#e74c3c;font-weight:bold;">🔴 Inactivo</span>'}</td><td><div class="user-actions"><button class="btn-edit" onclick='editGroup(${safeId})'>Editar</button><button class="${g.estado==='Activo'?'btn-delete':'btn-save'} btn-status" onclick='toggleGroupStatus(${safeId})'>${g.estado==='Activo'?'🔒 Inactivar':'🔓 Activar'}</button><button class="btn-delete" onclick='deleteGroup(${safeId})'>🗑️ Eliminar</button></div></td>`;
+        row.innerHTML=`<td>${escapeHtml(g.nombre||'')}</td><td>${g.estado==='Activo'?'<span style="color:#27ae60;font-weight:bold;">🟢 Activo</span>':'<span style="color:#e74c3c;font-weight:bold;">🔴 Inactivo</span>'}</td><td><div class="user-actions">
+            ${
+    canEditGroups
+        ? `<button class="btn-edit"
+            onclick='editGroup(${safeId})'>
+            Editar
+        </button>`
+        : ''
+}
+            ${
+    canEditGroups
+        ? `<button
+            class="${g.estado==='Activo'?'btn-delete':'btn-save'} btn-status"
+            onclick='toggleGroupStatus(${safeId})'
+        >
+            ${g.estado==='Activo'?'🔒 Inactivar':'🔓 Activar'}
+        </button>`
+        : ''
+}
+              ${
+            canEditGroups
+                ? `<button
+                    class="btn-delete"
+                    onclick='deleteGroup(${safeId})'>
+                    🗑️ Eliminar
+                </button>`
+                : ''
+        }
+            
+            </div></td>`;
         tbody.appendChild(row); });
 }
 async function saveGroupToFirestore(group) {
@@ -25340,12 +25384,41 @@ async function saveGroupToFirestore(group) {
     await api.setDoc(api.doc(window.db,'groups',String(group.id)), {nombre:String(group.nombre||'').trim(),estado:group.estado==='Inactivo'?'Inactivo':'Activo',updatedAt:new Date().toISOString(),updatedBy:window.currentUser?.email||currentUser?.username||'superadmin'}, {merge:true});
 }
 async function toggleGroupStatus(id) {
+    if (!hasPermission('groups_edit')) {
+
+    mostrarNotificacion(
+        'No tiene permisos para editar grupos.',
+        'error'
+    );
+
+    return;
+}
     const group=groups.find(g=>String(g.id)===String(id)); if(!group)return;
     try { await saveGroupToFirestore({...group,estado:group.estado==='Activo'?'Inactivo':'Activo'}); await loadGroupsFromFirestore(); mostrarNotificacion('✅ Estado del grupo actualizado en Firestore','success'); }
     catch(error){console.error(error);mostrarNotificacion('❌ No se pudo actualizar el grupo','error');}
 }
-function editGroup(id) { const group=groups.find(g=>String(g.id)===String(id)); if(!group)return; document.getElementById('groupId').value=String(group.id); document.getElementById('groupName').value=group.nombre||''; document.getElementById('groupStatus').value=group.estado||'Activo'; }
+function editGroup(id) { 
+    
+    if (!hasPermission('groups_edit')) {
+    mostrarNotificacion(
+        'No tiene permisos para editar grupos.',
+        'error'
+    );
+    return;
+}
+
+    
+    const group=groups.find(g=>String(g.id)===String(id)); if(!group)return; document.getElementById('groupId').value=String(group.id); document.getElementById('groupName').value=group.nombre||''; document.getElementById('groupStatus').value=group.estado||'Activo'; }
 async function deleteGroup(id) {
+    if (!hasPermission('groups_edit')) {
+
+    mostrarNotificacion(
+        'No tiene permisos para editar grupos.',
+        'error'
+    );
+
+    return;
+}
     const group=groups.find(g=>String(g.id)===String(id)); if(!group)return;
     if(classes.some(c=>c.grupo===group.nombre)){mostrarNotificacion('⚠️ No se puede eliminar: el grupo tiene subgrupos asociados','warning');return;}
     if(!confirm(`¿Eliminar definitivamente el grupo "${group.nombre}" de Firestore?`))return;
@@ -26057,23 +26130,37 @@ if (groupForm) {
         async (e) => {
 
             e.preventDefault();
-            if (!hasPermission('groups_edit')) {
-
-                mostrarNotificacion(
-                    'No tiene permisos para administrar usuarios',
-                    'error'
-                );
-
-                return;
-            }
+          
             // ======================================
             // DATOS DEL FORMULARIO
             // ======================================
-            const groupId =
-                document
-                    .getElementById('groupId')
-                    .value
-                    .trim();
+          const groupId =
+    document
+        .getElementById('groupId')
+        .value
+        .trim();
+
+if (
+    !groupId &&
+    !hasPermission('groups_create')
+) {
+    mostrarNotificacion(
+        'No tiene permisos para crear grupos.',
+        'error'
+    );
+    return;
+}
+
+if (
+    groupId &&
+    !hasPermission('groups_edit')
+) {
+    mostrarNotificacion(
+        'No tiene permisos para editar grupos.',
+        'error'
+    );
+    return;
+}
 
             const nombre =
                 document
@@ -26524,9 +26611,11 @@ async function loadUsersFromFirestore() {
         window.users =
             snapshot.docs.map(doc => {
 
+               const data = doc.data();
+
                 const user = {
-                    id: doc.id,
-                    ...doc.data()
+                    ...data,
+                    id: doc.id
                 };
 
                 user.permissions =
