@@ -24060,6 +24060,15 @@ function getSelectedClass() {
 }
   //Editar clases
 function editClass(id) {
+    if (!hasPermission('classes_edit')) {
+
+    mostrarNotificacion(
+        'No tiene permisos para editar subgrupos.',
+        'error'
+    );
+
+    return;
+}
 
     const clase =
         window.classes.find(
@@ -24587,11 +24596,16 @@ function updateTeacher(
     document.getElementById(
         'menu-grupos'
     );
-
-const menuSubgrupos =
-    document.getElementById(
-        'menu-subgrupos'
-    );
+if (menuClasses) {
+    menuClasses.style.display =
+        hasPermission('classes_view')
+            ? ''
+            : 'none';
+}
+    const menuSubgrupos =
+        document.getElementById(
+            'menu-subgrupos'
+        );
 
     const menuEstudiantes =
         document.getElementById(
@@ -25230,6 +25244,22 @@ async function saveClassToFirestore(clase) {
 
 function renderClasses() {
 
+    if (!hasPermission('classes_view')) {
+
+    mostrarNotificacion(
+        'No tiene permisos para acceder a Subgrupos.',
+        'error'
+    );
+
+    return;
+}
+
+const canEditClasses =
+    hasPermission('classes_edit');
+
+const canCreateClasses =
+    hasPermission('classes_create');
+
     loadClassGroups();
 
     loadClassTeachers();
@@ -25275,13 +25305,15 @@ function renderClasses() {
             </td>
             <td>
 
-                <button
-                class="btn-edit"
-                onclick='editClass(${JSON.stringify(String(c.id))})'>
-
-                Editar
-
-                </button>
+                ${
+                    canEditClasses
+                        ? `<button
+                            class="btn-edit"
+                            onclick="editClass(${safeId})">
+                            Editar
+                        </button>`
+                        : ''
+                }
                 <button
                     class="${
                     c.estado === 'Activa'
@@ -25291,6 +25323,7 @@ function renderClasses() {
 
                     onclick='toggleClassStatus(${JSON.stringify(String(c.id))})'>
 
+
                     ${
                     c.estado === 'Activa'
                     ? '🔒 Inactivar'
@@ -25298,8 +25331,16 @@ function renderClasses() {
                     }
 
                     </button>
-
-            </td>
+                    ${
+                        canEditClasses
+                            ? `<button
+                                class="btn-delete"
+                                onclick='deleteClass(${JSON.stringify(String(c.id))})'>
+                                🗑️ Eliminar
+                            </button>`
+                            : ''
+                    }
+                                </td>
 
         `;
 
@@ -25633,6 +25674,16 @@ function getTeacherStats() {
 }
 //Función editar clases
 async function toggleClassStatus(id) {
+    if (!hasPermission('classes_edit')) {
+
+    mostrarNotificacion(
+        'No tiene permisos para editar subgrupos.',
+        'error'
+    );
+
+    return;
+}
+
     const clase=window.classes.find(c=>String(c.id)===String(id)); if(!clase)return;
     try{await saveClassToFirestore({...clase,estado:clase.estado==='Activa'?'Inactiva':'Activa'});await loadClassesFromFirestore();mostrarNotificacion('✅ Estado del subgrupo actualizado en Firestore','success');}
     catch(error){console.error(error);mostrarNotificacion('❌ No se pudo actualizar el subgrupo','error');}
@@ -26506,25 +26557,67 @@ if (
         }
     );
 }
-// CLASES
+// ======================================
+// VALIDAR DUPLICADOS
+// ======================================
+if (
+    classes.some(
+        c =>
+            String(c.id) !==
+                String(classData.id) &&
+            c.grupo ===
+                classData.grupo &&
+            String(
+                c.materia || ''
+            )
+                .trim()
+                .toLowerCase() ===
+            classData.materia
+                .toLowerCase()
+    )
+) {
+    mostrarNotificacion(
+        '⚠️ Ya existe este subgrupo dentro del grupo seleccionado',
+        'warning'
+    );
 
-const classForm = document.getElementById('classForm');
-if (classForm) {
-    classForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const classId = document.getElementById('classId').value;
-        const dias = [...document.querySelectorAll('#daysContainer input:checked')].map(x => x.value);
-        const maestros = [...document.querySelectorAll('#teachersCheckboxContainer input:checked')].map(x => x.value);
-        if (!dias.length) { mostrarNotificacion('Seleccione al menos un día','warning'); return; }
-        if (!maestros.length) { mostrarNotificacion('Seleccione al menos un maestro','warning'); return; }
-        const fechaInicio=document.getElementById('classStart').value;
-        const fechaFin=document.getElementById('classEnd').value;
-        if (fechaFin < fechaInicio) { mostrarNotificacion('La fecha final no puede ser menor que la fecha inicial','warning'); return; }
-        const classData={id:classId?String(classId):`class_${Date.now()}`,materia:document.getElementById('classSubject').value.trim(),grupo:document.getElementById('classGroup').value,fechaInicio,fechaFin,dias,maestros,estado:document.getElementById('classStatus').value};
-        if(classes.some(c=>String(c.id)!==String(classData.id)&&c.grupo===classData.grupo&&String(c.materia||'').trim().toLowerCase()===classData.materia.toLowerCase())){mostrarNotificacion('⚠️ Ya existe este subgrupo dentro del grupo seleccionado','warning');return;}
-        try { await saveClassToFirestore(classData); await loadClassesFromFirestore(); classForm.reset(); document.getElementById('classId').value=''; mostrarNotificacion(classId?'✅ Subgrupo actualizado en Firestore':'✅ Subgrupo creado en Firestore','success'); }
-        catch(error){console.error('❌ Error guardando subgrupo:',error);mostrarNotificacion('❌ No se pudo guardar el subgrupo en Firestore','error');}
-    });
+    return;
+}
+
+try {
+
+    await saveClassToFirestore(
+        classData
+    );
+
+    await loadClassesFromFirestore();
+
+    classForm.reset();
+
+    document.getElementById(
+        'classId'
+    ).value = '';
+
+    mostrarNotificacion(
+        classId
+            ? '✅ Subgrupo actualizado en Firestore'
+            : '✅ Subgrupo creado en Firestore',
+        'success'
+    );
+
+}
+catch (error) {
+
+    console.error(
+        '❌ Error guardando subgrupo:',
+        error
+    );
+
+    mostrarNotificacion(
+        '❌ No se pudo guardar el subgrupo en Firestore',
+        'error'
+    );
+
 }
 // Eliminación de grupos gestionada por Firestore.
 async function loadStudentsFromFirestore() {
