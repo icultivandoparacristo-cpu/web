@@ -25277,6 +25277,10 @@ const canCreateClasses =
     tbody.innerHTML = '';
 
     classes.forEach(c => {
+        const safeId =
+    JSON.stringify(
+        String(classItem.id)
+    );
 
         const row =
             document.createElement('tr');
@@ -25314,7 +25318,7 @@ const canCreateClasses =
                     canEditClasses
                         ? `<button
                             class="btn-edit"
-                            onclick="editClass(${safeId})">
+                            onclick='editClass("${classItem.id}")'>
                             Editar
                         </button>`
                         : ''
