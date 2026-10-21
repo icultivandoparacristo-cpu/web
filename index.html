@@ -25275,87 +25275,91 @@ const canCreateClasses =
         );
 
     tbody.innerHTML = '';
+classes.forEach(c => {
 
-    classes.forEach(c => {
-        const safeId =
-    JSON.stringify(
-        String(classItem.id)
-    );
+    const safeId =
+        JSON.stringify(
+            String(c.id)
+        );
 
-        const row =
-            document.createElement('tr');
+    const row =
+        document.createElement('tr');
 
-        row.innerHTML = `
+    row.innerHTML = `
 
-            <td>${c.materia}</td>
+        <td>${c.materia}</td>
 
-            <td>${c.grupo}</td>
+        <td>${c.grupo}</td>
 
-            <td>${c.dias.join(', ')}</td>
+        <td>${(c.dias || []).join(', ')}</td>
 
-            <td>${c.maestros.join(', ')}</td>
+        <td>${(c.maestros || []).join(', ')}</td>
 
-            <td>
+        <td>
+            ${c.fechaInicio}
+            <br>
+            ${c.fechaFin}
+        </td>
 
-                ${c.fechaInicio}
-                <br>
-                ${c.fechaFin}
-
-            </td>
-
-            <td>
-             ${
+        <td>
+            ${
                 c.estado === 'Activa'
-                            ? '<span style="color:#27ae60;font-weight:bold;">🟢 Activa</span>'
-                            : c.estado === 'Suspendida'
-                            ? '<span style="color:#f39c12;font-weight:bold;">🟡 Suspendida</span>'
-                            : '<span style="color:#e74c3c;font-weight:bold;">🔴 Inactiva</span>'
-                }
-            </td>
-            <td>
+                    ? '<span style="color:#27ae60;font-weight:bold;">🟢 Activa</span>'
+                    : c.estado === 'Suspendida'
+                    ? '<span style="color:#f39c12;font-weight:bold;">🟡 Suspendida</span>'
+                    : '<span style="color:#e74c3c;font-weight:bold;">🔴 Inactiva</span>'
+            }
+        </td>
+
+        <td>
+
+            ${
+                canEditClasses
+                    ? `
+                    <button
+                        class="btn-edit"
+                        onclick='editClass(${safeId})'>
+                        Editar
+                    </button>
+                    `
+                    : ''
+            }
+
+            <button
+                class="${
+                    c.estado === 'Activa'
+                        ? 'btn-delete'
+                        : 'btn-save'
+                }"
+                onclick='toggleClassStatus(${safeId})'>
 
                 ${
-                    canEditClasses
-                        ? `<button
-                            class="btn-edit"
-                            onclick='editClass("${classItem.id}")'>
-                            Editar
-                        </button>`
-                        : ''
+                    c.estado === 'Activa'
+                        ? '🔒 Inactivar'
+                        : '🔓 Activar'
                 }
-                <button
-                    class="${
-                    c.estado === 'Activa'
-                    ? 'btn-delete'
-                    : 'btn-save'
-                    }"
 
-                    onclick='toggleClassStatus(${JSON.stringify(String(c.id))})'>
+            </button>
 
-
-                    ${
-                    c.estado === 'Activa'
-                    ? '🔒 Inactivar'
-                    : '🔓 Activar'
-                    }
-
+            ${
+                canEditClasses
+                    ? `
+                    <button
+                        class="btn-delete"
+                        onclick='deleteClass(${safeId})'>
+                        🗑️ Eliminar
                     </button>
-                    ${
-                        canEditClasses
-                            ? `<button
-                                class="btn-delete"
-                                onclick='deleteClass(${JSON.stringify(String(c.id))})'>
-                                🗑️ Eliminar
-                            </button>`
-                            : ''
-                    }
-                                </td>
+                    `
+                    : ''
+            }
 
-        `;
+        </td>
 
-        tbody.appendChild(row);
+    `;
 
-    });
+    tbody.appendChild(row);
+
+});
 
 }
 
