@@ -24596,10 +24596,15 @@ function updateTeacher(
     document.getElementById(
         'menu-grupos'
     );
+const menuClasses =
+    document.getElementById(
+        'menu-subgrupos'
+    );
+
 if (menuClasses) {
     menuClasses.style.display =
         hasPermission('classes_view')
-            ? ''
+            ? 'flex'
             : 'none';
 }
     const menuSubgrupos =
