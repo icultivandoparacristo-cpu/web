@@ -26561,66 +26561,148 @@ if (
             }
         }
     );
-}
-// ======================================
-// VALIDAR DUPLICADOS
-// ======================================
-if (
-    classes.some(
-        c =>
-            String(c.id) !==
-                String(classData.id) &&
-            c.grupo ===
-                classData.grupo &&
-            String(
-                c.materia || ''
-            )
-                .trim()
-                .toLowerCase() ===
-            classData.materia
-                .toLowerCase()
-    )
-) {
-    mostrarNotificacion(
-        '⚠️ Ya existe este subgrupo dentro del grupo seleccionado',
-        'warning'
-    );
+}// ==========================================
+// SUBGRUPOS (CLASSES)
+// ==========================================
+const classForm =
+    document.getElementById('classForm');
 
-    return;
-}
+if (classForm) {
 
-try {
+    classForm.addEventListener(
+        'submit',
+        async (e) => {
 
-    await saveClassToFirestore(
-        classData
-    );
+            e.preventDefault();
 
-    await loadClassesFromFirestore();
+            const classId =
+                document.getElementById(
+                    'classId'
+                ).value.trim();
 
-    classForm.reset();
+            if (
+                !classId &&
+                !hasPermission('classes_create')
+            ) {
+                mostrarNotificacion(
+                    'No tiene permisos para crear subgrupos.',
+                    'error'
+                );
+                return;
+            }
 
-    document.getElementById(
-        'classId'
-    ).value = '';
+            if (
+                classId &&
+                !hasPermission('classes_edit')
+            ) {
+                mostrarNotificacion(
+                    'No tiene permisos para editar subgrupos.',
+                    'error'
+                );
+                return;
+            }
 
-    mostrarNotificacion(
-        classId
-            ? '✅ Subgrupo actualizado en Firestore'
-            : '✅ Subgrupo creado en Firestore',
-        'success'
-    );
+            const classData = {
+                id:
+                    classId ||
+                    `class_${Date.now()}`,
 
-}
-catch (error) {
+                grupo:
+                    document.getElementById(
+                        'classGroup'
+                    ).value,
 
-    console.error(
-        '❌ Error guardando subgrupo:',
-        error
-    );
+                materia:
+                    document.getElementById(
+                        'className'
+                    ).value
+                        .trim(),
 
-    mostrarNotificacion(
-        '❌ No se pudo guardar el subgrupo en Firestore',
-        'error'
+                maestro:
+                    document.getElementById(
+                        'classTeacher'
+                    ).value,
+
+                estado:
+                    document.getElementById(
+                        'classStatus'
+                    ).value
+            };
+
+            if (
+                !classData.grupo ||
+                !classData.materia
+            ) {
+                mostrarNotificacion(
+                    'Debe completar los campos requeridos.',
+                    'warning'
+                );
+                return;
+            }
+
+            // ======================================
+            // VALIDAR DUPLICADOS
+            // ======================================
+            if (
+                classes.some(
+                    c =>
+                        String(c.id) !==
+                            String(classData.id) &&
+                        c.grupo ===
+                            classData.grupo &&
+                        String(
+                            c.materia || ''
+                        )
+                            .trim()
+                            .toLowerCase() ===
+                        classData.materia
+                            .trim()
+                            .toLowerCase()
+                )
+            ) {
+                mostrarNotificacion(
+                    '⚠️ Ya existe este subgrupo dentro del grupo seleccionado',
+                    'warning'
+                );
+                return;
+            }
+
+            try {
+
+                await saveClassToFirestore(
+                    classData
+                );
+
+                await loadClassesFromFirestore();
+
+                classForm.reset();
+
+                document.getElementById(
+                    'classId'
+                ).value = '';
+
+                mostrarNotificacion(
+                    classId
+                        ? '✅ Subgrupo actualizado en Firestore'
+                        : '✅ Subgrupo creado en Firestore',
+                    'success'
+                );
+
+            }
+            catch (error) {
+
+                console.error(
+                    '❌ Error guardando subgrupo:',
+                    error
+                );
+
+                mostrarNotificacion(
+                    '❌ No se pudo guardar el subgrupo en Firestore',
+                    'error'
+                );
+            }
+
+        }
     );
 
 }
