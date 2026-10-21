@@ -26610,32 +26610,62 @@ if (classForm) {
                 return;
             }
 
-            const classData = {
-                id:
-                    classId ||
-                    `class_${Date.now()}`,
+         const diasSeleccionados =
+    Array.from(
+        document.querySelectorAll(
+            '#daysContainer input:checked'
+        )
+    ).map(
+        checkbox => checkbox.value
+    );
 
-                grupo:
-                    document.getElementById(
-                        'classGroup'
-                    ).value,
+const maestrosSeleccionados =
+    Array.from(
+        document.querySelectorAll(
+            '#teachersCheckboxContainer input:checked'
+        )
+    ).map(
+        checkbox => checkbox.value
+    );
 
-                materia:
-                    document.getElementById(
-                        'className'
-                    ).value
-                        .trim(),
+const classData = {
 
-                maestro:
-                    document.getElementById(
-                        'classTeacher'
-                    ).value,
+    id:
+        classId ||
+        `class_${Date.now()}`,
 
-                estado:
-                    document.getElementById(
-                        'classStatus'
-                    ).value
-            };
+    materia:
+        document.getElementById(
+            'classSubject'
+        ).value.trim(),
+
+    grupo:
+        document.getElementById(
+            'classGroup'
+        ).value,
+
+    fechaInicio:
+        document.getElementById(
+            'classStart'
+        ).value,
+
+    fechaFin:
+        document.getElementById(
+            'classEnd'
+        ).value,
+
+    estado:
+        document.getElementById(
+            'classStatus'
+        ).value,
+
+    dias:
+        diasSeleccionados,
+
+    maestros:
+        maestrosSeleccionados
+
+};
 
             if (
                 !classData.grupo ||
