@@ -5014,6 +5014,16 @@ button.auth-submit:hover {
                 type="hidden"
                 id="fechaNacimiento"
             >
+            <div style="margin-top:8px;">
+            <label>
+                <input
+                    type="checkbox"
+                    id="pendingBirthday"
+                    onchange="togglePendingBirthday()"
+                >
+                🎂 Cumpleaños pendiente (se desconoce día y mes)
+            </label>
+        </div>
 </div>
           <div>
             <label>Grupo de Estudio:</label>
@@ -7572,6 +7582,51 @@ function syncStudentBirthDate() {
 
     return birthDate;
 }
+function togglePendingBirthday() {
+
+    const pending =
+        document.getElementById(
+            'pendingBirthday'
+        );
+
+    const month =
+        document.getElementById(
+            'birthMonth'
+        );
+
+    const day =
+        document.getElementById(
+            'birthDay'
+        );
+
+    const hidden =
+        document.getElementById(
+            'fechaNacimiento'
+        );
+
+    if (!pending) return;
+
+    if (pending.checked) {
+
+        month.value = '';
+
+        day.innerHTML =
+            '<option value="">Día</option>';
+
+        day.disabled = true;
+
+        month.disabled = true;
+
+        if (hidden) {
+            hidden.value = '';
+        }
+
+    } else {
+
+        month.disabled = false;
+
+    }
+}
 
 
 // ==========================================
@@ -7581,6 +7636,22 @@ function syncStudentBirthDate() {
 function loadStudentBirthDate(
     fechaNacimiento
 ) {
+    const pending =
+    document.getElementById(
+        'pendingBirthday'
+    );
+
+if (
+    pending &&
+    !fechaNacimiento
+) {
+
+    pending.checked = true;
+
+    togglePendingBirthday();
+
+    return;
+}
     const monthSelect =
         document.getElementById(
             'birthMonth'
@@ -26016,23 +26087,82 @@ if (
 
     const id = document.getElementById('studentId').value;
     const enrollments = getStudentEnrollmentDraft();
+    const pendingBirthday =
+    document.getElementById(
+        'pendingBirthday'
+    )?.checked || false;
     if (enrollments.length === 0) { mostrarNotificacion('⚠️ Agregue al menos una inscripción', 'warning'); return; }
     const primaryEnrollment = enrollments[0];
-    const studentData = {
-        id: id ? String(id) : `student_${Date.now()}`,
-        nombre: document.getElementById('nombre').value.trim(),
-        apellido: document.getElementById('apellido').value.trim(),
-        fechaNacimiento: syncStudentBirthDate(),
-        grupo: primaryEnrollment.grupo,
-        subgrupo: primaryEnrollment.subgrupo,
-        inscripciones: normalizeStudentEnrollments(enrollments),
-        estado: document.getElementById('studentStatus').value
-    };
+    const fechaNacimiento =
+    syncStudentBirthDate();
+
+if (
+    !fechaNacimiento &&
+    !pendingBirthday
+) {
+    mostrarNotificacion(
+        '⚠️ Seleccione el cumpleaños o marque "Cumpleaños pendiente".',
+        'warning'
+    );
+    return;
+}
+  const studentData = {
+    id: id ? String(id) : `student_${Date.now()}`,
+
+    nombre:
+        document.getElementById(
+            'nombre'
+        ).value.trim(),
+
+    apellido:
+        document.getElementById(
+            'apellido'
+        ).value.trim(),
+
+    fechaNacimiento:
+        pendingBirthday
+            ? ''
+            : fechaNacimiento,
+
+    pendingBirthday:
+        pendingBirthday,
+
+    grupo:
+        primaryEnrollment.grupo,
+
+    subgrupo:
+        primaryEnrollment.subgrupo,
+
+    inscripciones:
+        normalizeStudentEnrollments(
+            enrollments
+        ),
+
+    estado:
+        document.getElementById(
+            'studentStatus'
+        ).value
+};
     try {
         await saveStudentToFirestore(studentData);
         await loadStudentsFromFirestore();
         mostrarNotificacion(id ? '✅ Estudiante actualizado en Firestore' : '✅ Estudiante creado en Firestore', 'success');
-        studentForm.reset(); resetStudentEnrollmentDraft(); renderStudentEnrollmentDraft();
+        studentForm.reset(); 
+         // ==================================
+        // LIMPIAR CHECKBOX CUMPLEAÑOS
+        // ==================================
+        const pending =
+            document.getElementById(
+                'pendingBirthday'
+            );
+
+        if (pending) {
+            pending.checked = false;
+        }
+
+    togglePendingBirthday();
+        resetStudentEnrollmentDraft(); 
+        renderStudentEnrollmentDraft();
         document.getElementById('studentId').value = '';
         document.getElementById('subgrupo').innerHTML = '<option value="">Seleccione</option>';
     } catch(error) {
@@ -27091,9 +27221,12 @@ function renderStudentTable() {
 
 
                 <td>
-                    ${
-                        student.fechaNacimiento
-                    }
+                   student.pendingBirthday
+                    ? '🎂 Pendiente'
+                    : (
+                        student.fechaNacimiento ||
+                        '-'
+                    )
                 </td>
 
 
@@ -27487,7 +27620,17 @@ async function toggleUserStatus(id) {
 
 function resetStudentForm() {
 
+    
     studentForm.reset();
+        const pending =
+    document.getElementById(
+        'pendingBirthday'
+    );
+
+if (pending) {
+    pending.checked = false;
+}
+togglePendingBirthday();
 const birthDaySelect =
     document.getElementById(
         'birthDay'
@@ -30961,6 +31104,10 @@ function drawGeneralChart(
 
   // CUMPLEAÑOS
   function mostrarCumpleañosPorMes() {
+    const pendientes =
+    students.filter(
+        s => s.pendingBirthday === true
+    );
     const mes = document.getElementById('mesSelector').value;
     const container = document.getElementById('cumpleañosContainer');
     container.innerHTML = '';
@@ -30980,7 +31127,27 @@ function drawGeneralChart(
       const diaB = parseInt(b.fechaNacimiento);
       return diaA - diaB;
     });
+if (pendientes.length) {
 
+    html += `
+        <div class="card"
+             style="
+                 border-left:4px solid #f39c12;
+                 margin-bottom:15px;
+             ">
+            <h3>
+                🎂 Cumpleaños Pendientes
+            </h3>
+
+            ${pendientes.map(s => `
+                <p>
+                    ${s.nombre}
+                    ${s.apellido}
+                </p>
+            `).join('')}
+        </div>
+    `;
+}
     cumpleaños.forEach(s => {
       const card = document.createElement('div');
       card.className = 'birthday-card';
