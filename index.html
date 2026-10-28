@@ -7639,7 +7639,6 @@ function togglePendingBirthday() {
 
     }
 }
-
 function checkDuplicateStudents() {
 
     const nombre =
@@ -7666,6 +7665,7 @@ function checkDuplicateStudents() {
     warning.style.display = 'none';
     warning.innerHTML = '';
 
+    // No buscar con menos de 3 caracteres
     if (
         nombre.length < 3 &&
         apellido.length < 3
@@ -7673,27 +7673,47 @@ function checkDuplicateStudents() {
         return;
     }
 
-    const matches =
-        students.filter(student => {
+    const matches = students.filter(student => {
 
-            const fullName =
-                `${student.nombre || ''}
-                 ${student.apellido || ''}`
-                    .toLowerCase();
+        const studentNombre =
+            String(student.nombre || '')
+                .toLowerCase();
 
-            const search =
-                `${nombre} ${apellido}`
-                    .trim();
+        const studentApellido =
+            String(student.apellido || '')
+                .toLowerCase();
 
-            return (
-                fullName.includes(search)
-                ||
-                fullName.includes(nombre)
-                ||
-                fullName.includes(apellido)
-            );
+        // Buscar por nombre
+        if (
+            nombre &&
+            studentNombre.includes(nombre)
+        ) {
+            return true;
+        }
 
-        });
+        // Buscar por apellido
+        if (
+            apellido &&
+            studentApellido.includes(apellido)
+        ) {
+            return true;
+        }
+
+        // Buscar nombre completo
+        if (
+            nombre &&
+            apellido &&
+            `${studentNombre} ${studentApellido}`
+                .includes(
+                    `${nombre} ${apellido}`
+                )
+        ) {
+            return true;
+        }
+
+        return false;
+
+    });
 
     if (matches.length === 0) {
         return;
@@ -7705,13 +7725,17 @@ function checkDuplicateStudents() {
         <strong>
             ⚠️ Posibles estudiantes ya registrados:
         </strong>
+
         <ul style="margin-top:5px;">
-            ${matches.slice(0,5).map(student => `
-                <li>
-                    ${student.nombre}
-                    ${student.apellido}
-                </li>
-            `).join('')}
+            ${matches
+                .slice(0, 10)
+                .map(student => `
+                    <li>
+                        ${student.nombre}
+                        ${student.apellido}
+                    </li>
+                `)
+                .join('')}
         </ul>
     `;
 }
