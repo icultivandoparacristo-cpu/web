@@ -6585,10 +6585,16 @@ async function applyFirebaseAuthState(firebaseUser) {
     // MOSTRAR LOGIN Y OCULTAR APLICACION
     // ==========================================
     const showLogin = () => {
-        // Ocultar todas las vistas
-        document.querySelectorAll('.view').forEach(view => {
-            view.style.display = 'none';
+      // Ocultar todos los módulos
+        document.querySelectorAll('.modulo-content').forEach(mod => {
+            mod.style.display = 'none';
         });
+
+        // Ocultar inicio
+        const homeView = document.getElementById('home-view');
+        if (homeView) {
+            homeView.style.display = 'none';
+        }
 
         if (appContainer) {
             appContainer.style.display = 'none';
@@ -6634,9 +6640,10 @@ async function applyFirebaseAuthState(firebaseUser) {
         );
 
         window.currentUser = null;
+       
 
         window.clearCultivoFirebaseUser?.();
-
+        updateMenuByRole();
         showLogin();
 
         return;
@@ -6884,10 +6891,10 @@ const userSnapshot =
 
                 if (
                     window.firebaseAuthApi &&
-                    window.auth
+                    window.firebaseAuth
                 ) {
                     await window.firebaseAuthApi.signOut(
-                        window.auth
+                        window.firebaseAuth
                     );
                 }
 
