@@ -6614,21 +6614,37 @@ async function applyFirebaseAuthState(firebaseUser) {
     // FUNCION AUXILIAR:
     // MOSTRAR APLICACION
     // ==========================================
-    const showApp = () => {
+const showApp = () => {
 
-        if (loginView) {
-            loginView.style.display = 'none';
-        }
+    // Ocultar pantallas de autenticación
+    if (loginView) {
+        loginView.style.display = 'none';
+    }
 
-        if (passwordChangeView) {
-            passwordChangeView.style.display = 'none';
-        }
+    if (passwordChangeView) {
+        passwordChangeView.style.display = 'none';
+    }
 
-        if (appContainer) {
-            appContainer.style.display = 'block';
-        }
-    };
+    // Mostrar contenedor principal
+    if (appContainer) {
+        appContainer.style.display = 'block';
+    }
 
+    // Ocultar cualquier módulo que hubiese quedado abierto
+    document
+        .querySelectorAll('.modulo-content')
+        .forEach(mod => {
+            mod.style.display = 'none';
+        });
+
+    // Mostrar pantalla principal
+    const homeView =
+        document.getElementById('home-view');
+
+    if (homeView) {
+        homeView.style.display = 'block';
+    }
+};
 
     // ==========================================
     // NO HAY USUARIO FIREBASE AUTENTICADO
