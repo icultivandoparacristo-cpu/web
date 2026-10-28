@@ -27221,13 +27221,15 @@ function renderStudentTable() {
 
 
                 <td>
-                   student.pendingBirthday
-                    ? '🎂 Pendiente'
-                    : (
-                        student.fechaNacimiento ||
-                        '-'
-                    )
-                </td>
+                       ${
+                        student.pendingBirthday
+                            ? '🎂 Pendiente'
+                            : (
+                                student.fechaNacimiento ||
+                                '-'
+                            )
+                    }
+                                </td>
 
 
                 <td
