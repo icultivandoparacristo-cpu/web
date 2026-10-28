@@ -4968,6 +4968,18 @@ button.auth-submit:hover {
                             <label>Nombre:</label>
                             <input type="text" id="nombre" required placeholder="Ej. Juan">
                         </div>
+                        <div
+                            id="studentDuplicateWarning"
+                            style="
+                                display:none;
+                                margin-top:5px;
+                                padding:8px;
+                                border:1px solid #f39c12;
+                                background:#fff8e6;
+                                border-radius:4px;
+                                font-size:12px;
+                            ">
+                        </div>
                         <div>
                             <label>Apellido:</label>
                             <input type="text" id="apellido" required placeholder="Ej. Pérez">
@@ -7628,7 +7640,81 @@ function togglePendingBirthday() {
     }
 }
 
+function checkDuplicateStudents() {
 
+    const nombre =
+        document
+            .getElementById('nombre')
+            ?.value
+            .trim()
+            .toLowerCase();
+
+    const apellido =
+        document
+            .getElementById('apellido')
+            ?.value
+            .trim()
+            .toLowerCase();
+
+    const warning =
+        document.getElementById(
+            'studentDuplicateWarning'
+        );
+
+    if (!warning) return;
+
+    warning.style.display = 'none';
+    warning.innerHTML = '';
+
+    if (
+        nombre.length < 3 &&
+        apellido.length < 3
+    ) {
+        return;
+    }
+
+    const matches =
+        students.filter(student => {
+
+            const fullName =
+                `${student.nombre || ''}
+                 ${student.apellido || ''}`
+                    .toLowerCase();
+
+            const search =
+                `${nombre} ${apellido}`
+                    .trim();
+
+            return (
+                fullName.includes(search)
+                ||
+                fullName.includes(nombre)
+                ||
+                fullName.includes(apellido)
+            );
+
+        });
+
+    if (matches.length === 0) {
+        return;
+    }
+
+    warning.style.display = 'block';
+
+    warning.innerHTML = `
+        <strong>
+            ⚠️ Posibles estudiantes ya registrados:
+        </strong>
+        <ul style="margin-top:5px;">
+            ${matches.slice(0,5).map(student => `
+                <li>
+                    ${student.nombre}
+                    ${student.apellido}
+                </li>
+            `).join('')}
+        </ul>
+    `;
+}
 // ==========================================
 // CARGAR CUMPLEAÑOS AL EDITAR
 // ==========================================
@@ -26053,7 +26139,23 @@ function editUser(id) {
 }
   // ESTUDIANTES
 
+// ==========================================
+// BUSQUEDA DE POSIBLES DUPLICADOS
+// ==========================================
 
+document
+    .getElementById('nombre')
+    ?.addEventListener(
+        'input',
+        checkDuplicateStudents
+    );
+
+document
+    .getElementById('apellido')
+    ?.addEventListener(
+        'input',
+        checkDuplicateStudents
+    );
   
 studentForm.addEventListener('submit', async (e) => {
 
@@ -26144,6 +26246,46 @@ if (
         ).value
 };
     try {
+        const duplicateStudent =
+    students.find(student => {
+
+        if (
+            id &&
+            String(student.id) ===
+            String(id)
+        ) {
+            return false;
+        }
+
+        return (
+            String(student.nombre || '')
+                .trim()
+                .toLowerCase()
+            ===
+            String(studentData.nombre)
+                .trim()
+                .toLowerCase()
+            &&
+            String(student.apellido || '')
+                .trim()
+                .toLowerCase()
+            ===
+            String(studentData.apellido)
+                .trim()
+                .toLowerCase()
+        );
+
+    });
+
+        if (duplicateStudent) {
+
+            mostrarNotificacion(
+                '⚠️ Ya existe un estudiante con ese nombre y apellido.',
+                'warning'
+            );
+
+            return;
+        }
         await saveStudentToFirestore(studentData);
         await loadStudentsFromFirestore();
         mostrarNotificacion(id ? '✅ Estudiante actualizado en Firestore' : '✅ Estudiante creado en Firestore', 'success');
