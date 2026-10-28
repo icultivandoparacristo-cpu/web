@@ -7641,16 +7641,9 @@ function togglePendingBirthday() {
 }
 function checkDuplicateStudents() {
 
-    const nombre =
+    const search =
         document
             .getElementById('nombre')
-            ?.value
-            .trim()
-            .toLowerCase();
-
-    const apellido =
-        document
-            .getElementById('apellido')
             ?.value
             .trim()
             .toLowerCase();
@@ -7666,54 +7659,24 @@ function checkDuplicateStudents() {
     warning.innerHTML = '';
 
     // No buscar con menos de 3 caracteres
-    if (
-        nombre.length < 3 &&
-        apellido.length < 3
-    ) {
+    if (search.length < 3) {
         return;
     }
 
-    const matches = students.filter(student => {
+    const matches =
+        students.filter(student => {
 
-        const studentNombre =
-            String(student.nombre || '')
-                .toLowerCase();
+            const fullName =
+                `${student.nombre || ''}
+                 ${student.apellido || ''}`
+                    .toLowerCase()
+                    .trim();
 
-        const studentApellido =
-            String(student.apellido || '')
-                .toLowerCase();
+            return fullName.includes(
+                search
+            );
 
-        // Buscar por nombre
-        if (
-            nombre &&
-            studentNombre.includes(nombre)
-        ) {
-            return true;
-        }
-
-        // Buscar por apellido
-        if (
-            apellido &&
-            studentApellido.includes(apellido)
-        ) {
-            return true;
-        }
-
-        // Buscar nombre completo
-        if (
-            nombre &&
-            apellido &&
-            `${studentNombre} ${studentApellido}`
-                .includes(
-                    `${nombre} ${apellido}`
-                )
-        ) {
-            return true;
-        }
-
-        return false;
-
-    });
+        });
 
     if (matches.length === 0) {
         return;
@@ -7730,10 +7693,16 @@ function checkDuplicateStudents() {
             ${matches
                 .slice(0, 10)
                 .map(student => `
-                    <li>
+                <li>
+                    <strong>
                         ${student.nombre}
                         ${student.apellido}
-                    </li>
+                    </strong>
+                    <br>
+                    📚 ${student.grupo || '-'}
+                    |
+                    👥 ${student.subgrupo || '-'}
+                </li>
                 `)
                 .join('')}
         </ul>
@@ -26174,13 +26143,7 @@ document
         checkDuplicateStudents
     );
 
-document
-    .getElementById('apellido')
-    ?.addEventListener(
-        'input',
-        checkDuplicateStudents
-    );
-  
+
 studentForm.addEventListener('submit', async (e) => {
 
  e.preventDefault();
@@ -26310,6 +26273,7 @@ if (
 
             return;
         }
+        
         await saveStudentToFirestore(studentData);
         await loadStudentsFromFirestore();
         mostrarNotificacion(id ? '✅ Estudiante actualizado en Firestore' : '✅ Estudiante creado en Firestore', 'success');
