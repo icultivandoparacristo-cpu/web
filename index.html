@@ -5691,6 +5691,9 @@ button.auth-submit:hover {
              <option value="students">
                 👤 Estudiantes
             </option>
+            <option value="participants">
+                👥 Participantes Inscritos
+            </option>
 
             <option value="finance">
                 💰 Finanzas
@@ -14650,6 +14653,21 @@ else if (type === 'classes') {
     `;
 
 }
+
+else if (type === 'participants') {
+
+    container.innerHTML = `
+        <div class="filtro-grupo">
+            <button
+                class="btn-save"
+                onclick="generateParticipantsReport()">
+                👥 Generar Reporte
+            </button>
+        </div>
+    `;
+}
+
+
 // =====================================================
 // REPORTE DE FINANZAS
 // =====================================================
@@ -19837,6 +19855,223 @@ function generateStudentReport() {
         }
     );
 }
+function generateParticipantsReport() {
+
+    const summaryContainer =
+        document.getElementById(
+            'reportSummaryContainer'
+        );
+
+    const resultsContainer =
+        document.getElementById(
+            'reportResultsContainer'
+        );
+
+    if (
+        !summaryContainer ||
+        !resultsContainer
+    ) {
+        return;
+    }
+
+    const activos =
+        students.filter(
+            s => s.estado === 'Activo'
+        );
+
+    const inactivos =
+        students.filter(
+            s => s.estado !== 'Activo'
+        );
+
+    const pendientes =
+        students.filter(
+            s => s.pendingBirthday === true
+        );
+
+    summaryContainer.style.display =
+        'block';
+
+    summaryContainer.innerHTML = `
+        <div class="session-report-summary">
+
+            <div>
+                ✅
+                <strong>Activos</strong>
+                <br>
+                ${activos.length}
+            </div>
+
+            <div>
+                ⛔
+                <strong>Inactivos</strong>
+                <br>
+                ${inactivos.length}
+            </div>
+
+            <div>
+                👥
+                <strong>Total</strong>
+                <br>
+                ${students.length}
+            </div>
+
+            <div>
+                🎂
+                <strong>Pendientes</strong>
+                <br>
+                ${pendientes.length}
+            </div>
+
+        </div>
+    `;
+
+    // ======================================
+    // ESTADISTICAS POR GRUPO
+    // ======================================
+
+    const grupos = {};
+
+    activos.forEach(student => {
+
+        getStudentEnrollments(student)
+            .forEach(enrollment => {
+
+                const grupo =
+                    enrollment.grupo ||
+                    'Sin grupo';
+
+                grupos[grupo] =
+                    (grupos[grupo] || 0) + 1;
+
+            });
+
+    });
+
+    // ======================================
+    // ESTADISTICAS POR SUBGRUPO
+    // ======================================
+
+    const subgrupos = {};
+
+    activos.forEach(student => {
+
+        getStudentEnrollments(student)
+            .forEach(enrollment => {
+
+                const subgrupo =
+                    enrollment.subgrupo ||
+                    'Sin subgrupo';
+
+                subgrupos[subgrupo] =
+                    (subgrupos[subgrupo] || 0) + 1;
+
+            });
+
+    });
+
+    // ======================================
+    // CONSTRUIR REPORTE
+    // ======================================
+
+    let html = `
+        <h3>
+            👥 Participantes Inscritos
+        </h3>
+
+        <div class="card">
+
+            <h4>
+                📚 Participantes por Grupo
+            </h4>
+    `;
+
+    Object.entries(grupos)
+        .forEach(([grupo, total]) => {
+
+            html += `
+                <p>
+                    ${grupo}
+                    :
+                    <strong>
+                        ${total}
+                    </strong>
+                </p>
+            `;
+
+        });
+
+    html += `
+        </div>
+
+        <div class="card">
+
+            <h4>
+                👥 Participantes por Subgrupo
+            </h4>
+    `;
+
+    Object.entries(subgrupos)
+        .forEach(([subgrupo, total]) => {
+
+            html += `
+                <p>
+                    ${subgrupo}
+                    :
+                    <strong>
+                        ${total}
+                    </strong>
+                </p>
+            `;
+
+        });
+
+    html += `
+        </div>
+    `;
+
+    // ======================================
+    // CUMPLEAÑOS PENDIENTES
+    // ======================================
+
+    if (pendientes.length > 0) {
+
+        html += `
+            <div class="card">
+
+                <h4>
+                    🎂 Cumpleaños Pendientes
+                </h4>
+
+                <ul>
+        `;
+
+        pendientes.forEach(student => {
+
+            html += `
+                <li>
+                    ${student.nombre}
+                    ${student.apellido}
+                </li>
+            `;
+
+        });
+
+        html += `
+                </ul>
+
+            </div>
+        `;
+    }
+
+    resultsContainer.style.display =
+        'block';
+
+    resultsContainer.innerHTML =
+        html;
+}
+
+    
 function buildStudentTrendData(
     student,
     sessions
