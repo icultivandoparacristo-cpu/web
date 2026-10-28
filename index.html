@@ -6585,6 +6585,10 @@ async function applyFirebaseAuthState(firebaseUser) {
     // MOSTRAR LOGIN Y OCULTAR APLICACION
     // ==========================================
     const showLogin = () => {
+        // Ocultar todas las vistas
+        document.querySelectorAll('.view').forEach(view => {
+            view.style.display = 'none';
+        });
 
         if (appContainer) {
             appContainer.style.display = 'none';
@@ -6693,10 +6697,10 @@ async function applyFirebaseAuthState(firebaseUser) {
 
             if (
                 window.firebaseAuthApi &&
-                window.auth
+                window.firebaseAuth
             ) {
                 await window.firebaseAuthApi.signOut(
-                    window.auth
+                    window.firebaseAuth
                 );
             }
 
@@ -24569,14 +24573,30 @@ function updateTeacher(
 }
     
   function updateMenuByRole() {
-    if (!window.currentUser) {
-    console.warn('window.currentUser aún no cargado');
+   if (!window.currentUser) {
+
+    [
+        'menu-usuarios',
+        'menu-grupos',
+        'menu-subgrupos',
+        'menu-estudiantes',
+        'menu-asistencia',
+        'menu-finanzas',
+        'menu-reportes',
+        'menu-cumpleanos'
+    ].forEach(id => {
+
+        const item =
+            document.getElementById(id);
+
+        if (item) {
+            item.style.display = 'none';
+        }
+
+    });
+
     return;
 }
-
-    if (!window.currentUser) {
-        return;
-    }
 
     const role =
         String(
@@ -24596,17 +24616,7 @@ function updateTeacher(
     document.getElementById(
         'menu-grupos'
     );
-const menuClasses =
-    document.getElementById(
-        'menu-subgrupos'
-    );
-
-if (menuClasses) {
-    menuClasses.style.display =
-        hasPermission('classes_view')
-            ? 'flex'
-            : 'none';
-}
+    
     const menuSubgrupos =
         document.getElementById(
             'menu-subgrupos'
@@ -34099,94 +34109,7 @@ function normalizePermissions(
             permissions.classes_edit || false
     };
 }
-function getDefaultPermissions(role) {
 
-    const permissions = {
-        students_view: false,
-        students_create: false,
-        students_edit: false,
-        
-
-        attendance_view: false,
-        attendance_edit: false,
-
-        groups_view: false,
-        groups_edit: false,
-
-        classes_view: false,
-        classes_edit: false,
-
-        reports_view: false,
-
-        finances_view: false,
-        finances_create: false,
-        finances_edit: false,
-        finances_cancel: false,
-        finances_audit: false,
-
-        users_view: false,
-        users_edit: false
-    };
-
-    switch (role) {
-
-        case 'superadmin':
-
-            Object.keys(permissions).forEach(key => {
-                permissions[key] = true;
-            });
-
-            break;
-
-        case 'maestro':
-
-            permissions.students_view = true;
-            permissions.attendance_view = true;
-            permissions.attendance_edit = true;
-            permissions.reports_view = true;
-
-            break;
-
-        case 'registrador':
-
-            permissions.students_view = true;
-            permissions.students_create = true;
-            permissions.students_edit = true;
-
-            permissions.attendance_view = true;
-            permissions.attendance_edit = true;
-
-            permissions.reports_view = true;
-
-            permissions.finances_view = true;
-            permissions.finances_create = true;
-
-            break;
-
-        case 'admin':
-
-            permissions.finances_view = true;
-            permissions.finances_create = true;
-            permissions.finances_edit = true;
-            permissions.finances_cancel = true;
-
-            break;
-
-        case 'auditor':
-
-            permissions.finances_view = true;
-            permissions.finances_audit = true;
-            permissions.reports_view = true;
-
-            break;
-
-        case 'cumpleanos':
-
-            break;
-    }
-
-    return permissions;
-}
 function hasPermission(permission) {
 
     if (!window.currentUser) {
