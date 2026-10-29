@@ -27278,11 +27278,48 @@ const classData = {
                             const enrollments =
                                 getStudentEnrollments(student);
 
-                            return enrollments.some(
-                                enrollment =>
-                                    enrollment.grupo === oldGroup &&
-                                    enrollment.subgrupo === oldSubGroup
-                            );
+                          return enrollments.some(
+    enrollment => {
+
+        const enrollmentGroup =
+            String(
+                enrollment.grupo || ''
+            )
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+
+        const enrollmentSubGroup =
+            String(
+                enrollment.subgrupo || ''
+            )
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+
+        const targetGroup =
+            String(
+                oldGroup || ''
+            )
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+
+        const targetSubGroup =
+            String(
+                oldSubGroup || ''
+            )
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+
+        return (
+            enrollmentGroup === targetGroup &&
+            enrollmentSubGroup === targetSubGroup
+        );
+
+    }
+);
 
                         });
 
@@ -27300,10 +27337,43 @@ const classData = {
                             getStudentEnrollments(student)
                                 .map(enrollment => {
 
-                                    if (
-                                        enrollment.grupo === oldGroup &&
-                                        enrollment.subgrupo === oldSubGroup
-                                    ) {
+                                  const enrollmentGroup =
+    String(
+        enrollment.grupo || ''
+    )
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+
+const enrollmentSubGroup =
+    String(
+        enrollment.subgrupo || ''
+    )
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+
+const targetGroup =
+    String(
+        oldGroup || ''
+    )
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+
+const targetSubGroup =
+    String(
+        oldSubGroup || ''
+    )
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+
+if (
+    enrollmentGroup === targetGroup &&
+    enrollmentSubGroup === targetSubGroup
+) 
+                                    {
                                         return {
                                             ...enrollment,
                                             subgrupo:
