@@ -27155,7 +27155,20 @@ const maestrosSeleccionados =
     ).map(
         checkbox => checkbox.value
     );
+const oldClass =
+    classId
+        ? classes.find(
+            c =>
+                String(c.id) ===
+                String(classId)
+        )
+        : null;
 
+const oldGroup =
+    oldClass?.grupo || '';
+
+const oldSubGroup =
+    oldClass?.materia || '';
 const classData = {
 
     id:
@@ -27238,7 +27251,95 @@ const classData = {
                 await saveClassToFirestore(
                     classData
                 );
+                // ======================================
+                // PROPAGAR CAMBIO DE NOMBRE DEL SUBGRUPO
+                // ======================================
 
+                const subGroupChanged =
+                    oldClass &&
+                    oldSubGroup &&
+                    oldSubGroup !== classData.materia;
+
+                if (subGroupChanged) {
+
+                    console.log(
+                        '🔄 Renombrando subgrupo:',
+                        {
+                            grupo: oldGroup,
+                            anterior: oldSubGroup,
+                            nuevo: classData.materia
+                        }
+                    );
+
+                    const affectedStudents =
+                        window.students.filter(student => {
+
+                            const enrollments =
+                                getStudentEnrollments(student);
+
+                            return enrollments.some(
+                                enrollment =>
+                                    enrollment.grupo === oldGroup &&
+                                    enrollment.subgrupo === oldSubGroup
+                            );
+
+                        });
+
+                    console.log(
+                        '👤 Estudiantes afectados:',
+                        affectedStudents.length
+                    );
+
+                    for (
+                        const student
+                        of affectedStudents
+                    ) {
+
+                        const updatedEnrollments =
+                            getStudentEnrollments(student)
+                                .map(enrollment => {
+
+                                    if (
+                                        enrollment.grupo === oldGroup &&
+                                        enrollment.subgrupo === oldSubGroup
+                                    ) {
+                                        return {
+                                            ...enrollment,
+                                            subgrupo:
+                                                classData.materia
+                                        };
+                                    }
+
+                                    return enrollment;
+
+                                });
+
+                        const updatedStudent = {
+                            ...student,
+                            inscripciones:
+                                normalizeStudentEnrollments(
+                                    updatedEnrollments
+                                )
+                        };
+
+                        // Compatibilidad legacy
+                        if (
+                            student.grupo === oldGroup &&
+                            student.subgrupo === oldSubGroup
+                        ) {
+                            updatedStudent.subgrupo =
+                                classData.materia;
+                        }
+
+                        await saveStudentToFirestore(
+                            updatedStudent
+                        );
+                    }
+
+                    console.log(
+                        '✅ Referencias del subgrupo actualizadas'
+                    );
+                }
                 await loadClassesFromFirestore();
 
                 classForm.reset();
