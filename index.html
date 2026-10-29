@@ -7817,6 +7817,23 @@ document
         'change',
         syncStudentBirthDate
     );
+
+// ======================================
+// NORMALIZAR TEXTO
+// Evita problemas por espacios dobles,
+// mayúsculas/minúsculas y espacios al inicio/final.
+// ======================================
+
+function normalizeText(value) {
+
+    return String(value || '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+
+}
+
+
 // ==========================================
 // ESTUDIANTES - MÚLTIPLES INSCRIPCIONES
 // ==========================================
@@ -7901,15 +7918,25 @@ function getStudentEnrollments(
             student
         );
 
+return enrollments.some(
+    enrollment =>
 
-    return enrollments.some(
-        enrollment =>
-            enrollment.grupo ===
-                group
-            &&
-            enrollment.subgrupo ===
-                subGroup
-    );
+        normalizeText(
+            enrollment.grupo
+        ) ===
+        normalizeText(
+            oldGroup
+        )
+
+        &&
+
+        normalizeText(
+            enrollment.subgrupo
+        ) ===
+        normalizeText(
+            oldSubGroup
+        )
+);
 }
 function normalizeStudentEnrollments(
     enrollments
@@ -27282,20 +27309,14 @@ const classData = {
     enrollment => {
 
         const enrollmentGroup =
-            String(
-                enrollment.grupo || ''
-            )
-            .replace(/\s+/g, ' ')
-            .trim()
-            .toLowerCase();
+        normalizeText(
+            enrollment.grupo
+        );
 
-        const enrollmentSubGroup =
-            String(
-                enrollment.subgrupo || ''
-            )
-            .replace(/\s+/g, ' ')
-            .trim()
-            .toLowerCase();
+       const enrollmentSubGroup =
+            normalizeText(
+                enrollment.subgrupo
+            );
 
         const targetGroup =
             String(
@@ -27393,13 +27414,30 @@ if (
                                 )
                         };
 
-                        // Compatibilidad legacy
+                      // Compatibilidad legacy
                         if (
-                            student.grupo === oldGroup &&
-                            student.subgrupo === oldSubGroup
+
+                            normalizeText(
+                                student.grupo
+                            ) ===
+                            normalizeText(
+                                oldGroup
+                            )
+
+                            &&
+
+                            normalizeText(
+                                student.subgrupo
+                            ) ===
+                            normalizeText(
+                                oldSubGroup
+                            )
+
                         ) {
+
                             updatedStudent.subgrupo =
                                 classData.materia;
+
                         }
 
                         await saveStudentToFirestore(
