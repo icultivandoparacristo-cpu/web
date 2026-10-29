@@ -7897,8 +7897,7 @@ function getStudentEnrollments(
 
 
     return [];
-}
- function isStudentEnrolledIn(
+}function isStudentEnrolledIn(
     student,
     group,
     subGroup
@@ -7912,32 +7911,33 @@ function getStudentEnrollments(
         return false;
     }
 
-
     const enrollments =
         getStudentEnrollments(
             student
         );
 
-return enrollments.some(
-    enrollment =>
+    return enrollments.some(
+        enrollment =>
 
-        normalizeText(
-            enrollment.grupo
-        ) ===
-        normalizeText(
-            oldGroup
-        )
+            normalizeText(
+                enrollment.grupo
+            ) ===
+            normalizeText(
+                group
+            )
 
-        &&
+            &&
 
-        normalizeText(
-            enrollment.subgrupo
-        ) ===
-        normalizeText(
-            oldSubGroup
-        )
-);
+            normalizeText(
+                enrollment.subgrupo
+            ) ===
+            normalizeText(
+                subGroup
+            )
+
+    );
 }
+
 function normalizeStudentEnrollments(
     enrollments
 ) {
