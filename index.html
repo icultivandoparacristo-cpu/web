@@ -7827,9 +7827,10 @@ document
 function normalizeText(value) {
 
     return String(value || '')
+        .toLowerCase()
+        .replace(/[().,;:_-]+/g, '')
         .replace(/\s+/g, ' ')
-        .trim()
-        .toLowerCase();
+        .trim();
 
 }
 
@@ -27323,7 +27324,12 @@ const classData = {
                                 }))
                         );
 
-                    const affectedStudents =
+
+                        console.log(
+                            'Comparación:',
+                            normalizeText(oldSubGroup)
+                        );
+                     const affectedStudents =
                         window.students.filter(student => {
 
                             const enrollments =
@@ -27342,21 +27348,16 @@ const classData = {
                 enrollment.subgrupo
             );
 
-        const targetGroup =
-            String(
-                oldGroup || ''
-            )
-            .replace(/\s+/g, ' ')
-            .trim()
-            .toLowerCase();
+   const targetGroup =
+    normalizeText(
+        oldGroup
+    );
+
 
         const targetSubGroup =
-            String(
-                oldSubGroup || ''
-            )
-            .replace(/\s+/g, ' ')
-            .trim()
-            .toLowerCase();
+       normalizeText(
+        oldGroup
+        );
 
         return (
             enrollmentGroup === targetGroup &&
@@ -27382,13 +27383,10 @@ const classData = {
                             getStudentEnrollments(student)
                                 .map(enrollment => {
 
-                                  const enrollmentGroup =
-    String(
-        enrollment.grupo || ''
-    )
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
+                        const enrollmentGroup =
+                        normalizeText(
+                        oldGroup
+                        );
 
 const enrollmentSubGroup =
     String(
