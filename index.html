@@ -27290,7 +27290,7 @@ const classData = {
 
                 if (subGroupChanged) {
 
-                    console.log(
+                   console.log(
                         '🔄 Renombrando subgrupo:',
                         {
                             grupo: oldGroup,
@@ -27298,6 +27298,30 @@ const classData = {
                             nuevo: classData.materia
                         }
                     );
+                        console.log(
+                            'oldClass completo:',
+                            oldClass
+                        );
+
+                        console.log(
+                            'oldGroup:',
+                            JSON.stringify(oldGroup)
+                        );
+
+                        console.log(
+                            'oldSubGroup:',
+                            JSON.stringify(oldSubGroup)
+                        );
+                        console.log(
+                            'Ejemplo de inscripciones:',
+                            window.students
+                                .slice(0,5)
+                                .map(s => ({
+                                    nombre: s.nombre,
+                                    inscripciones:
+                                        getStudentEnrollments(s)
+                                }))
+                        );
 
                     const affectedStudents =
                         window.students.filter(student => {
