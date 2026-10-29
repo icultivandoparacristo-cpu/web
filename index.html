@@ -26116,7 +26116,8 @@ async function toggleClassStatus(id) {
 }
 
     const clase=window.classes.find(c=>String(c.id)===String(id)); if(!clase)return;
-    try{await saveClassToFirestore({...clase,estado:clase.estado==='Activa'?'Inactiva':'Activa'});await loadClassesFromFirestore();mostrarNotificacion('✅ Estado del subgrupo actualizado en Firestore','success');}
+    try{await saveClassToFirestore({...clase,estado:clase.estado==='Activa'?'Inactiva':'Activa'});
+    await loadClassesFromFirestore();mostrarNotificacion('✅ Estado del subgrupo actualizado en Firestore','success');}
     catch(error){console.error(error);mostrarNotificacion('❌ No se pudo actualizar el subgrupo','error');}
 }
 //Tabla de usuarios
@@ -27341,6 +27342,8 @@ const classData = {
                     );
                 }
                 await loadClassesFromFirestore();
+
+                await loadStudentsFromFirestore();
 
                 classForm.reset();
 
