@@ -27561,37 +27561,34 @@ console.log('targetSubGroup:', targetSubGroup);
 
                         const enrollmentGroup =
                         normalizeText(
-                        oldGroup
+                            enrollment.grupo
                         );
 
-const enrollmentSubGroup =
-    String(
-        enrollment.subgrupo || ''
-    )
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
+                    const enrollmentSubGroup =
+                        normalizeText(
+                            enrollment.subgrupo
+                        );
 
-const targetGroup =
-    String(
-        oldGroup || ''
-    )
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
+                    const targetGroup =
+                        normalizeText(
+                            oldGroup
+                        );
 
-const targetSubGroup =
-    String(
-        oldSubGroup || ''
-    )
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
+                    const targetSubGroup =
+                        normalizeText(
+                            oldSubGroup
+                        );
+                        console.log({
+                        enrollmentGroup,
+                        enrollmentSubGroup,
+                        targetGroup,
+                        targetSubGroup
+                    });
 
-if (
-    enrollmentGroup === targetGroup &&
-    enrollmentSubGroup === targetSubGroup
-) 
+                        if (
+                            enrollmentGroup === targetGroup &&
+                            enrollmentSubGroup === targetSubGroup
+                        ) 
                                     {
                                         return {
                                             ...enrollment,
