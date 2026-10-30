@@ -27526,11 +27526,15 @@ const classData = {
 
         const targetSubGroup =
        normalizeText(
-        oldGroup
+        oldSubGroup
         );
 console.log('oldGroup:', oldGroup);
 console.log('oldSubGroup:', oldSubGroup);
+console.log({
+    oldSubGroup,
+    targetSubGroup});
 console.log('targetSubGroup:', targetSubGroup);
+
         return (
             enrollmentGroup === targetGroup &&
             enrollmentSubGroup === targetSubGroup
