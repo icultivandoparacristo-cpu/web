@@ -24134,10 +24134,15 @@ function loadAttendanceGroups() {
         '<option value="">Seleccione un grupo</option>';
 
     const gruposActivos =
-        groups
+        (window.groups || [])
             .filter(g =>
                 g.estado === 'Activo'
             );
+
+    console.log(
+        '📚 Grupos encontrados:',
+        gruposActivos
+    );
 
     gruposActivos.forEach(g => {
 
@@ -24146,7 +24151,13 @@ function loadAttendanceGroups() {
                 ${g.nombre}
             </option>
         `;
+
     });
+
+    console.log(
+        '✅ Opciones cargadas:',
+        groupSelect.options.length
+    );
 }
 function renderAttendanceSubGroups() {
 
