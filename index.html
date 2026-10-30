@@ -3353,7 +3353,47 @@ button.auth-submit:hover {
     }
 
 }
+.attendance-group-grid,
+.attendance-subgroup-grid{
+    display:grid;
+    gap:12px;
+}
 
+.attendance-card{
+    background:#fff;
+    border:1px solid #e2e8f0;
+    border-radius:14px;
+    padding:16px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.attendance-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+}
+
+.attendance-card.selected{
+    border:2px solid #087443;
+    background:#eefaf3;
+}
+
+.attendance-card-title{
+    font-size:16px;
+    font-weight:700;
+    margin-bottom:5px;
+}
+
+.attendance-card-meta{
+    font-size:13px;
+    color:#666;
+}
+
+.attendance-back-btn{
+    width:auto;
+    background:#2c3e50;
+    margin-bottom:15px;
+}
   /* Estado y bitácora de la sesión de asistencia */
   .class-session-panel { margin-top:16px; padding:18px; border:1px solid #d8e7df; border-radius:14px; background:#f8fcfa; }
   .class-session-title { font-size:16px; font-weight:700; color:#075b38; margin-bottom:14px; }
@@ -5157,19 +5197,36 @@ button.auth-submit:hover {
 
     <div class="card">
       <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-        <label for="attendanceClass">
-         <strong>Subgrupo</strong>
-        </label>
-            <select id="attendanceClass"
-                onchange="
-                    loadAttendanceDates();
-               
-                    renderAttendanceInfo();
-                    renderAttendanceTable();
-                    renderClassSessionPanel();
-                    renderDashboardSimplified();
-                ">
-            </select>
+      <label>
+    <strong>Selección de Grupo</strong>
+</label>
+
+<select
+    id="attendanceGroupSelector"
+    onchange="renderAttendanceSubGroups()">
+    <option value="">
+        Seleccione un grupo
+    </option>
+</select>
+
+<select
+    id="attendanceClass"
+    style="display:none;"
+    onchange="
+        loadAttendanceDates();
+        renderAttendanceInfo();
+        renderAttendanceTable();
+        renderClassSessionPanel();
+        renderDashboardSimplified();
+    ">
+</select>
+
+<div id="attendanceGroupCards"></div>
+
+<div
+    id="attendanceSubGroupView"
+    style="display:none;">
+</div>
             <label for="attendanceDate">
             <strong>Fecha:</strong>
         </label>
@@ -24063,7 +24120,119 @@ function loadAttendanceClasses() {
     ) {
         renderDashboardSimplified();
     }
-}function renderAttendanceInfo() {
+}
+function loadAttendanceGroups() {
+
+    const groupSelect =
+        document.getElementById(
+            'attendanceGroupSelector'
+        );
+
+    if (!groupSelect) return;
+
+    groupSelect.innerHTML =
+        '<option value="">Seleccione un grupo</option>';
+
+    const gruposActivos =
+        groups
+            .filter(g =>
+                g.estado === 'Activo'
+            );
+
+    gruposActivos.forEach(g => {
+
+        groupSelect.innerHTML += `
+            <option value="${g.nombre}">
+                ${g.nombre}
+            </option>
+        `;
+    });
+}
+function renderAttendanceSubGroups() {
+
+    const group =
+        document.getElementById(
+            'attendanceGroupSelector'
+        )?.value;
+
+    const view =
+        document.getElementById(
+            'attendanceSubGroupView'
+        );
+
+    if(!view){
+        return;
+    }
+
+    if(!group){
+        view.style.display='none';
+        return;
+    }
+
+    const subGroups =
+        classes.filter(c =>
+            c.grupo === group &&
+            c.estado === 'Activa'
+        );
+
+    view.style.display='block';
+
+    view.innerHTML = `
+        <button
+            class="attendance-back-btn"
+            onclick="resetAttendanceGroupView()">
+            ← Volver
+        </button>
+
+        <h3>${group}</h3>
+
+        <p>
+            Ahora selecciona el subgrupo correspondiente
+        </p>
+
+        <div class="attendance-subgroup-grid">
+            ${subGroups.map(c => `
+                <div
+                    class="attendance-card"
+                    onclick="selectAttendanceClass('${c.id}')">
+
+                    <div class="attendance-card-title">
+                        ${c.materia}
+                    </div>
+
+                    <div class="attendance-card-meta">
+                        📚 Subgrupo
+                    </div>
+
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+function resetAttendanceGroupView(){
+
+    document.getElementById(
+        'attendanceGroupSelector'
+    ).value = '';
+
+    document.getElementById(
+        'attendanceSubGroupView'
+    ).style.display = 'none';
+}
+function selectAttendanceClass(classId){
+
+    const select =
+        document.getElementById(
+            'attendanceClass'
+        );
+
+    select.value = classId;
+
+    select.dispatchEvent(
+        new Event('change')
+    );
+}
+function renderAttendanceInfo() {
 
     const clase =
         getSelectedClass();
@@ -25570,6 +25739,7 @@ if (
     ) {
 
         loadAttendanceClasses();
+        loadAttendanceGroups();
 
         renderAttendanceTable();
 
