@@ -3367,6 +3367,26 @@ button.auth-submit:hover {
     cursor:pointer;
     transition:.2s;
 }
+.attendance-card.selected{
+    border:2px solid #087443;
+    background:#eefaf3;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(
+            8,
+            116,
+            67,
+            .12
+        );
+
+}
+.attendance-card.selected
+.attendance-card-title::before{
+
+    content:'✅ ';
+
+}
 
 .attendance-card:hover{
     transform:translateY(-2px);
@@ -7890,7 +7910,18 @@ function normalizeText(value) {
         .trim();
 
 }
+function normalizeSubGroupName(value) {
 
+    return normalizeText(value)
+
+        // eliminar texto entre paréntesis
+        .replace(/\([^)]*\)/g, '')
+
+        // compactar espacios
+        .replace(/\s+/g, ' ')
+
+        .trim();
+}
 
 // ==========================================
 // ESTUDIANTES - MÚLTIPLES INSCRIPCIONES
@@ -24205,6 +24236,7 @@ function renderAttendanceSubGroups() {
             ${subGroups.map(c => `
                 <div
                     class="attendance-card"
+                    data-class-id="${c.id}"
                     onclick="selectAttendanceClass('${c.id}')">
 
                     <div class="attendance-card-title">
@@ -24229,8 +24261,33 @@ function resetAttendanceGroupView(){
     document.getElementById(
         'attendanceSubGroupView'
     ).style.display = 'none';
-}
-function selectAttendanceClass(classId){
+}function selectAttendanceClass(
+    classId
+){
+
+    document
+        .querySelectorAll(
+            '.attendance-card'
+        )
+        .forEach(
+            card =>
+            card.classList.remove(
+                'selected'
+            )
+        );
+
+    const selectedCard =
+        document.querySelector(
+            `[data-class-id="${classId}"]`
+        );
+
+    if(selectedCard){
+
+        selectedCard.classList.add(
+            'selected'
+        );
+
+    }
 
     const select =
         document.getElementById(
@@ -24242,98 +24299,18 @@ function selectAttendanceClass(classId){
     select.dispatchEvent(
         new Event('change')
     );
+
 }
 function renderAttendanceInfo() {
-
-    const clase =
-        getSelectedClass();
-
-    const fecha =
-        document.getElementById(
-            'attendanceDate'
-        )?.value;
 
     const card =
         document.getElementById(
             'attendanceInfoCard'
         );
 
-    if (!card) {
-        return;
+    if (card) {
+        card.style.display = 'none';
     }
-
-    if (!clase) {
-
-        card.style.display =
-            'none';
-
-        return;
-    }
-
-    const session =
-        getClassSession(
-            clase.id,
-            fecha
-        );
-
-    card.style.display =
-        'block';
-
-    card.innerHTML = `
-
-<div
-    style="
-        display:flex;
-        flex-wrap:wrap;
-        gap:15px;
-        align-items:center;
-        justify-content:space-between;
-    ">
-
-    <div>
-        👥 Grupo:
-        <strong>
-            ${clase.grupo || 'Sin grupo'}
-        </strong>
-    </div>
-
-    <div>
-        📚 Subgrupo:
-        <strong>
-            ${clase.materia || 'Sin subgrupo'}
-        </strong>
-    </div>
-
-    <div>
-        📅 Fecha:
-        <strong>
-            ${fecha || 'Sin fecha'}
-        </strong>
-    </div>
-
-    <div>
-        👨‍🏫 Responsable:
-        <strong>
-            ${
-                session?.responsable ||
-                'Sin asignar'
-            }
-        </strong>
-    </div>
-
-    <div>
-        📌 Estado:
-        <strong>
-            ${
-                session?.estado ||
-                'Sin sesión'
-            }
-        </strong>
-    </div>
-
-</div>
-
-`;
 
 }
 
@@ -27539,17 +27516,21 @@ const classData = {
        normalizeText(
         oldSubGroup
         );
-console.log('oldGroup:', oldGroup);
-console.log('oldSubGroup:', oldSubGroup);
-console.log({
-    oldSubGroup,
-    targetSubGroup});
-console.log('targetSubGroup:', targetSubGroup);
 
-        return (
-            enrollmentGroup === targetGroup &&
-            enrollmentSubGroup === targetSubGroup
-        );
+
+      return (
+    enrollmentGroup === targetGroup &&
+    (
+        enrollmentSubGroup === targetSubGroup ||
+
+        normalizeSubGroupName(
+            enrollment.subgrupo
+        ) ===
+        normalizeSubGroupName(
+            oldSubGroup
+        )
+    )
+);
 
     }
 );
@@ -27597,9 +27578,18 @@ console.log('targetSubGroup:', targetSubGroup);
                     });
 
                         if (
-                            enrollmentGroup === targetGroup &&
-                            enrollmentSubGroup === targetSubGroup
-                        ) 
+                                enrollmentGroup === targetGroup &&
+                                (
+                                    enrollmentSubGroup === targetSubGroup ||
+
+                                    normalizeSubGroupName(
+                                        enrollment.subgrupo
+                                    ) ===
+                                    normalizeSubGroupName(
+                                        oldSubGroup
+                                    )
+                                )
+                            )
                                     {
                                         return {
                                             ...enrollment,
@@ -30897,37 +30887,30 @@ function renderDashboardSimplified() {
             <h3>
                 🗓️ Sesión seleccionada
             </h3>
+<div
+    class="attendance-summary">
 
-            <p
-                style="
-                    color:#666;
-                    margin:8px 0 5px;
-                "
-            >
-                👥 ${escapeHtml(clase.grupo)}
-                |
-                📚 ${escapeHtml(clase.materia)}
-            </p>
+    <div>
+        👥
+        ${escapeHtml(clase.grupo)}
+    </div>
 
-            <p
-                style="
-                    color:#666;
-                    margin:5px 0;
-                "
-            >
-                📅 ${escapeHtml(fecha)}
-            </p>
+    <div>
+        📚
+        ${escapeHtml(clase.materia)}
+    </div>
 
-            <p
-                style="
-                    color:#2c3e50;
-                    margin:5px 0 8px;
-                    font-weight:bold;
-                "
-            >
-                👨‍🏫 Responsable:
-                ${escapeHtml(responsable)}
-            </p>
+    <div>
+        📅
+        ${escapeHtml(fecha)}
+    </div>
+
+    <div>
+        👨‍🏫
+        ${escapeHtml(responsable)}
+    </div>
+
+</div>
 
             <div
                 style="
@@ -30938,6 +30921,21 @@ function renderDashboardSimplified() {
             </div>
 
             ${suspendedContent}
+            <details
+    class="attendance-details">
+
+    <summary>
+        📊 Estadísticas de la sesión
+    </summary>
+
+    <!--
+       TODO lo que hoy muestra:
+       asistencia
+       participación
+       estadísticas
+    -->
+
+</details>
 
             <!-- =================================
                  ASISTENCIA Y PARTICIPACIÓN
