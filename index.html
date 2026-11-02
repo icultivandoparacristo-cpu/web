@@ -5458,18 +5458,29 @@ button.auth-submit:hover {
 <div
     id="attendanceSubGroupView"
     style="display:none;">
-</div>
-            <label for="attendanceDate">
-            <strong>Fecha:</strong>
-        </label>
+    </div>
+            <div
+        id="attendanceDateContainer"
+        style="display:none;">
 
-        <select
-            id="attendanceDate"
-            onchange="
-                
-               handleAttendanceDateChange()
-            ">
-        </select>
+      <div
+            id="attendanceDateContainer"
+            style="display:none;">
+
+            <label for="attendanceDate">
+                <strong>📅 Fecha:</strong>
+            </label>
+
+            <select
+                id="attendanceDate"
+                onchange="
+                    handleAttendanceDateChange()
+                ">
+            </select>
+
+        </div>
+
+    </div>
         
         <div id="attendanceInfoCard"class="card" style="display:none;"></div>
         
@@ -24457,9 +24468,7 @@ function resetAttendanceGroupView(){
     document.getElementById(
         'attendanceSubGroupView'
     ).style.display = 'none';
-}function selectAttendanceClass(
-    classId
-){
+}function selectAttendanceClass(classId){
 
     document
         .querySelectorAll(
@@ -24477,11 +24486,26 @@ function resetAttendanceGroupView(){
             `[data-class-id="${classId}"]`
         );
 
-    if(selectedCard){
+    if (selectedCard) {
 
         selectedCard.classList.add(
             'selected'
         );
+
+    }
+
+    // ==========================
+    // MOSTRAR FECHA
+    // ==========================
+    const dateContainer =
+        document.getElementById(
+            'attendanceDateContainer'
+        );
+
+    if (dateContainer) {
+
+        dateContainer.style.display =
+            'block';
 
     }
 
@@ -24495,7 +24519,6 @@ function resetAttendanceGroupView(){
     select.dispatchEvent(
         new Event('change')
     );
-
 }
 function renderAttendanceInfo() {
 
