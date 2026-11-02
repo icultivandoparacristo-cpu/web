@@ -3414,6 +3414,42 @@ button.auth-submit:hover {
     background:#2c3e50;
     margin-bottom:15px;
 }
+.attendance-collapsible{
+
+    margin-top:15px;
+
+}
+
+.attendance-summary-toggle{
+
+    cursor:pointer;
+
+    padding:12px 15px;
+
+    border-radius:10px;
+
+    background:#f8f9fa;
+
+    border:1px solid #e5e7eb;
+
+    font-weight:600;
+
+    color:#2c3e50;
+
+}
+
+.attendance-summary-toggle:hover{
+
+    background:#edf2f7;
+
+}
+
+.attendance-collapsible[open]
+.attendance-summary-toggle{
+
+    margin-bottom:15px;
+
+}
   /* Estado y bitácora de la sesión de asistencia */
   .class-session-panel { margin-top:16px; padding:18px; border:1px solid #d8e7df; border-radius:14px; background:#f8fcfa; }
   .class-session-title { font-size:16px; font-weight:700; color:#075b38; margin-bottom:14px; }
@@ -30922,6 +30958,16 @@ function renderDashboardSimplified() {
 
             ${suspendedContent}
             <details
+            class="attendance-collapsible">
+
+            <summary
+                class="attendance-summary-toggle">
+
+                📊 Estadísticas y reportes
+
+             </summary>
+
+            <details
     class="attendance-details">
 
     <summary>
@@ -31209,7 +31255,7 @@ function renderDashboardSimplified() {
 
         </div>
 
-
+</details>
         <!-- ===================================
              PDF
         ==================================== -->
