@@ -3519,6 +3519,71 @@ button.auth-submit:hover {
     margin-bottom:10px;
 
 }
+.attendance-progress-card{
+
+    margin:15px 0;
+
+    padding:15px;
+
+    border-radius:12px;
+
+    background:#f8fafc;
+
+    border:1px solid #e5e7eb;
+
+}
+
+.attendance-progress-row{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    flex-wrap:wrap;
+
+    gap:10px;
+
+    font-weight:600;
+
+    margin-bottom:12px;
+
+}
+
+.attendance-progress-bar{
+
+    height:10px;
+
+    background:#e5e7eb;
+
+    border-radius:999px;
+
+    overflow:hidden;
+
+}
+
+.attendance-progress-fill{
+
+    height:100%;
+
+    background:#22c55e;
+
+    transition:.3s;
+
+}
+
+.attendance-progress-text{
+
+    margin-top:10px;
+
+    text-align:center;
+
+    font-size:13px;
+
+    font-weight:600;
+
+    color:#475569;
+
+}
 
   /* Estado y bitácora de la sesión de asistencia */
   .class-session-panel { margin-top:16px; padding:18px; border:1px solid #d8e7df; border-radius:14px; background:#f8fcfa; }
@@ -30967,6 +31032,27 @@ function renderDashboardSimplified() {
             ? participaciones
             : 'N/A';
 
+            const totalEstudiantes =
+    groupStudents.length;
+
+    const completados =
+        presentes +
+        ausentes +
+        excusas;
+
+    const pendientes =
+        sessionCompleted
+            ? sinRegistrar
+            : totalEstudiantes;
+
+    const porcentajeCompletado =
+        totalEstudiantes > 0
+            ? Math.round(
+                (completados * 100)
+                / totalEstudiantes
+            )
+            : 0;
+
     // ==========================================
     // CONSTRUIR LAS DOS TARJETAS
     // ==========================================
@@ -31022,6 +31108,51 @@ function renderDashboardSimplified() {
             </div>
 
             ${suspendedContent}
+            <div class="attendance-progress-card">
+
+    <div class="attendance-progress-row">
+
+        <span>
+            ✅ ${valuePresentes}
+        </span>
+
+        <span>
+            ❌ ${valueAusentes}
+        </span>
+
+        <span>
+            📝 ${valueExcusas}
+        </span>
+
+        <span>
+            ⏳ ${pendientes}
+        </span>
+
+    </div>
+
+    <div class="attendance-progress-bar">
+
+        <div
+            class="attendance-progress-fill"
+            style="
+                width:
+                ${porcentajeCompletado}%;
+            "
+        ></div>
+
+    </div>
+
+    <div
+        class="attendance-progress-text">
+
+        📊 ${completados}
+        de
+        ${totalEstudiantes}
+        registrados
+
+    </div>
+
+</div>
             <details
             class="attendance-collapsible">
 
