@@ -3485,6 +3485,40 @@ button.auth-submit:hover {
     font-weight:600;
 
 }
+.history-collapsible{
+
+    margin-top:15px;
+
+}
+
+.history-summary{
+
+    cursor:pointer;
+
+    padding:12px 15px;
+
+    border-radius:10px;
+
+    background:#f8fafc;
+
+    border:1px solid #e5e7eb;
+
+    font-weight:600;
+
+}
+
+.history-summary:hover{
+
+    background:#eef2f7;
+
+}
+
+.history-collapsible[open]
+.history-summary{
+
+    margin-bottom:10px;
+
+}
 
   /* Estado y bitácora de la sesión de asistencia */
   .class-session-panel { margin-top:16px; padding:18px; border:1px solid #d8e7df; border-radius:14px; background:#f8fcfa; }
@@ -5330,19 +5364,7 @@ button.auth-submit:hover {
                handleAttendanceDateChange()
             ">
         </select>
-        <div style="margin-top:15px;">
-
-            <label>
-
-                <strong>
-                    Maestro Responsable:
-                </strong>
-
-            </label>
-
-         
-
-        </div>
+        
         <div id="attendanceInfoCard"class="card" style="display:none;"></div>
           <div
     id="classSessionEditor"
@@ -31247,42 +31269,53 @@ function renderDashboardSimplified() {
              HISTÓRICO GENERAL
         ==================================== -->
 
-        <div class="dashboard-card">
+        <details
+    class="history-collapsible">
 
-            <h3>
-                📊 Histórico general
-            </h3>
+    <summary
+        class="history-summary">
 
-            <p
-                style="
-                    color:#666;
-                    margin:8px 0 15px;
-                "
+        📈 Histórico general
+
+    </summary>
+
+    <div
+        class="dashboard-card"
+        style="margin-top:10px;"
+    >
+
+        <p
+            style="
+                color:#666;
+                margin:8px 0 15px;
+            "
+        >
+            👥 ${escapeHtml(clase.grupo)}
+            |
+            📚 ${escapeHtml(clase.materia)}
+        </p>
+
+        <div
+            class="chart-container"
+            style="
+                height:250px;
+            "
+        >
+            <canvas
+                id="chartGeneral"
             >
-                👥 ${escapeHtml(clase.grupo)}
-                |
-                📚 ${escapeHtml(clase.materia)}
-            </p>
-
-            <div
-                class="chart-container"
-                style="
-                    height:250px;
-                "
-            >
-                <canvas
-                    id="chartGeneral"
-                >
-                </canvas>
-            </div>
-
-            <div
-                id="statsGeneral"
-                class="stats-box"
-            >
-            </div>
-
+            </canvas>
         </div>
+
+        <div
+            id="statsGeneral"
+            class="stats-box"
+        >
+        </div>
+
+    </div>
+
+</details>
 
 </details>
         <!-- ===================================
