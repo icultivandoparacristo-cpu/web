@@ -3450,6 +3450,42 @@ button.auth-submit:hover {
     margin-bottom:15px;
 
 }
+.attendance-summary{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:6px;
+
+    margin:10px 0 15px;
+
+    padding:12px;
+
+    border-radius:10px;
+
+    background:#f8fafc;
+
+    border:1px solid #e5e7eb;
+
+}
+
+.attendance-summary div{
+
+    font-size:14px;
+
+    line-height:1.4;
+
+    color:#334155;
+
+}
+
+.attendance-summary div:first-child{
+
+    font-weight:600;
+
+}
+
   /* Estado y bitácora de la sesión de asistencia */
   .class-session-panel { margin-top:16px; padding:18px; border:1px solid #d8e7df; border-radius:14px; background:#f8fcfa; }
   .class-session-title { font-size:16px; font-weight:700; color:#075b38; margin-bottom:14px; }
@@ -30920,9 +30956,16 @@ function renderDashboardSimplified() {
 
         <div class="dashboard-card">
 
-            <h3>
-                🗓️ Sesión seleccionada
-            </h3>
+           <h3
+    style="
+        margin-bottom:10px;
+        display:flex;
+        align-items:center;
+        gap:8px;
+    "
+>
+    🗓️ Sesión seleccionada
+</h3>
 <div
     class="attendance-summary">
 
@@ -30967,21 +31010,7 @@ function renderDashboardSimplified() {
 
              </summary>
 
-            <details
-    class="attendance-details">
-
-    <summary>
-        📊 Estadísticas de la sesión
-    </summary>
-
-    <!--
-       TODO lo que hoy muestra:
-       asistencia
-       participación
-       estadísticas
-    -->
-
-</details>
+           
 
             <!-- =================================
                  ASISTENCIA Y PARTICIPACIÓN
