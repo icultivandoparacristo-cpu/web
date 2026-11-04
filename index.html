@@ -12390,6 +12390,11 @@ function generateExecutiveReport() {
     const date =
         document.getElementById('executiveDate')?.value;
 
+        const formattedDate = date
+    .split('-')
+    .reverse()
+    .join('/');
+
     if (!date) {
         showNotification(
             'Seleccione una fecha',
@@ -12398,13 +12403,23 @@ function generateExecutiveReport() {
         return;
     }
 
-    const sessions = (window.classSessions || [])
-        .filter(session => {
+const sessions = (window.classSessions || [])
+    .filter(session => {
 
-            return session.fecha === date &&
-                   session.estado === 'Realizada';
+        const estado = String(
+            session.estado || ''
+        ).trim();
 
-        });
+        const fecha = String(
+            session.fecha || ''
+        ).trim();
+
+        return (
+            fecha === formattedDate &&
+            estado === 'Realizada'
+        );
+    });
+
 
     let totalEnrolled = 0;
     let totalPresent = 0;
