@@ -5583,10 +5583,27 @@ button.auth-submit:hover {
       <button class="btn-home" onclick="volverInicio()">🏠 Inicio</button>
     </div>
 
-    <div class="card">
-      <label><strong>Seleccionar Mes:</strong></label>
-      <select id="mesSelector" onchange="mostrarCumpleañosPorMes()" style="max-width: 300px;">
-        <option value="">-- Todos los meses --</option>
+ <div class="card">
+
+    <div style="
+        display:flex;
+        gap:15px;
+        flex-wrap:wrap;
+        align-items:end;
+    ">
+
+        <div>
+
+            <label>
+                <strong>Mes:</strong>
+            </label>
+
+            <select
+                id="mesSelector"
+                onchange="mostrarCumpleañosPorMes()">
+
+                <option value="">
+                             <option value="">-- Todos los meses --</option>
         <option value="01">Enero</option>
         <option value="02">Febrero</option>
         <option value="03">Marzo</option>
@@ -5599,8 +5616,37 @@ button.auth-submit:hover {
         <option value="10">Octubre</option>
         <option value="11">Noviembre</option>
         <option value="12">Diciembre</option>
-      </select>
+                </option>
+
+                <!-- resto de meses -->
+
+            </select>
+
+        </div>
+
+        <div>
+
+            <label>
+                <strong>Grupo:</strong>
+            </label>
+
+            <select
+                id="birthdayGroupFilter"
+                onchange="mostrarCumpleañosPorMes()">
+
+                <option value="">
+                    Todos los grupos
+                </option>
+
+            </select>
+
+        </div>
+
     </div>
+
+</div>
+
+      
 
     <div id="cumpleañosContainer" class="card"></div>
   </div>
@@ -10520,6 +10566,49 @@ function renderStudentEnrollmentDraft() {
                 `
             )
             .join('');
+}
+
+function loadBirthdayGroups() {
+
+    const select =
+        document.getElementById(
+            'birthdayGroupFilter'
+        );
+
+    if (!select) return;
+
+    select.innerHTML = `
+        <option value="">
+            Todos los grupos
+        </option>
+    `;
+
+    const groups = [
+        ...new Set(
+            window.groups
+                .map(g => g.nombre)
+                .filter(Boolean)
+        )
+    ];
+
+    groups
+        .sort((a,b) =>
+            a.localeCompare(b,'es')
+        )
+        .forEach(group => {
+
+            const option =
+                document.createElement(
+                    'option'
+                );
+
+            option.value = group;
+            option.textContent = group;
+
+            select.appendChild(option);
+
+        });
+
 }
  function loadFinanceGroups() {
 
@@ -26245,7 +26334,7 @@ if (
     if (
         id === 'tab-cumpleaños'
     ) {
-
+        loadBirthdayGroups();
         mostrarCumpleañosPorMes();
 
     }
@@ -32484,63 +32573,284 @@ function drawGeneralChart(
 
   // CUMPLEAÑOS
   function mostrarCumpleañosPorMes() {
+
     const pendientes =
-    students.filter(
-        s => s.pendingBirthday === true
-    );
-    const mes = document.getElementById('mesSelector').value;
-    const container = document.getElementById('cumpleañosContainer');
+        students.filter(
+            s => s.pendingBirthday === true
+        );
+
+    const selectedGroup =
+        document.getElementById(
+            'birthdayGroupFilter'
+        )?.value || '';
+
+    const mes =
+        document.getElementById(
+            'mesSelector'
+        )?.value || '';
+
+    const container =
+        document.getElementById(
+            'cumpleañosContainer'
+        );
+
+    if (!container) return;
+
     container.innerHTML = '';
 
-    let cumpleaños = students;
+    let cumpleaños = [...students];
+
+    // Filtrar por mes
     if (mes) {
-      cumpleaños = cumpleaños.filter(s => s.fechaNacimiento.substring(3) === mes);
+
+        cumpleaños = cumpleaños.filter(student => {
+
+            const fecha =
+                String(
+                    student.fechaNacimiento || ''
+                );
+
+            return (
+                fecha.length >= 5 &&
+                fecha.substring(3, 5) === mes
+            );
+
+        });
+
     }
 
-    if (!cumpleaños.length) {
-      container.innerHTML = '<p>No hay cumpleaños en este período</p>';
-      return;
+    // Filtrar por grupo
+    if (selectedGroup) {
+
+        cumpleaños = cumpleaños.filter(student => {
+
+            const enrollments =
+                getStudentEnrollments(student);
+
+            return enrollments.some(
+                e => e.grupo === selectedGroup
+            );
+
+        });
+
     }
 
     cumpleaños.sort((a, b) => {
-      const diaA = parseInt(a.fechaNacimiento);
-      const diaB = parseInt(b.fechaNacimiento);
-      return diaA - diaB;
+
+        const diaA =
+            parseInt(
+                String(a.fechaNacimiento || '01')
+                    .substring(0, 2),
+                10
+            );
+
+        const diaB =
+            parseInt(
+                String(b.fechaNacimiento || '01')
+                    .substring(0, 2),
+                10
+            );
+
+        return diaA - diaB;
+
     });
-if (pendientes.length) {
+
+    let html = '';
+
+    // Cumpleaños pendientes
+
+    if (pendientes.length) {
+
+        html += `
+            <div class="card"
+                 style="
+                    border-left:4px solid #f39c12;
+                    margin-bottom:20px;
+                 ">
+
+                <h3>
+                    🎂 Cumpleaños Pendientes
+                </h3>
+
+                ${pendientes.map(student => `
+                    <p>
+                        ${student.nombre}
+                        ${student.apellido}
+                    </p>
+                `).join('')}
+
+            </div>
+        `;
+
+    }
+
+    // Resumen del mes
+
+    const gruposRepresentados =
+        new Set();
+
+    const subgruposRepresentados =
+        new Set();
+
+    cumpleaños.forEach(student => {
+
+        getStudentEnrollments(student)
+            .forEach(enrollment => {
+
+                if (enrollment.grupo) {
+                    gruposRepresentados.add(
+                        enrollment.grupo
+                    );
+                }
+
+                if (enrollment.subgrupo) {
+                    subgruposRepresentados.add(
+                        enrollment.subgrupo
+                    );
+                }
+
+            });
+
+    });
 
     html += `
-        <div class="card"
-             style="
-                 border-left:4px solid #f39c12;
-                 margin-bottom:15px;
-             ">
-            <h3>
-                🎂 Cumpleaños Pendientes
-            </h3>
 
-            ${pendientes.map(s => `
-                <p>
-                    ${s.nombre}
-                    ${s.apellido}
-                </p>
-            `).join('')}
+        <div
+            class="session-report-summary"
+            style="margin-bottom:20px;">
+
+            <div class="summary-card">
+                🎂<br>
+                <strong>
+                    ${cumpleaños.length}
+                </strong><br>
+                Cumpleaños
+            </div>
+
+            <div class="summary-card">
+                👥<br>
+                <strong>
+                    ${gruposRepresentados.size}
+                </strong><br>
+                Grupos
+            </div>
+
+            <div class="summary-card">
+                📚<br>
+                <strong>
+                    ${subgruposRepresentados.size}
+                </strong><br>
+                Subgrupos
+            </div>
+
+        </div>
+
+        <div class="executive-grid">
+    `;
+
+    cumpleaños.forEach(student => {
+
+        const enrollment =
+            getStudentEnrollments(student)[0] || {};
+
+        html += `
+
+            <div class="executive-card">
+
+                <div class="executive-card-header">
+
+                    <h3>
+                        🎂 ${student.nombre}
+                        ${student.apellido}
+                    </h3>
+
+                </div>
+
+                <div class="executive-info">
+
+                    <p>
+                        📅 ${student.fechaNacimiento}
+                    </p>
+
+                    <p>
+                        👥
+                        ${enrollment.grupo || '-'}
+                    </p>
+
+                    <p>
+                        📚
+                        ${enrollment.subgrupo || '-'}
+                    </p>
+
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+    html += `
         </div>
     `;
-}
-    cumpleaños.forEach(s => {
-      const card = document.createElement('div');
-      card.className = 'birthday-card';
-      card.innerHTML = `
-        <div class="birthday-info">
-          <h4>🎂 ${s.nombre} ${s.apellido}</h4>
-          <p>📅 ${s.fechaNacimiento} | 👥 ${s.grupo}</p>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-  }
 
+    if (!cumpleaños.length) {
+
+        html += `
+            <div class="card">
+                <p>
+                    No hay cumpleaños
+                    para los filtros seleccionados.
+                </p>
+            </div>
+        `;
+    }
+
+    container.innerHTML = html;
+
+}
+ function loadBirthdayGroups() {
+
+    const select =
+        document.getElementById(
+            'birthdayGroupFilter'
+        );
+
+    if (!select) return;
+
+    select.innerHTML = `
+        <option value="">
+            Todos los grupos
+        </option>
+    `;
+
+    const groups = [
+        ...new Set(
+            (window.classes || [])
+                .map(c => c.grupo)
+                .filter(Boolean)
+        )
+    ];
+
+    groups
+        .sort((a,b) =>
+            a.localeCompare(b,'es')
+        )
+        .forEach(group => {
+
+            const option =
+                document.createElement(
+                    'option'
+                );
+
+            option.value = group;
+            option.textContent = group;
+
+            select.appendChild(option);
+
+        });
+
+}
   // ==========================================
 // FINANZAS - GUARDAR MOVIMIENTO
 // ==========================================
