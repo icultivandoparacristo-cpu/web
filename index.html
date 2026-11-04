@@ -12453,205 +12453,270 @@ async function handleAttendanceDateChange() {
         renderDashboardSimplified();
     }
 
-}
-function generateExecutiveReport() {
+}function generateExecutiveReport() {
 
     const date =
-        document.getElementById('executiveDate')?.value;
-
-        const formattedDate = date
-    .split('-')
-    .reverse()
-    .join('/');
+        document.getElementById(
+            'executiveDate'
+        )?.value;
 
     if (!date) {
-        showNotification(
+        mostrarNotificacion(
             'Seleccione una fecha',
             'warning'
         );
         return;
     }
 
-const sessions = (window.classSessions || [])
-    .filter(session => {
+    const formattedDate =
+        date
+            .split('-')
+            .reverse()
+            .join('/');
 
-        const estado = String(
-            session.estado || ''
-        ).trim();
+    const sessions =
+        (window.classSessions || [])
+            .filter(session =>
+                session.fecha === formattedDate &&
+                session.estado === 'Realizada'
+            );
 
-        const fecha = String(
-            session.fecha || ''
-        ).trim();
-
-        return (
-            fecha === formattedDate &&
-            estado === 'Realizada'
+    const summaryContainer =
+        document.getElementById(
+            'reportSummaryContainer'
         );
-    });
 
+    const resultsContainer =
+        document.getElementById(
+            'reportResultsContainer'
+        );
 
-    let totalEnrolled = 0;
-    let totalPresent = 0;
-    let totalAbsent = 0;
-    let totalExcused = 0;
+    if (
+        !summaryContainer ||
+        !resultsContainer
+    ) {
+        return;
+    }
 
-    let reportHTML = '';
+    let totalPresentes = 0;
+    let totalAusentes = 0;
+    let totalExcusas = 0;
+    let totalInscritos = 0;
+
+    const cards = [];
 
     sessions.forEach(session => {
 
         const classData =
-            (window.classes || [])
-            .find(c => c.id === session.classId);
+            window.classes.find(
+                c =>
+                    String(c.id) ===
+                    String(session.classId)
+            );
 
-        if (!classData) return;
+        if (!classData) {
+            return;
+        }
 
         const stats =
-            buildAcademicSessionStats(session);
+            buildAcademicSessionStats(
+                session
+            );
 
-        totalEnrolled += stats.estudiantes || 0;
-        totalPresent += stats.presentes || 0;
-        totalAbsent += stats.ausentes || 0;
-        totalExcused += stats.excusas || 0;
+        if (!stats) {
+            return;
+        }
 
-       const asistencia =
-    stats.asistencia || 0;
+        totalPresentes +=
+            stats.presentes || 0;
 
-let badgeColor = '#28a745';
-let badgeText = 'Excelente';
+        totalAusentes +=
+            stats.ausentes || 0;
 
-if (asistencia < 90) {
-    badgeColor = '#17a2b8';
-    badgeText = 'Buena';
-}
+        totalExcusas +=
+            stats.excusas || 0;
 
-if (asistencia < 75) {
-    badgeColor = '#ffc107';
-    badgeText = 'Atención';
-}
+        totalInscritos +=
+            stats.estudiantes || 0;
 
-if (asistencia < 60) {
-    badgeColor = '#dc3545';
-    badgeText = 'Crítica';
-}
+        const asistencia =
+            Number(
+                stats.asistencia || 0
+            );
 
-reportHTML += `
-<div class="executive-card">
+        let badgeColor = '#22c55e';
+        let badgeText = 'Excelente';
 
-    <div class="executive-card-header">
+        if (asistencia < 90) {
+            badgeColor = '#06b6d4';
+            badgeText = 'Buena';
+        }
 
-        <h3>
-            📚 ${classData.grupo || 'Grupo'}
-        </h3>
+        if (asistencia < 75) {
+            badgeColor = '#f59e0b';
+            badgeText = 'Atención';
+        }
 
-        <div class="executive-subgroup">
-            ${classData.nombre || 'Sin subgrupo'}
+        if (asistencia < 60) {
+            badgeColor = '#ef4444';
+            badgeText = 'Crítica';
+        }
+
+        cards.push(`
+
+        <div class="executive-card">
+
+            <div class="executive-card-header">
+
+                <h3>
+                    📚 ${classData.grupo}
+                </h3>
+
+                <div class="executive-subgroup">
+                    👥 ${classData.materia}
+                </div>
+
+            </div>
+
+            <div class="executive-info">
+
+                <p>
+                    📅 ${session.fecha}
+                </p>
+
+                <p>
+                    👨‍🏫 ${session.responsable || 'Sin responsable'}
+                </p>
+
+            </div>
+
+            <div class="executive-rate">
+                ${asistencia.toFixed(1)}%
+            </div>
+
+            <div class="executive-stats">
+
+                <div>
+                    👥 ${stats.estudiantes}
+                    <small>Inscritos</small>
+                </div>
+
+                <div>
+                    ✅ ${stats.presentes}
+                    <small>Presentes</small>
+                </div>
+
+                <div>
+                    ❌ ${stats.ausentes}
+                    <small>Ausentes</small>
+                </div>
+
+                <div>
+                    📝 ${stats.excusas}
+                    <small>Excusas</small>
+                </div>
+
+            </div>
+
+            <div
+                class="executive-badge"
+                style="background:${badgeColor};">
+
+                ${badgeText}
+
+            </div>
+
         </div>
 
-    </div>
-
-    <div class="executive-info">
-
-        <p>
-            📅 ${session.fecha}
-        </p>
-
-        <p>
-            👤 ${session.responsable || 'Sin responsable'}
-        </p>
-
-    </div>
-
-    <div class="executive-rate">
-
-        ${asistencia.toFixed(1)}%
-
-    </div>
-
-    <div class="executive-stats">
-
-        <div>
-            👥 ${stats.estudiantes || 0}
-            <small>Inscritos</small>
-        </div>
-
-        <div>
-            ✅ ${stats.presentes || 0}
-            <small>Presentes</small>
-        </div>
-
-        <div>
-            ❌ ${stats.ausentes || 0}
-            <small>Ausentes</small>
-        </div>
-
-        <div>
-            📝 ${stats.excusas || 0}
-            <small>Excusas</small>
-        </div>
-
-    </div>
-
-    <div
-        class="executive-badge"
-        style="background:${badgeColor};">
-
-        ${badgeText}
-
-    </div>
-
-</div>
-`;
+        `);
 
     });
 
-    const attendanceRate =
-        totalEnrolled > 0
-            ? ((totalPresent / totalEnrolled) * 100)
+    const asistenciaGeneral =
+        totalInscritos > 0
+            ? (
+                totalPresentes *
+                100 /
+                totalInscritos
+            )
             : 0;
 
-    const resultHTML = `
+    summaryContainer.style.display =
+        'block';
+
+    summaryContainer.innerHTML = `
 
         <div class="session-report-summary">
 
-            <div class="summary-card">
-                <h3>📚</h3>
-                <span>${sessions.length}</span>
-                <small>Sesiones</small>
+            <div>
+                📚
+                <br>
+                <strong>
+                    ${cards.length}
+                </strong>
+                <br>
+                Subgrupos
             </div>
 
-            <div class="summary-card">
-                <h3>👥</h3>
-                <span>${totalEnrolled}</span>
-                <small>Inscritos</small>
+            <div>
+                👥
+                <br>
+                <strong>
+                    ${totalInscritos}
+                </strong>
+                <br>
+                Inscritos
             </div>
 
-            <div class="summary-card">
-                <h3>✅</h3>
-                <span>${totalPresent}</span>
-                <small>Presentes</small>
+            <div>
+                ✅
+                <br>
+                <strong>
+                    ${totalPresentes}
+                </strong>
+                <br>
+                Presentes
             </div>
 
-            <div class="summary-card">
-                <h3>📊</h3>
-                <span>${attendanceRate.toFixed(1)}%</span>
-                <small>Asistencia</small>
+            <div>
+                📊
+                <br>
+                <strong>
+                    ${asistenciaGeneral.toFixed(1)}%
+                </strong>
+                <br>
+                Asistencia
             </div>
 
-        </div>
-
-       <div class="executive-grid">
-    ${reportHTML}
         </div>
 
     `;
 
-    const container =
-        document.getElementById('reportResultsContainer')
-        container.style.display = 'block';
+    resultsContainer.style.display =
+        'block';
 
-    if (container) {
-        container.innerHTML = resultHTML;
-    }
+    resultsContainer.innerHTML = `
+
+        <h3>
+            📈 Reporte Ejecutivo Diario
+        </h3>
+
+        <p class="report-session-note">
+
+            ¿Qué subgrupos se reunieron?,
+            ¿Quién enseñó?
+            y ¿Cómo estuvo la asistencia?
+
+        </p>
+
+        <div class="executive-grid">
+
+            ${cards.join('')}
+
+        </div>
+
+    `;
+
 }
 
   function generateAttendanceReport() {
