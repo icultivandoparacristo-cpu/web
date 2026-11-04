@@ -12565,18 +12565,22 @@ async function handleAttendanceDateChange() {
         cards.push(`
 
         <div class="executive-card">
+<div class="executive-card-header">
 
-            <div class="executive-card-header">
+    <div class="executive-label">
+        Grupo
+    </div>
 
-                <h3>
-                    📚 ${classData.grupo}
-                </h3>
+    <h3>
+        📚 ${classData.grupo}
+    </h3>
 
-                <div class="executive-subgroup">
-                    👥 ${classData.materia}
-                </div>
+    <div class="executive-subgroup">
+        <strong>Subgrupo:</strong>
+        ${classData.materia}
+    </div>
 
-            </div>
+</div>
 
             <div class="executive-info">
 
