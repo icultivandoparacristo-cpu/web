@@ -5979,7 +5979,9 @@ button.auth-submit:hover {
             <option value="participants">
                 👥 Participantes Inscritos
             </option>
-
+            <option value="executive">
+                📈 Reporte Ejecutivo Diario
+            </option>
             <option value="finance">
                 💰 Finanzas
             </option>
@@ -12383,6 +12385,146 @@ async function handleAttendanceDateChange() {
     }
 
 }
+function generateExecutiveReport() {
+
+    const date =
+        document.getElementById('executiveDate')?.value;
+
+    if (!date) {
+        showNotification(
+            'Seleccione una fecha',
+            'warning'
+        );
+        return;
+    }
+
+    const sessions = (window.classSessions || [])
+        .filter(session => {
+
+            return session.fecha === date &&
+                   session.estado === 'Realizada';
+
+        });
+
+    let totalEnrolled = 0;
+    let totalPresent = 0;
+    let totalAbsent = 0;
+    let totalExcused = 0;
+
+    let reportHTML = '';
+
+    sessions.forEach(session => {
+
+        const classData =
+            (window.classes || [])
+            .find(c => c.id === session.classId);
+
+        if (!classData) return;
+
+        const stats =
+            buildAcademicSessionStats(session);
+
+        totalEnrolled += stats.total || 0;
+        totalPresent += stats.presentes || 0;
+        totalAbsent += stats.ausentes || 0;
+        totalExcused += stats.excusas || 0;
+
+        reportHTML += `
+            <div class="report-card">
+
+                <h4>
+                    ${classData.grupo || ''}
+                </h4>
+
+                <p>
+                    <strong>Subgrupo:</strong>
+                    ${classData.nombre || '-'}
+                </p>
+
+                <p>
+                    <strong>Responsable:</strong>
+                    ${session.responsable || '-'}
+                </p>
+
+                <hr>
+
+                <p>
+                    👥 Inscritos:
+                    ${stats.total || 0}
+                </p>
+
+                <p>
+                    ✅ Presentes:
+                    ${stats.presentes || 0}
+                </p>
+
+                <p>
+                    ❌ Ausentes:
+                    ${stats.ausentes || 0}
+                </p>
+
+                <p>
+                    📝 Excusas:
+                    ${stats.excusas || 0}
+                </p>
+
+                <p>
+                    📊 Asistencia:
+                    ${(stats.asistencia || 0).toFixed(1)}%
+                </p>
+
+            </div>
+        `;
+    });
+
+    const attendanceRate =
+        totalEnrolled > 0
+            ? ((totalPresent / totalEnrolled) * 100)
+            : 0;
+
+    const resultHTML = `
+
+        <div class="session-report-summary">
+
+            <div class="summary-card">
+                <h3>📚</h3>
+                <span>${sessions.length}</span>
+                <small>Sesiones</small>
+            </div>
+
+            <div class="summary-card">
+                <h3>👥</h3>
+                <span>${totalEnrolled}</span>
+                <small>Inscritos</small>
+            </div>
+
+            <div class="summary-card">
+                <h3>✅</h3>
+                <span>${totalPresent}</span>
+                <small>Presentes</small>
+            </div>
+
+            <div class="summary-card">
+                <h3>📊</h3>
+                <span>${attendanceRate.toFixed(1)}%</span>
+                <small>Asistencia</small>
+            </div>
+
+        </div>
+
+        <div class="report-list">
+            ${reportHTML}
+        </div>
+
+    `;
+
+    const container =
+        document.getElementById('reportResults');
+
+    if (container) {
+        container.innerHTML = resultHTML;
+    }
+}
 
   function generateAttendanceReport() {
     // ==========================================
@@ -14663,6 +14805,33 @@ function updateReportFilters() {
     `;
 }
 
+ // =====================================================
+    // REPORTE DE Ejecutivo
+    // =====================================================
+
+else if (reportType === 'executive') {
+
+    filtersContainer.innerHTML = `
+        <div class="filter-group">
+            <label>Fecha</label>
+            <input
+                type="date"
+                id="executiveDate"
+                value="${new Date().toISOString().split('T')[0]}"
+            >
+        </div>
+
+        <div class="filter-group">
+            <button
+                class="btn-save"
+                onclick="generateExecutiveReport()">
+                📈 Generar Reporte
+            </button>
+        </div>
+    `;
+
+    return;
+}
     // =====================================================
     // REPORTE DE GRUPOS
     // =====================================================
