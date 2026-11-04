@@ -12424,7 +12424,7 @@ function generateExecutiveReport() {
         const stats =
             buildAcademicSessionStats(session);
 
-        totalEnrolled += stats.total || 0;
+        totalEnrolled += stats.estudiantes || 0;
         totalPresent += stats.presentes || 0;
         totalAbsent += stats.ausentes || 0;
         totalExcused += stats.excusas || 0;
@@ -12450,7 +12450,7 @@ function generateExecutiveReport() {
 
                 <p>
                     👥 Inscritos:
-                    ${stats.total || 0}
+                    ${stats.estudiantesal || 0}
                 </p>
 
                 <p>
@@ -12519,7 +12519,8 @@ function generateExecutiveReport() {
     `;
 
     const container =
-        document.getElementById('reportResults');
+        document.getElementById('reportResultsContainer')
+        container.style.display = 'block';
 
     if (container) {
         container.innerHTML = resultHTML;
@@ -14806,13 +14807,12 @@ function updateReportFilters() {
 }
 
  // =====================================================
-    // REPORTE DE Ejecutivo
-    // =====================================================
+// REPORTE EJECUTIVO
+// =====================================================
+else if (type === 'executive') {
 
-else if (reportType === 'executive') {
-
-    filtersContainer.innerHTML = `
-        <div class="filter-group">
+    container.innerHTML = `
+        <div class="filtro-grupo">
             <label>Fecha</label>
             <input
                 type="date"
@@ -14821,7 +14821,7 @@ else if (reportType === 'executive') {
             >
         </div>
 
-        <div class="filter-group">
+        <div class="filtro-grupo">
             <button
                 class="btn-save"
                 onclick="generateExecutiveReport()">
@@ -14830,105 +14830,8 @@ else if (reportType === 'executive') {
         </div>
     `;
 
-    return;
 }
-    // =====================================================
-    // REPORTE DE GRUPOS
-    // =====================================================
 
-   else if (type === 'groups') {
-
-    const uniqueGroups =
-        [
-            ...new Map(
-                window.groups.map(
-                    g => [
-                        g.nombre,
-                        g
-                    ]
-                )
-            ).values()
-        ];
-
-    container.innerHTML = `
-
-        <div class="filtro-grupo">
-
-            <label>
-                Grupo
-            </label>
-
-            <select
-                id="reportGroup"
-                onchange="loadReportSubGroups()">
-
-                <option value="">
-                    Seleccione
-                </option>
-
-                ${uniqueGroups.map(g => `
-
-                    <option value="${g.nombre}">
-                        ${g.nombre}
-                    </option>
-
-                `).join('')}
-
-            </select>
-
-        </div>
-
-        <div class="filtro-grupo">
-
-            <label>
-                Subgrupo
-            </label>
-
-            <select id="reportSubGroup">
-
-                <option value="">
-                    Todos los subgrupos
-                </option>
-
-            </select>
-
-        </div>
-            
-            <div class="filtro-grupo">
-
-                <label>Fecha Inicio</label>
-
-                <input
-                    type="date"
-                    id="groupStartDate">
-
-            </div>
-
-            <div class="filtro-grupo">
-
-                <label>Fecha Fin</label>
-
-                <input
-                    type="date"
-                    id="groupEndDate">
-
-            </div>
-
-            <div class="filtro-grupo">
-
-                <button
-                    class="btn-save"
-                    onclick="generateGroupReport()">
-
-                    🔍 Generar Reporte
-
-                </button>
-
-            </div>
-
-        `;
-
-    }
      // =====================================================
     // REPORTE DE Alumnos
     // =====================================================
