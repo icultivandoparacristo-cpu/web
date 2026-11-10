@@ -15109,7 +15109,103 @@ container.innerHTML = `
         </div>
     `;
 }
+// =====================================================
+// REPORTE DE GRUPOS
+// =====================================================
+else if (type === 'groups') {
 
+    const uniqueGroups =
+        [
+            ...new Set(
+                window.classes
+                    .map(c => c.grupo)
+                    .filter(Boolean)
+            )
+        ]
+        .sort((a, b) =>
+            a.localeCompare(b, 'es')
+        );
+
+    container.innerHTML = `
+
+        <div class="filtro-grupo">
+
+            <label>
+                Grupo
+            </label>
+
+            <select
+                id="reportGroup"
+                onchange="loadReportSubGroups()">
+
+                <option value="">
+                    Seleccione
+                </option>
+
+                ${uniqueGroups.map(group => `
+                    <option value="${group}">
+                        ${group}
+                    </option>
+                `).join('')}
+
+            </select>
+
+        </div>
+
+        <div class="filtro-grupo">
+
+            <label>
+                Subgrupo
+            </label>
+
+            <select id="reportSubGroup">
+
+                <option value="">
+                    Todos los subgrupos
+                </option>
+
+            </select>
+
+        </div>
+
+        <div class="filtro-grupo">
+
+            <label>
+                Fecha Inicio
+            </label>
+
+            <input
+                type="date"
+                id="groupStartDate">
+
+        </div>
+
+        <div class="filtro-grupo">
+
+            <label>
+                Fecha Fin
+            </label>
+
+            <input
+                type="date"
+                id="groupEndDate">
+
+        </div>
+
+        <div class="filtro-grupo">
+
+            <button
+                class="btn-save"
+                onclick="generateGroupReport()">
+
+                👥 Generar Reporte
+
+            </button>
+
+        </div>
+
+    `;
+}
  // =====================================================
 // REPORTE EJECUTIVO
 // =====================================================
@@ -15353,7 +15449,6 @@ else if (type === 'classes') {
     `;
 
 }
-
 else if (type === 'participants') {
 
     container.innerHTML = `
@@ -15362,6 +15457,14 @@ else if (type === 'participants') {
                 class="btn-save"
                 onclick="generateParticipantsReport()">
                 👥 Generar Reporte
+            </button>
+        </div>
+
+        <div class="filtro-grupo">
+            <button
+                class="btn-pdf"
+                onclick="exportStudentBackupPDF()">
+                📄 Exportar Respaldo PDF
             </button>
         </div>
     `;
