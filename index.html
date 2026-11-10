@@ -6108,22 +6108,7 @@ button.auth-submit:hover {
 
     </div>
 
-    <div class="filtro-grupo">
-
-    <label>
-        Respaldo
-    </label>
-
-    <button
-        type="button"
-        class="btn-save"
-        onclick="exportStudentBackupPDF()">
-
-        📄 Exportar PDF
-
-    </button>
-
-</div>
+    
 </div>
 
 
@@ -14849,7 +14834,22 @@ function updateReportFilters() {
     if (!container) return;
 
     container.innerHTML = '';
+container.innerHTML = `
+    <div class="filtro-grupo">
+        <label>
+            Respaldo General
+        </label>
 
+        <button
+            type="button"
+            class="btn-save"
+            onclick="exportStudentBackupPDF()">
+
+            📄 Exportar PDF de Respaldo
+
+        </button>
+    </div>
+`;
     // =====================================================
     // REPORTE DE ASISTENCIA
     // =====================================================
