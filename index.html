@@ -12,6 +12,8 @@ href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 
 >
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
 /* ==========================================
@@ -6097,11 +6099,7 @@ button.auth-submit:hover {
             <option value="executive">
                 📈 Reporte Ejecutivo Diario
             </option>
-            <button
-                class="btn btn-primary"
-                onclick="exportStudentBackupPDF()">
-                📄 Respaldo PDF por Subgrupo
-            </button>
+            
             <option value="finance">
                 💰 Finanzas
             </option>
@@ -6110,6 +6108,22 @@ button.auth-submit:hover {
 
     </div>
 
+    <div class="filtro-grupo">
+
+    <label>
+        Respaldo
+    </label>
+
+    <button
+        type="button"
+        class="btn-save"
+        onclick="exportStudentBackupPDF()">
+
+        📄 Exportar PDF
+
+    </button>
+
+</div>
 </div>
 
 
