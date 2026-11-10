@@ -28048,6 +28048,9 @@ const classData = {
                             nuevo: classData.materia
                         }
                     );
+                    
+
+
                         console.log(
                             'oldClass completo:',
                             oldClass
@@ -28078,55 +28081,34 @@ const classData = {
                             'Comparación:',
                             normalizeText(oldSubGroup)
                         );
-                     const affectedStudents =
-                        window.students.filter(student => {
+                     
+const normalizedOldGroup =
+    normalizeText(oldGroup);
 
-                            const enrollments =
-                                getStudentEnrollments(student);
+const normalizedOldSubGroup =
+    normalizeSubGroupName(oldSubGroup);
 
-                          return enrollments.some(
-    enrollment => {
+const affectedStudents =
+    window.students.filter(student => {
 
-        const enrollmentGroup =
-        normalizeText(
-            enrollment.grupo
-        );
+        const enrollments =
+            getStudentEnrollments(student);
 
-       const enrollmentSubGroup =
-            normalizeText(
-                enrollment.subgrupo
+        return enrollments.some(enrollment => {
+
+            return (
+                normalizeText(
+                    enrollment.grupo
+                ) === normalizedOldGroup
+                &&
+                normalizeSubGroupName(
+                    enrollment.subgrupo
+                ) === normalizedOldSubGroup
             );
 
-   const targetGroup =
-    normalizeText(
-        oldGroup
-    );
-
-
-        const targetSubGroup =
-       normalizeText(
-        oldSubGroup
-        );
-
-
-      return (
-    enrollmentGroup === targetGroup &&
-    (
-        enrollmentSubGroup === targetSubGroup ||
-
-        normalizeSubGroupName(
-            enrollment.subgrupo
-        ) ===
-        normalizeSubGroupName(
-            oldSubGroup
-        )
-    )
-);
-
-    }
-);
-
-                        });
+        });
+    });
+    
 
                     console.log(
                         '👤 Estudiantes afectados:',
@@ -28138,60 +28120,33 @@ const classData = {
                         of affectedStudents
                     ) {
 
-                        const updatedEnrollments =
-                            getStudentEnrollments(student)
-                                .map(enrollment => {
+                     const updatedEnrollments =
+    getStudentEnrollments(student)
+        .map(enrollment => {
 
-                        const enrollmentGroup =
-                        normalizeText(
-                            enrollment.grupo
-                        );
+            const matchesGroup =
+                normalizeText(
+                    enrollment.grupo
+                ) === normalizedOldGroup;
 
-                    const enrollmentSubGroup =
-                        normalizeText(
-                            enrollment.subgrupo
-                        );
+            const matchesSubGroup =
+                normalizeSubGroupName(
+                    enrollment.subgrupo
+                ) === normalizedOldSubGroup;
 
-                    const targetGroup =
-                        normalizeText(
-                            oldGroup
-                        );
+            if (
+                matchesGroup &&
+                matchesSubGroup
+            ) {
+                return {
+                    ...enrollment,
+                    subgrupo:
+                        classData.materia
+                };
+            }
 
-                    const targetSubGroup =
-                        normalizeText(
-                            oldSubGroup
-                        );
-                        console.log({
-                        enrollmentGroup,
-                        enrollmentSubGroup,
-                        targetGroup,
-                        targetSubGroup
-                    });
-
-                        if (
-                                enrollmentGroup === targetGroup &&
-                                (
-                                    enrollmentSubGroup === targetSubGroup ||
-
-                                    normalizeSubGroupName(
-                                        enrollment.subgrupo
-                                    ) ===
-                                    normalizeSubGroupName(
-                                        oldSubGroup
-                                    )
-                                )
-                            )
-                                    {
-                                        return {
-                                            ...enrollment,
-                                            subgrupo:
-                                                classData.materia
-                                        };
-                                    }
-
-                                    return enrollment;
-
-                                });
+            return enrollment;
+        });
 
                         const updatedStudent = {
                             ...student,
@@ -28202,25 +28157,16 @@ const classData = {
                         };
 
                       // Compatibilidad legacy
-                        if (
-
+                     if (
                             normalizeText(
                                 student.grupo
-                            ) ===
-                            normalizeText(
-                                oldGroup
-                            )
-
+                            ) === normalizedOldGroup
                             &&
-
-                            normalizeText(
+                            normalizeSubGroupName(
                                 student.subgrupo
-                            ) ===
-                            normalizeText(
-                                oldSubGroup
-                            )
-
-                        ) {
+                            ) === normalizedOldSubGroup
+                        )
+                        {
 
                             updatedStudent.subgrupo =
                                 classData.materia;
