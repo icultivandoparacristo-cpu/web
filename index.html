@@ -12872,71 +12872,125 @@ groupedFinance[classData.grupo].movimientos =
                 totalInscritos
             )
             : 0;
+            const financesToday =
+                (window.finances || []).filter(finance =>
+                    (finance.estado || 'Activo') === 'Activo' &&
+                    finance.fecha === date
+                );
 
-    summaryContainer.style.display =
-        'block';
+            const ingresosDia =
+                financesToday
+                    .filter(f => f.tipo === 'Ingreso')
+                    .reduce(
+                        (sum, item) =>
+                            sum + (Number(item.monto) || 0),
+                        0
+                    );
 
-    summaryContainer.innerHTML = `
+            const gastosDia =
+                financesToday
+                    .filter(f => f.tipo === 'Gasto')
+                    .reduce(
+                        (sum, item) =>
+                            sum + (Number(item.monto) || 0),
+                        0
+                    );
 
-        <div class="session-report-summary">
+            const allFinances =
+                (window.finances || []).filter(finance =>
+                    (finance.estado || 'Activo') === 'Activo'
+                );
 
-            <div>
-                📚
-                <br>
-                <strong>
-                    ${cards.length}
-                </strong>
-                <br>
-                Subgrupos
-            </div>
+            const ingresosHistoricos =
+                allFinances
+                    .filter(f => f.tipo === 'Ingreso')
+                    .reduce(
+                        (sum, item) =>
+                            sum + (Number(item.monto) || 0),
+                        0
+                    );
 
-            <div>
-                👥
-                <br>
-                <strong>
-                    ${totalInscritos}
-                </strong>
-                <br>
-                Inscritos
-            </div>
+            const gastosHistoricos =
+                allFinances
+                    .filter(f => f.tipo === 'Gasto')
+                    .reduce(
+                        (sum, item) =>
+                            sum + (Number(item.monto) || 0),
+                        0
+                    );
 
-            <div>
-                ✅
-                <br>
-                <strong>
-                    ${totalPresentes}
-                </strong>
-                <br>
-                Presentes
-            </div>
+            const balanceGeneral =
+                ingresosHistoricos -
+                gastosHistoricos;
 
-            <div>
-                📊
-                <br>
-                <strong>
-                    ${asistenciaGeneral.toFixed(1)}%
-                </strong>
-                <br>
-                Asistencia
-            </div>
+            const promedioAsistente =
+                totalPresentes > 0
+                    ? ingresosDia / totalPresentes
+                    : 0;
+                summaryContainer.style.display =
+                    'block';
 
-        </div>
+                summaryContainer.innerHTML = `
 
-    `;
+                    <div class="session-report-summary">
 
-    resultsContainer.style.display =
-        'block';
+                        <div>
+                            📚
+                            <br>
+                            <strong>
+                                ${cards.length}
+                            </strong>
+                            <br>
+                            Subgrupos
+                        </div>
 
-const groupedHtml =
-    Object.entries(groupedCards)
-        .map(([groupName, groupCards]) => {
+                        <div>
+                            👥
+                            <br>
+                            <strong>
+                                ${totalInscritos}
+                            </strong>
+                            <br>
+                            Inscritos
+                        </div>
 
-            const groupStats = groupedStats[groupName];
-            const financeStats =
-            groupedFinance[groupName] || {
-                ingresos: 0,
-                movimientos: 0
-            };
+                        <div>
+                            ✅
+                            <br>
+                            <strong>
+                                ${totalPresentes}
+                            </strong>
+                            <br>
+                            Presentes
+                        </div>
+
+                        <div>
+                            📊
+                            <br>
+                            <strong>
+                                ${asistenciaGeneral.toFixed(1)}%
+                            </strong>
+                            <br>
+                            Asistencia
+                        </div>
+
+                    </div>
+
+                `;
+
+                resultsContainer.style.display =
+                    'block';
+
+            const groupedHtml =
+                Object.entries(groupedCards)
+                    .map(([groupName, groupCards]) => {
+
+                        const groupStats = groupedStats[groupName];
+                        const financeStats =
+                        groupedFinance[groupName] || {
+                            ingresos: 0,
+                            movimientos: 0
+                        };
 
             const attendance =
                 groupStats.inscritos > 0
@@ -16397,88 +16451,52 @@ function generateClassReport() {
     // ==========================================
     summaryContainer.style.display =
         'block';
+summaryContainer.innerHTML = `
 
-    summaryContainer.innerHTML = `
-        <div class="session-report-summary">
+<div class="executive-finance-summary">
 
-            <div>
-                👥
-                <strong>
-                    Estudiantes activos
-                </strong>
-                <br>
-                ${subGroupStudents.length}
-            </div>
+    <div class="finance-summary-card">
+        <strong>${totalPresentes}</strong>
+        <span>👥 Asistentes</span>
+    </div>
 
-            <div>
-                📅
-                <strong>
-                    Sesiones
-                </strong>
-                <br>
-                ${totalSesiones}
-            </div>
+    <div class="finance-summary-card income">
+        <strong>
+            ${formatCurrency(ingresosDia)}
+        </strong>
+        <span>💰 Ingreso del Día</span>
+    </div>
 
-            <div>
-                ✅
-                <strong>
-                    Realizadas
-                </strong>
-                <br>
-                ${totalRealizadas}
-            </div>
+    <div class="finance-summary-card expense">
+        <strong>
+            ${formatCurrency(gastosDia)}
+        </strong>
+        <span>💸 Gastos del Día</span>
+    </div>
 
-            <div>
-                ⛔
-                <strong>
-                    Suspendidas
-                </strong>
-                <br>
-                ${totalSuspendidas}
-            </div>
+    <div class="finance-summary-card balance">
+        <strong>
+            ${formatCurrency(balanceGeneral)}
+        </strong>
+        <span>🏦 Balance Acumulado</span>
+    </div>
 
-            <div>
-                📈
-                <strong>
-                    Tasa de realización
-                </strong>
-                <br>
-                ${tasaRealizacion.toFixed(1)}%
-            </div>
+    <div class="finance-summary-card">
+        <strong>
+            ${financesToday.length}
+        </strong>
+        <span>🧾 Movimientos</span>
+    </div>
 
-            <div>
-                📊
-                <strong>
-                    Asistencia
-                </strong>
-                <br>
-                ${promedioAsistencia.toFixed(1)}%
-            </div>
+    <div class="finance-summary-card">
+        <strong>
+            ${formatCurrency(promedioAsistente)}
+        </strong>
+        <span>📊 Por Asistente</span>
+    </div>
 
-            <div>
-                ⭐
-                <strong>
-                    Participación
-                </strong>
-                <br>
-                ${
-                    promedioParticipacion === null
-                        ? 'N/A'
-                        : promedioParticipacion.toFixed(1) + '%'
-                }
-            </div>
-
-            <div>
-                👨‍🏫
-                <strong>
-                    Maestros
-                </strong>
-                <br>
-                ${teachers.size}
-            </div>
-
-        </div>
-    `;
+</div>
+`;
 
     // ==========================================
     // RESULTADOS
