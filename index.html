@@ -3692,7 +3692,7 @@ button.auth-submit:hover {
 
 .executive-stats small{
     display:block;
-    color:#666;
+    color:#686;
 }
 
 .executive-badge{
@@ -3702,6 +3702,25 @@ button.auth-submit:hover {
     padding:6px 12px;
     border-radius:999px;
     font-weight:600;
+}
+.executive-group-section{
+    margin-bottom:35px;
+}
+
+.executive-group-header{
+    margin-bottom:18px;
+    padding:12px 18px;
+
+    background:#f8fafc;
+
+    border-left:6px solid #2563eb;
+
+    border-radius:10px;
+}
+
+.executive-group-header h2{
+    margin:0;
+    color:#1e3a8a;
 }
 
   /* Estado y bitácora de la sesión de asistencia */
@@ -12597,6 +12616,7 @@ async function handleAttendanceDateChange() {
     let totalInscritos = 0;
 
     const cards = [];
+    const groupedCards = {};
 
     sessions.forEach(session => {
 
@@ -12655,77 +12675,66 @@ async function handleAttendanceDateChange() {
             badgeText = 'Crítica';
         }
 
-        cards.push(`
-
-        <div class="executive-card">
+      const cardHtml = `
+<div class="executive-card">
 <div class="executive-card-header">
-
     <div class="executive-label">
         Grupo
     </div>
-
     <h3>
         📚 ${classData.grupo}
     </h3>
-
     <div class="executive-subgroup">
         <strong>Subgrupo:</strong>
         ${classData.materia}
     </div>
-
 </div>
 
-            <div class="executive-info">
+<div class="executive-info">
+    <p>📅 ${session.fecha}</p>
+    <p>👨‍🏫 ${session.responsable || 'Sin responsable'}</p>
+</div>
 
-                <p>
-                    📅 ${session.fecha}
-                </p>
+<div class="executive-rate">
+    ${asistencia.toFixed(1)}%
+</div>
 
-                <p>
-                    👨‍🏫 ${session.responsable || 'Sin responsable'}
-                </p>
+<div class="executive-stats">
+    <div>
+        👥 ${stats.estudiantes}
+        <small>Inscritos</small>
+    </div>
 
-            </div>
+    <div>
+        ✅ ${stats.presentes}
+        <small>Presentes</small>
+    </div>
 
-            <div class="executive-rate">
-                ${asistencia.toFixed(1)}%
-            </div>
+    <div>
+        ❌ ${stats.ausentes}
+        <small>Ausentes</small>
+    </div>
 
-            <div class="executive-stats">
+    <div>
+        📝 ${stats.excusas}
+        <small>Excusas</small>
+    </div>
+</div>
 
-                <div>
-                    👥 ${stats.estudiantes}
-                    <small>Inscritos</small>
-                </div>
+<div
+    class="executive-badge"
+    style="background:${badgeColor};">
+    ${badgeText}
+</div>
 
-                <div>
-                    ✅ ${stats.presentes}
-                    <small>Presentes</small>
-                </div>
+</div>
+`;
 
-                <div>
-                    ❌ ${stats.ausentes}
-                    <small>Ausentes</small>
-                </div>
+if (!groupedCards[classData.grupo]) {
+    groupedCards[classData.grupo] = [];
+}
 
-                <div>
-                    📝 ${stats.excusas}
-                    <small>Excusas</small>
-                </div>
-
-            </div>
-
-            <div
-                class="executive-badge"
-                style="background:${badgeColor};">
-
-                ${badgeText}
-
-            </div>
-
-        </div>
-
-        `);
+groupedCards[classData.grupo].push(cardHtml);
 
     });
 
@@ -12792,27 +12801,40 @@ async function handleAttendanceDateChange() {
     resultsContainer.style.display =
         'block';
 
-    resultsContainer.innerHTML = `
+   const groupedHtml =
+    Object.entries(groupedCards)
+        .map(([groupName, groupCards]) => `
+        
+        <div class="executive-group-section">
 
-        <h3>
-            📈 Reporte Ejecutivo Diario
-        </h3>
+            <div class="executive-group-header">
+                <h2>
+                    📚 ${groupName}
+                </h2>
+            </div>
 
-        <p class="report-session-note">
-
-            ¿Qué subgrupos se reunieron?,
-            ¿Quién enseñó?
-            y ¿Cómo estuvo la asistencia?
-
-        </p>
-
-        <div class="executive-grid">
-
-            ${cards.join('')}
+            <div class="executive-grid">
+                ${groupCards.join('')}
+            </div>
 
         </div>
 
-    `;
+        `)
+        .join('');
+
+resultsContainer.innerHTML = `
+    <h3>
+        📈 Reporte Ejecutivo Diario
+    </h3>
+
+    <p class="report-session-note">
+        ¿Qué subgrupos se reunieron?,
+        ¿Quién enseñó?
+        y ¿Cómo estuvo la asistencia?
+    </p>
+
+    ${groupedHtml}
+`;
 
 }
 
