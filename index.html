@@ -3769,6 +3769,47 @@ button.auth-submit:hover {
 .finance-item strong{
     color:#087443;
 }
+.executive-finance-summary{
+    display:grid;
+    grid-template-columns:
+        repeat(auto-fit,minmax(180px,1fr));
+    gap:15px;
+    margin-bottom:25px;
+}
+
+.finance-summary-card{
+    background:#fff;
+    border-radius:12px;
+    padding:16px;
+    text-align:center;
+    border:1px solid #e5e7eb;
+}
+
+.finance-summary-card strong{
+    display:block;
+    font-size:1.4rem;
+    margin-bottom:6px;
+}
+
+.finance-summary-card span{
+    color:#64748b;
+    font-size:.9rem;
+}
+
+.finance-summary-card.income{
+    background:#ecfdf5;
+    border-color:#22c55e;
+}
+
+.finance-summary-card.expense{
+    background:#fef2f2;
+    border-color:#ef4444;
+}
+
+.finance-summary-card.balance{
+    background:#eff6ff;
+    border-color:#2563eb;
+}
   /* Estado y bitácora de la sesión de asistencia */
   .class-session-panel { margin-top:16px; padding:18px; border:1px solid #d8e7df; border-radius:14px; background:#f8fcfa; }
   .class-session-title { font-size:16px; font-weight:700; color:#075b38; margin-bottom:14px; }
@@ -12611,7 +12652,8 @@ async function handleAttendanceDateChange() {
         renderDashboardSimplified();
     }
 
-}function generateExecutiveReport() {
+}
+function generateExecutiveReport() {
 
     const date =
         document.getElementById(
@@ -12956,33 +12998,8 @@ const groupedHtml =
                         <strong>${attendance.toFixed(1)}%</strong>
                         <span>Asistencia</span>
                     </div>
-                    <div class="summary-item finance-item">
-                        <strong>
-                            ${formatCurrency(financeStats.ingresos)}
-                        </strong>
-                        <span>Ingresos</span>
-                    </div>
-
-                    <div class="summary-item finance-item">
-                        <strong>
-                            ${financeStats.movimientos}
-                        </strong>
-                        <span>Movimientos</span>
-                    </div>
-
-                    <div class="summary-item finance-item">
-                        <strong>
-                            ${
-                                groupStats.presentes > 0
-                                    ? formatCurrency(
-                                        financeStats.ingresos /
-                                        groupStats.presentes
-                                    )
-                                    : 'RD$0'
-                            }
-                        </strong>
-                        <span>Por Asistente</span>
-                    </div>
+                   
+                                      
                     <div
                         class="group-state-badge"
                         style="background:${badgeColor};">
@@ -13436,7 +13453,62 @@ resultsContainer.innerHTML = `
                 ).toFixed(1)
             )
             : 0;
+const financesToday =
+    (window.finances || []).filter(finance =>
+        finance.estado !== 'Anulado' &&
+        finance.fecha === formattedDate
+    );
 
+const ingresosDia =
+    financesToday
+        .filter(f => f.tipo === 'Ingreso')
+        .reduce(
+            (sum, item) =>
+                sum + (Number(item.monto) || 0),
+            0
+        );
+
+const gastosDia =
+    financesToday
+        .filter(f => f.tipo === 'Gasto')
+        .reduce(
+            (sum, item) =>
+                sum + (Number(item.monto) || 0),
+            0
+        );
+
+const allFinances =
+    (window.finances || [])
+        .filter(finance =>
+            finance.estado !== 'Anulado'
+        );
+
+const ingresosHistoricos =
+    allFinances
+        .filter(f => f.tipo === 'Ingreso')
+        .reduce(
+            (sum, item) =>
+                sum + (Number(item.monto) || 0),
+            0
+        );
+
+        const gastosHistoricos =
+            allFinances
+                .filter(f => f.tipo === 'Gasto')
+                .reduce(
+                    (sum, item) =>
+                        sum + (Number(item.monto) || 0),
+                    0
+                );
+
+        const balanceGeneral =
+            ingresosHistoricos -
+            gastosHistoricos;
+
+        const promedioAsistente =
+            totalPresentes > 0
+                ? ingresosDia / totalPresentes
+                : 0;
     // ==========================================
     // RESUMEN
     // ==========================================
@@ -13444,86 +13516,51 @@ resultsContainer.innerHTML = `
         'block';
 
     summaryContainer.innerHTML = `
-        <div class="session-report-summary">
 
-            <div>
-                📅
-                <strong>Sesiones</strong>
-                <br>
-                ${totalSesiones}
-            </div>
+    <div class="executive-finance-summary">
 
-            <div>
-                ✅
-                <strong>Realizadas</strong>
-                <br>
-                ${totalRealizadas}
-            </div>
-
-            <div>
-                ⛔
-                <strong>Suspendidas</strong>
-                <br>
-                ${totalSuspendidas}
-            </div>
-
-            <div>
-                📈
-                <strong>Tasa de realización</strong>
-                <br>
-                ${tasaRealizacion.toFixed(1)}%
-            </div>
-
-            <div>
-                📊
-                <strong>Asistencia</strong>
-                <br>
-                ${promedio.toFixed(1)}%
-            </div>
-
-            <div>
-                ⭐
-                <strong>Participación</strong>
-                <br>
-                ${
-                    participacionGeneral === null
-                        ? 'N/A'
-                        : participacionGeneral.toFixed(1) + '%'
-                }
-            </div>
-
-            <div>
-                ✅ Presentes
-                <br>
-                ${totalPresentes}
-            </div>
-
-            <div>
-                ❌ Ausentes
-                <br>
-                ${totalAusentes}
-            </div>
-
-            <div>
-                📝 Excusas
-                <br>
-                ${totalExcusas}
-            </div>
-
-            <div>
-                ⚪ Sin registrar
-                <br>
-                ${totalSinRegistrar}
-            </div>
-
-            <div>
-                ⭐ Participaciones
-                <br>
-                ${totalParticipaciones}
-            </div>
-
+        <div class="finance-summary-card">
+            <strong>${totalPresentes}</strong>
+            <span>👥 Asistentes</span>
         </div>
-    `;
+
+        <div class="finance-summary-card income">
+            <strong>
+                ${formatCurrency(ingresosDia)}
+            </strong>
+            <span>💰 Ingresos del Día</span>
+        </div>
+
+        <div class="finance-summary-card expense">
+            <strong>
+                ${formatCurrency(gastosDia)}
+            </strong>
+            <span>💸 Gastos del Día</span>
+        </div>
+
+        <div class="finance-summary-card balance">
+            <strong>
+                ${formatCurrency(balanceGeneral)}
+            </strong>
+            <span>🏦 Balance Acumulado</span>
+        </div>
+
+        <div class="finance-summary-card">
+            <strong>
+                ${financesToday.length}
+            </strong>
+            <span>🧾 Movimientos</span>
+        </div>
+
+        <div class="finance-summary-card">
+            <strong>
+                ${formatCurrency(promedioAsistente)}
+            </strong>
+            <span>📊 Por Asistente</span>
+        </div>
+
+    </div>
+`;
 
     // ==========================================
     // RESULTADOS
