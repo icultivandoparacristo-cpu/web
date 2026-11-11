@@ -12932,51 +12932,61 @@ groupedFinance[classData.grupo].movimientos =
 
                 summaryContainer.innerHTML = `
 
-                    <div class="session-report-summary">
+<div class="executive-finance-summary">
 
-                        <div>
-                            📚
-                            <br>
-                            <strong>
-                                ${cards.length}
-                            </strong>
-                            <br>
-                            Subgrupos
-                        </div>
+    <div class="finance-summary-card">
+        <strong>${sessions.length}</strong>
+        <span>📚 Subgrupos</span>
+    </div>
 
-                        <div>
-                            👥
-                            <br>
-                            <strong>
-                                ${totalInscritos}
-                            </strong>
-                            <br>
-                            Inscritos
-                        </div>
+    <div class="finance-summary-card">
+        <strong>${totalPresentes}</strong>
+        <span>👥 Presentes</span>
+    </div>
 
-                        <div>
-                            ✅
-                            <br>
-                            <strong>
-                                ${totalPresentes}
-                            </strong>
-                            <br>
-                            Presentes
-                        </div>
+    <div class="finance-summary-card">
+        <strong>${asistenciaGeneral.toFixed(1)}%</strong>
+        <span>📊 Asistencia</span>
+    </div>
 
-                        <div>
-                            📊
-                            <br>
-                            <strong>
-                                ${asistenciaGeneral.toFixed(1)}%
-                            </strong>
-                            <br>
-                            Asistencia
-                        </div>
+    <div class="finance-summary-card income">
+        <strong>
+            ${formatCurrency(ingresosDia)}
+        </strong>
+        <span>💰 Ingreso del Día</span>
+    </div>
 
-                    </div>
+    <div class="finance-summary-card expense">
+        <strong>
+            ${formatCurrency(gastosDia)}
+        </strong>
+        <span>💸 Gastos del Día</span>
+    </div>
 
-                `;
+    <div class="finance-summary-card balance">
+        <strong>
+            ${formatCurrency(balanceGeneral)}
+        </strong>
+        <span>🏦 Balance Acumulado</span>
+    </div>
+
+    <div class="finance-summary-card">
+        <strong>
+            ${financesToday.length}
+        </strong>
+        <span>🧾 Movimientos</span>
+    </div>
+
+    <div class="finance-summary-card">
+        <strong>
+            ${formatCurrency(promedioAsistente)}
+        </strong>
+        <span>📈 Por Asistente</span>
+    </div>
+
+</div>
+
+`;
 
                 resultsContainer.style.display =
                     'block';
