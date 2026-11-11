@@ -3722,7 +3722,45 @@ button.auth-submit:hover {
     margin:0;
     color:#1e3a8a;
 }
+.executive-group-summary{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+    padding:15px;
+    background:#ffffff;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+}
 
+.summary-item{
+    min-width:110px;
+    padding:10px;
+    text-align:center;
+    background:#f8fafc;
+    border-radius:8px;
+}
+
+.summary-item strong{
+    display:block;
+    font-size:1.2rem;
+    color:#1e3a8a;
+}
+
+.summary-item span{
+    font-size:.8rem;
+    color:#64748b;
+}
+
+.group-state-badge{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:10px 18px;
+    color:white;
+    font-weight:bold;
+    border-radius:999px;
+}
   /* Estado y bitácora de la sesión de asistencia */
   .class-session-panel { margin-top:16px; padding:18px; border:1px solid #d8e7df; border-radius:14px; background:#f8fcfa; }
   .class-session-title { font-size:16px; font-weight:700; color:#075b38; margin-bottom:14px; }
@@ -12617,6 +12655,7 @@ async function handleAttendanceDateChange() {
 
     const cards = [];
     const groupedCards = {};
+    const groupedStats = {};
 
     sessions.forEach(session => {
 
@@ -12733,9 +12772,21 @@ async function handleAttendanceDateChange() {
 if (!groupedCards[classData.grupo]) {
     groupedCards[classData.grupo] = [];
 }
-
+if (!groupedStats[classData.grupo]) {
+    groupedStats[classData.grupo] = {
+        subgrupos: 0,
+        inscritos: 0,
+        presentes: 0,
+        ausentes: 0,
+        excusas: 0
+    };
+}
 groupedCards[classData.grupo].push(cardHtml);
-
+groupedStats[classData.grupo].subgrupos += 1;
+groupedStats[classData.grupo].inscritos += stats.estudiantes;
+groupedStats[classData.grupo].presentes += stats.presentes;
+groupedStats[classData.grupo].ausentes += stats.ausentes;
+groupedStats[classData.grupo].excusas += stats.excusas;
     });
 
     const asistenciaGeneral =
@@ -12801,25 +12852,88 @@ groupedCards[classData.grupo].push(cardHtml);
     resultsContainer.style.display =
         'block';
 
-   const groupedHtml =
+const groupedHtml =
     Object.entries(groupedCards)
-        .map(([groupName, groupCards]) => `
-        
-        <div class="executive-group-section">
+        .map(([groupName, groupCards]) => {
 
-            <div class="executive-group-header">
-                <h2>
-                    📚 ${groupName}
-                </h2>
+            const groupStats = groupedStats[groupName];
+
+            const attendance =
+                groupStats.inscritos > 0
+                    ? (groupStats.presentes / groupStats.inscritos) * 100
+                    : 0;
+
+            let badgeText = 'Crítica';
+            let badgeColor = '#ef4444';
+
+            if (attendance >= 90) {
+                badgeText = 'Excelente';
+                badgeColor = '#22c55e';
+            } else if (attendance >= 75) {
+                badgeText = 'Buena';
+                badgeColor = '#06b6d4';
+            } else if (attendance >= 60) {
+                badgeText = 'Regular';
+                badgeColor = '#f59e0b';
+            }
+
+            return `
+            
+            <div class="executive-group-section">
+
+                <div class="executive-group-header">
+                    <h2>
+                        📚 ${groupName}
+                    </h2>
+                </div>
+
+                <div class="executive-group-summary">
+
+                    <div class="summary-item">
+                        <strong>${groupStats.subgrupos}</strong>
+                        <span>Subgrupos</span>
+                    </div>
+
+                    <div class="summary-item">
+                        <strong>${groupStats.inscritos}</strong>
+                        <span>Inscritos</span>
+                    </div>
+
+                    <div class="summary-item">
+                        <strong>${groupStats.presentes}</strong>
+                        <span>Presentes</span>
+                    </div>
+
+                    <div class="summary-item">
+                        <strong>${groupStats.ausentes}</strong>
+                        <span>Ausentes</span>
+                    </div>
+
+                    <div class="summary-item">
+                        <strong>${groupStats.excusas}</strong>
+                        <span>Excusas</span>
+                    </div>
+
+                    <div class="summary-item">
+                        <strong>${attendance.toFixed(1)}%</strong>
+                        <span>Asistencia</span>
+                    </div>
+
+                    <div
+                        class="group-state-badge"
+                        style="background:${badgeColor};">
+                        ${badgeText}
+                    </div>
+
+                </div>
+
+                <div class="executive-grid">
+                    ${groupCards.join('')}
+                </div>
+
             </div>
-
-            <div class="executive-grid">
-                ${groupCards.join('')}
-            </div>
-
-        </div>
-
-        `)
+            `;
+        })
         .join('');
 
 resultsContainer.innerHTML = `
