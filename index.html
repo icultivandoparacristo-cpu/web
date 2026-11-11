@@ -3761,6 +3761,14 @@ button.auth-submit:hover {
     font-weight:bold;
     border-radius:999px;
 }
+.finance-item{
+    background:#eefaf2;
+    border:1px solid #cde8d3;
+}
+
+.finance-item strong{
+    color:#087443;
+}
   /* Estado y bitácora de la sesión de asistencia */
   .class-session-panel { margin-top:16px; padding:18px; border:1px solid #d8e7df; border-radius:14px; background:#f8fcfa; }
   .class-session-title { font-size:16px; font-weight:700; color:#075b38; margin-bottom:14px; }
@@ -12656,6 +12664,8 @@ async function handleAttendanceDateChange() {
     const cards = [];
     const groupedCards = {};
     const groupedStats = {};
+    const groupedFinance = {};
+
 
     sessions.forEach(session => {
 
@@ -12781,12 +12791,35 @@ if (!groupedStats[classData.grupo]) {
         excusas: 0
     };
 }
+if (!groupedFinance[classData.grupo]) {
+    groupedFinance[classData.grupo] = {
+        ingresos: 0,
+        movimientos: 0
+    };
+}
 groupedCards[classData.grupo].push(cardHtml);
 groupedStats[classData.grupo].subgrupos += 1;
 groupedStats[classData.grupo].inscritos += stats.estudiantes;
 groupedStats[classData.grupo].presentes += stats.presentes;
 groupedStats[classData.grupo].ausentes += stats.ausentes;
 groupedStats[classData.grupo].excusas += stats.excusas;
+const financeRecords =
+    (window.finances || []).filter(finance =>
+        finance.estado !== 'Anulado' &&
+        finance.tipo === 'Ingreso' &&
+        finance.fecha === date &&
+        finance.grupo === classData.grupo
+    );
+
+groupedFinance[classData.grupo].ingresos =
+    financeRecords.reduce(
+        (sum, item) =>
+            sum + (Number(item.monto) || 0),
+        0
+    );
+
+groupedFinance[classData.grupo].movimientos =
+    financeRecords.length;
     });
 
     const asistenciaGeneral =
@@ -12857,6 +12890,11 @@ const groupedHtml =
         .map(([groupName, groupCards]) => {
 
             const groupStats = groupedStats[groupName];
+            const financeStats =
+            groupedFinance[groupName] || {
+                ingresos: 0,
+                movimientos: 0
+            };
 
             const attendance =
                 groupStats.inscritos > 0
@@ -12918,7 +12956,33 @@ const groupedHtml =
                         <strong>${attendance.toFixed(1)}%</strong>
                         <span>Asistencia</span>
                     </div>
+                    <div class="summary-item finance-item">
+                        <strong>
+                            ${formatCurrency(financeStats.ingresos)}
+                        </strong>
+                        <span>Ingresos</span>
+                    </div>
 
+                    <div class="summary-item finance-item">
+                        <strong>
+                            ${financeStats.movimientos}
+                        </strong>
+                        <span>Movimientos</span>
+                    </div>
+
+                    <div class="summary-item finance-item">
+                        <strong>
+                            ${
+                                groupStats.presentes > 0
+                                    ? formatCurrency(
+                                        financeStats.ingresos /
+                                        groupStats.presentes
+                                    )
+                                    : 'RD$0'
+                            }
+                        </strong>
+                        <span>Por Asistente</span>
+                    </div>
                     <div
                         class="group-state-badge"
                         style="background:${badgeColor};">
